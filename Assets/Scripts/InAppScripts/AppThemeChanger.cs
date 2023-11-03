@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class AppThemeChanger : MonoBehaviour
 {
@@ -13,10 +14,14 @@ public class AppThemeChanger : MonoBehaviour
         if (useDarkTheme)
         {
             cam.backgroundColor = DarkThemeColor;
+            ReferenceManager.instance.LoadingManager.gameObject.GetComponent<Image>().color = DarkThemeColor;
+            ReferenceManager.instance.PopupManager.gameObject.GetComponent<Image>().color = DarkThemeColor;
         }
         else
         {
             cam.backgroundColor = Color.white;
+            ReferenceManager.instance.LoadingManager.gameObject.GetComponent<Image>().color = Color.white;
+            ReferenceManager.instance.PopupManager.gameObject.GetComponent<Image>().color = Color.white;
         }
     }
 }
