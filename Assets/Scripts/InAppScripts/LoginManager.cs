@@ -1,10 +1,8 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Newtonsoft.Json;
 using TMPro;
 using System;
-using Newtonsoft.Json;
 
 public class LoginManager : MonoBehaviour
 {
@@ -17,6 +15,12 @@ public class LoginManager : MonoBehaviour
     public TMP_Dropdown Gender_DropDown;
     public TMP_InputField BirthDate_InputField;
     public TMP_InputField ReasonForDownload_InputField;
+    public FetchedInterests FetchedInterestsPrefab;
+    [HideInInspector]public List<FetchedInterests> SelectedFetchedInterests = new List<FetchedInterests>();
+    public TMP_InputField Other;
+    public TMP_InputField LevelOfFitness;
+    public List<JointMono> JointMonos = new List<JointMono>();
+    public bool isAdvancedSurvey;
     /// <summary>
     /// Login
     /// </summary>
@@ -25,10 +29,15 @@ public class LoginManager : MonoBehaviour
 
     private void Start()
     {
-        //if (string.IsNullOrEmpty(PlayerPrefs.GetString(StringConstants.COUNTRYRESPONSE)))
+        if (string.IsNullOrEmpty(PlayerPrefs.GetString(StringConstants.COUNTRYRESPONSE)))
             GetCountries();
-        //else
-        //    ProcessCountries(PlayerPrefs.GetString(StringConstants.COUNTRYRESPONSE));
+        else
+            ProcessCountries(PlayerPrefs.GetString(StringConstants.COUNTRYRESPONSE));
+    }
+
+    public void SetIsAdvancedSurvey(bool value)
+    {
+        isAdvancedSurvey = value;
     }
 
     public void GetCountries()
@@ -41,6 +50,43 @@ public class LoginManager : MonoBehaviour
             },
             onError: (error) =>
             {
+                ReferenceManager.instance.PopupManager.Show("Getting Countries Failed!", $"Reasons are: {error}");
+                Debug.LogError($"Error: {error}");
+            });
+    }
+    public void GetInterestsList()
+    {
+        ReferenceManager.instance.LoadingManager.ReasonLoading_Text.text = "Getting List of Interests Questions";
+        APIHandler.instance.Get("General/GetInterests",
+            onSuccess: (response) =>
+            {
+                InterestsResponse interestsResponse = JsonConvert.DeserializeObject<InterestsResponse>(response);
+                if (interestsResponse.isSuccess)
+                {
+                    foreach(var item in interestsResponse.result)
+                    {
+                        FetchedInterests fetchedInterests = Instantiate(FetchedInterestsPrefab, FetchedInterestsPrefab.transform.parent);
+                        item.name = GeneralStaticManager.AddSpacesToSentence(item.name, true);
+                        fetchedInterests.Id = item.id;
+                        fetchedInterests.gameObject.SetActive(true);
+                        fetchedInterests.name = item.name;
+                        fetchedInterests.ItemName.text = item.name;
+                    }
+                }
+                if (interestsResponse.isError)
+                {
+                    string reasons = "";
+                    foreach (var item in interestsResponse.serviceErrors)
+                    {
+                        reasons += $"\n {item.code} {item.description}";
+                    }
+                    ReferenceManager.instance.PopupManager.Show("Getting Interests Questions Failed!", $"Reasons are: {reasons}");
+                    Debug.Log($"{interestsResponse.serviceErrors}");
+                }
+            },
+            onError: (error) =>
+            {
+                ReferenceManager.instance.PopupManager.Show("Getting Interests Questions Failed!", $"Reasons are: {error}");
                 Debug.LogError($"Error: {error}");
             });
     }
@@ -64,6 +110,8 @@ public class LoginManager : MonoBehaviour
             Country_DropDown.AddOptions(optionDatas);
             if (string.IsNullOrEmpty(PlayerPrefs.GetString(StringConstants.COUNTRYRESPONSE)))
                 ReferenceManager.instance.PopupManager.Show("Success!", "Countries Fetched");
+
+            GetInterestsList();
         }
         if (countryResponse.isError)
         {
@@ -81,14 +129,50 @@ public class LoginManager : MonoBehaviour
     public void SignUserUp()
     {
         ReferenceManager.instance.LoadingManager.ReasonLoading_Text.text = "Signing You Up!";
+        string interestIds = "";
+        foreach(var item in SelectedFetchedInterests)
+        {
+            if (string.IsNullOrWhiteSpace(interestIds))
+            {
+                interestIds = item.Id.ToString();
+            }
+            else
+            {
+                interestIds += "," + item.Id.ToString();
+            }
+        }
+        string advancedSurveyJson = "";
+        if (isAdvancedSurvey)
+        {
+            JointBody jointBody = new JointBody();
+            foreach(var item in JointMonos)
+            {
+                Joint joint = new Joint()
+                {
+                    JointType = item.JointType,
+                    ExperiencePain = item.ExperiencePain,
+                    Healthy = item.Healthy,
+                    PreviousSurgery = item.PreviousSurgery,
+                    ResultOfInjury = item.ResultOfInjury
+                };
+                jointBody.Joints.Add(joint);
+                jointBody.Other = Other.text;
+                jointBody.LevelOfFitness = LevelOfFitness.text;
+            }
+            advancedSurveyJson = JsonConvert.SerializeObject(jointBody);
+        }
+            
+        
         SignupBody signupBody = new SignupBody()
         {
-            countryId = Country_DropDown.value + 1,
+            countryId = Country_DropDown.value,
             email = Email_InputField.text,
             password = Password_InputField.text,
             genderId = Gender_DropDown.value,
             birthDate = DateTime.Parse(BirthDate_InputField.text + "-01-01"),
-            reasonForDownload = ReasonForDownload_InputField.text
+            reasonForDownload = ReasonForDownload_InputField.text,
+            interests = interestIds,
+            AdvancedSurvey = isAdvancedSurvey? advancedSurveyJson:null
         };
         string jsonData = JsonConvert.SerializeObject(signupBody);
         APIHandler.instance.Post("Auth/Signup",jsonData,
@@ -111,6 +195,7 @@ public class LoginManager : MonoBehaviour
                }
                ReferenceManager.instance.SignupPanel.SetActive(false);
                ReferenceManager.instance.SigninPanel.SetActive(true);
+               ClearAllFields();
                Debug.Log($"Success: {response}");
 
            },
@@ -136,20 +221,21 @@ public class LoginManager : MonoBehaviour
         APIHandler.instance.Post("Auth/Login", jsonData,
           onSuccess: (response) =>
           {
-              SignupResponse signupResponse = JsonConvert.DeserializeObject<SignupResponse>(response);
-              if (signupResponse.isSuccess)
+              SignInResponse signinResponse = JsonConvert.DeserializeObject<SignInResponse>(response);
+              if (signinResponse.isSuccess)
               {
                   ReferenceManager.instance.PopupManager.Show("Success!", "You have successfully signed in");
+                  StringConstants.TOKEN = signinResponse.result.token;
               }
-              if (signupResponse.isError)
+              if (signinResponse.isError)
               {
                   string reasons = "";
-                  foreach (var item in signupResponse.serviceErrors)
+                  foreach (var item in signinResponse.serviceErrors)
                   {
                       reasons += $"\n {item.code} {item.description}";
                   }
                   ReferenceManager.instance.PopupManager.Show("Signin Failed!", $"Reasons are: {reasons}");
-                  Debug.Log($"{signupResponse.serviceErrors}");
+                  Debug.Log($"{signinResponse.serviceErrors}");
               }
               ReferenceManager.instance.SignupPanel.SetActive(false);
               ReferenceManager.instance.SigninPanel.SetActive(true);
@@ -162,4 +248,14 @@ public class LoginManager : MonoBehaviour
               Debug.LogError($"Error: {error}");
           });
     }
+
+   public void ClearAllFields()
+    {
+        Email_InputField.text = string.Empty;
+        Password_InputField.text = string.Empty;
+        BirthDate_InputField.text = string.Empty;
+        ReasonForDownload_InputField.text = string.Empty;
+    }
+
+    
 }

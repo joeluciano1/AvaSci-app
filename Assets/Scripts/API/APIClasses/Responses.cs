@@ -31,7 +31,7 @@ public class ServiceError
 }
 
 
-public class Result
+public class SignupResult
 {
     public string message { get; set; }
 }
@@ -41,6 +41,35 @@ public class SignupResponse
     public bool isSuccess { get; set; }
     public bool isError { get; set; }
     public int status { get; set; }
-    public Result result { get; set; }
+    public SignupResult result { get; set; }
+    public List<ServiceError> serviceErrors { get; set; }
+}
+
+public class Interest
+{
+    public int id { get; set; }
+    public string name { get; set; }
+}
+
+public class InterestsResponse
+{
+    public bool isSuccess { get; set; }
+    public bool isError { get; set; }
+    public int status { get; set; }
+    public List<Interest> result { get; set; }
+    public List<ServiceError> serviceErrors { get; set; }
+}
+
+public class SignInResult
+{
+    public string token { get; set; }
+}
+
+public class SignInResponse
+{
+    public bool isSuccess { get; set; }
+    public bool isError { get; set; }
+    public int status { get; set; }
+    public SignInResult result { get; set; }
     public List<ServiceError> serviceErrors { get; set; }
 }
