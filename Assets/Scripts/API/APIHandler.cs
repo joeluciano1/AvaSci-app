@@ -16,12 +16,13 @@ public class APIHandler : MonoBehaviour
 
     public void Get(string endpoint, System.Action<string> onSuccess, System.Action<string> onError)
     {
+        ReferenceManager.instance.LoadingManager.Show($"Working on <b>{endpoint.Split('/')[1]}</b> in the backend");
         StartCoroutine(GetRequest($"{StringConstants.BASEENDPOINT}/{endpoint}", onSuccess, onError));
     }
 
     private IEnumerator GetRequest(string url, System.Action<string> onSuccess, System.Action<string> onError)
     {
-        ReferenceManager.instance.LoadingManager.gameObject.SetActive(true);
+       
         using (UnityWebRequest www = UnityWebRequest.Get(url))
         {
             yield return www.SendWebRequest();
@@ -34,18 +35,19 @@ public class APIHandler : MonoBehaviour
             {
                 onSuccess?.Invoke(www.downloadHandler.text);
             }
-            ReferenceManager.instance.LoadingManager.gameObject.SetActive(false);
+            ReferenceManager.instance.LoadingManager.Hide();
         }
     }
 
     public void Post(string endpoint, string json, System.Action<string> onSuccess, System.Action<string> onError)
     {
+        ReferenceManager.instance.LoadingManager.Show($"Working on <b>{endpoint.Split('/')[1]}</b> in the backend");
         StartCoroutine(PostRequest($"{StringConstants.BASEENDPOINT}/{endpoint}", json, onSuccess, onError));
     }
 
     private IEnumerator PostRequest(string url, string json, System.Action<string> onSuccess, System.Action<string> onError)
     {
-        ReferenceManager.instance.LoadingManager.gameObject.SetActive(true);
+        
         var request = new UnityWebRequest(url, "POST");
         byte[] jsonToSend = new System.Text.UTF8Encoding().GetBytes(json);
         request.uploadHandler = (UploadHandler)new UploadHandlerRaw(jsonToSend);
@@ -62,6 +64,6 @@ public class APIHandler : MonoBehaviour
         {
             onSuccess?.Invoke(request.downloadHandler.text);
         }
-        ReferenceManager.instance.LoadingManager.gameObject.SetActive(false);
+        ReferenceManager.instance.LoadingManager.Hide();
     }
 }

@@ -63,6 +63,7 @@ public class InterestsResponse
 public class SignInResult
 {
     public string token { get; set; }
+    public string UserName { get; set; }
 }
 
 public class SignInResponse
@@ -73,3 +74,19 @@ public class SignInResponse
     public SignInResult result { get; set; }
     public List<ServiceError> serviceErrors { get; set; }
 }
+
+public class GetReasonResult
+{
+    public int id { get; set; }
+    public string name { get; set; }
+}
+
+public class GetReasonResponse
+{
+    public bool isSuccess { get; set; }
+    public bool isError { get; set; }
+    public int status { get; set; }
+    public List<GetReasonResult> result { get; set; }
+    public List<ServiceError> serviceErrors { get; set; }
+}
+

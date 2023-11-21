@@ -1,10 +1,13 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using System.Text;
 using UnityEngine;
 
 public static class GeneralStaticManager 
 {
+    public static Dictionary<string, string> GlobalVar = new Dictionary<string, string>();
+
     public static string AddSpacesToSentence(string text, bool preserveAcronyms)
     {
         if (string.IsNullOrWhiteSpace(text))
@@ -21,5 +24,17 @@ public static class GeneralStaticManager
             newText.Append(text[i]);
         }
         return newText.ToString();
+    }
+
+    [DllImport("__Internal")]
+    private static extern void _OpenFile(string path);
+
+    public static void OpenFile(string path)
+    {
+#if UNITY_IOS && !UNITY_EDITOR
+        _OpenFile(path);
+#else
+        Debug.Log("Only IOS");
+#endif
     }
 }

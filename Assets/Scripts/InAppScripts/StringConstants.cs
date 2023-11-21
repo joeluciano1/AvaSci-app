@@ -8,4 +8,10 @@ public static class StringConstants
     public const string BASEENDPOINT = "https://avasci-backend.azurewebsites.net/api/v1";
     public const string COUNTRYRESPONSE = "CountryResponse";
     public static string TOKEN;
+
+    /// <summary>
+    /// PlayerPrefs
+    /// </summary>
+    public const string LOGINEMAIL = "LoginEmail";
+    public const string LOGINPASSWORD = "LoginPass";
 }

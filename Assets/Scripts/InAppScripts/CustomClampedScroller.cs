@@ -22,7 +22,7 @@ public  class CustomClampedScroller : MonoBehaviour
 
     private void Update()
     {
-        contentPanel.anchoredPosition = Vector2.Lerp(contentPanel.anchoredPosition, TargetPosition,0.02f);
+        contentPanel.anchoredPosition = Vector2.Lerp(contentPanel.anchoredPosition, TargetPosition,0.5f);
               
     }
 }

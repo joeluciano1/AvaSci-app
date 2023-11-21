@@ -14,13 +14,15 @@ public class LoginManager : MonoBehaviour
     public TMP_InputField Password_InputField;
     public TMP_Dropdown Gender_DropDown;
     public TMP_InputField BirthDate_InputField;
-    public TMP_InputField ReasonForDownload_InputField;
     public FetchedInterests FetchedInterestsPrefab;
+    public FetchedReasons FetchedReasonsPrefab;
     [HideInInspector]public List<FetchedInterests> SelectedFetchedInterests = new List<FetchedInterests>();
+    [HideInInspector] public List<FetchedReasons> SelectedFetchedReasons = new List<FetchedReasons>();
     public TMP_InputField Other;
     public TMP_InputField LevelOfFitness;
     public List<JointMono> JointMonos = new List<JointMono>();
     public bool isAdvancedSurvey;
+    public int selectedCountryId;
     /// <summary>
     /// Login
     /// </summary>
@@ -29,10 +31,19 @@ public class LoginManager : MonoBehaviour
 
     private void Start()
     {
-        if (string.IsNullOrEmpty(PlayerPrefs.GetString(StringConstants.COUNTRYRESPONSE)))
-            GetCountries();
+        if(string.IsNullOrWhiteSpace(PlayerPrefs.GetString(StringConstants.LOGINEMAIL)))
+        {
+            ReferenceManager.instance.SignupPanel.SetActive(true);
+            ReferenceManager.instance.SigninPanel.SetActive(false);
+        }
         else
-            ProcessCountries(PlayerPrefs.GetString(StringConstants.COUNTRYRESPONSE));
+        {
+            ReferenceManager.instance.SignupPanel.SetActive(false);
+            ReferenceManager.instance.SigninPanel.SetActive(false);
+            LoginEmail_InputField.text = PlayerPrefs.GetString(StringConstants.LOGINEMAIL);
+            LoginPassword_InputField.text = PlayerPrefs.GetString(StringConstants.LOGINPASSWORD);
+            SignUserIn();
+        }
     }
 
     public void SetIsAdvancedSurvey(bool value)
@@ -54,6 +65,43 @@ public class LoginManager : MonoBehaviour
                 Debug.LogError($"Error: {error}");
             });
     }
+
+    public void GetReasonsList()
+    {
+        APIHandler.instance.Get("General/GetReasons",
+            onSuccess: (response) =>
+            {
+                GetReasonResponse reasonResponse = JsonConvert.DeserializeObject<GetReasonResponse>(response);
+                if (reasonResponse.isSuccess)
+                {
+                    foreach (var item in reasonResponse.result)
+                    {
+                        FetchedReasons fetchedReasons = Instantiate(FetchedReasonsPrefab, FetchedReasonsPrefab.transform.parent);
+                        item.name = GeneralStaticManager.AddSpacesToSentence(item.name, true);
+                        fetchedReasons.Id = item.id;
+                        fetchedReasons.gameObject.SetActive(true);
+                        fetchedReasons.name = item.name;
+                        fetchedReasons.ItemName.text = item.name;
+                    }
+                }
+                if (reasonResponse.isError)
+                {
+                    string reasons = "";
+                    foreach (var item in reasonResponse.serviceErrors)
+                    {
+                        reasons += $"\n {item.code} {item.description}";
+                    }
+                    ReferenceManager.instance.PopupManager.Show("Getting Reasons Failed!", $"Reasons are: {reasons}");
+                    Debug.Log($"{reasonResponse.serviceErrors}");
+                }
+            },
+            onError: (error) =>
+            {
+                ReferenceManager.instance.PopupManager.Show("Getting Reasons Failed!", $"Reasons are: {error}");
+                Debug.LogError($"Error: {error}");
+            });
+    }
+
     public void GetInterestsList()
     {
         ReferenceManager.instance.LoadingManager.ReasonLoading_Text.text = "Getting List of Interests Questions";
@@ -111,7 +159,6 @@ public class LoginManager : MonoBehaviour
             if (string.IsNullOrEmpty(PlayerPrefs.GetString(StringConstants.COUNTRYRESPONSE)))
                 ReferenceManager.instance.PopupManager.Show("Success!", "Countries Fetched");
 
-            GetInterestsList();
         }
         if (countryResponse.isError)
         {
@@ -141,6 +188,20 @@ public class LoginManager : MonoBehaviour
                 interestIds += "," + item.Id.ToString();
             }
         }
+
+        string reasonsIds = "";
+        foreach (var item in SelectedFetchedReasons)
+        {
+            if (string.IsNullOrWhiteSpace(reasonsIds))
+            {
+                reasonsIds = item.Id.ToString();
+            }
+            else
+            {
+                reasonsIds += "," + item.Id.ToString();
+            }
+        }
+
         string advancedSurveyJson = "";
         if (isAdvancedSurvey)
         {
@@ -165,12 +226,12 @@ public class LoginManager : MonoBehaviour
         
         SignupBody signupBody = new SignupBody()
         {
-            countryId = Country_DropDown.value,
+            countryId = selectedCountryId,
             email = Email_InputField.text,
             password = Password_InputField.text,
             genderId = Gender_DropDown.value,
             birthDate = DateTime.Parse(BirthDate_InputField.text + "-01-01"),
-            reasonForDownload = ReasonForDownload_InputField.text,
+            reasonForDownload = reasonsIds,
             interests = interestIds,
             AdvancedSurvey = isAdvancedSurvey? advancedSurveyJson:null
         };
@@ -226,6 +287,12 @@ public class LoginManager : MonoBehaviour
               {
                   ReferenceManager.instance.PopupManager.Show("Success!", "You have successfully signed in");
                   StringConstants.TOKEN = signinResponse.result.token;
+                  GeneralStaticManager.GlobalVar.Add("UserName", signinResponse.result.UserName);
+                  ReferenceManager.instance.SigninPanel.SetActive(false);
+                  PlayerPrefs.SetString(StringConstants.LOGINEMAIL, LoginEmail_InputField.text);
+                  PlayerPrefs.SetString(StringConstants.LOGINPASSWORD, LoginPassword_InputField.text);
+                  ReferenceManager.instance.UsernameText.text = signinResponse.result.UserName;
+                  ReferenceManager.instance.Screen1.SetActive(true);
               }
               if (signinResponse.isError)
               {
@@ -237,8 +304,7 @@ public class LoginManager : MonoBehaviour
                   ReferenceManager.instance.PopupManager.Show("Signin Failed!", $"Reasons are: {reasons}");
                   Debug.Log($"{signinResponse.serviceErrors}");
               }
-              ReferenceManager.instance.SignupPanel.SetActive(false);
-              ReferenceManager.instance.SigninPanel.SetActive(true);
+              
               Debug.Log($"Success: {response}");
 
           },
@@ -254,7 +320,6 @@ public class LoginManager : MonoBehaviour
         Email_InputField.text = string.Empty;
         Password_InputField.text = string.Empty;
         BirthDate_InputField.text = string.Empty;
-        ReasonForDownload_InputField.text = string.Empty;
     }
 
     
