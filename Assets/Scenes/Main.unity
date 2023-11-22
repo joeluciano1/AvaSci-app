@@ -22540,6 +22540,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Id: 0
   countryName: 
+  SelectedCountryNameCaption: {fileID: 228508258}
 --- !u!1 &1119419501
 GameObject:
   m_ObjectHideFlags: 0
@@ -37479,7 +37480,7 @@ MonoBehaviour:
   m_Interactable: 1
   m_TargetGraphic: {fileID: 0}
   m_Template: {fileID: 179173438}
-  m_CaptionText: {fileID: 228508258}
+  m_CaptionText: {fileID: 0}
   m_CaptionImage: {fileID: 0}
   m_Placeholder: {fileID: 0}
   m_ItemText: {fileID: 697780040}

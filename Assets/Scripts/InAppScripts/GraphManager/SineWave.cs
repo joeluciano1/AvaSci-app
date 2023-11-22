@@ -19,6 +19,7 @@ public class SineWave : MonoBehaviour
     public bool zoomOut;
     public void Start()
     {
+        
         graphChart.DataSource.ClearCategory("Spine");
         graphChart.DataSource.ClearCategory("Left Elbow");
         

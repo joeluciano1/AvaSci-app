@@ -39,7 +39,7 @@ public class ParentChangerDropDown : MonoBehaviour
             }
             if(item.countryName.Contains("United States"))
             {
-                item.transform.SetSiblingIndex(0);
+                item.transform.SetSiblingIndex(1);
             }
         }
     }
