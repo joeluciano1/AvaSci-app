@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7e96d85e11a5141a7b817ebea00eb249, type: 3}
+  m_Name: iPhoneX (Landscape)
+  m_EditorClassIdentifier: 
+  DisplayName: iPhoneX (Landscape)
+  Orientation: 3
+  ModelNames:
+  - iPhone10,3
+  - iPhone10,6
+  Width: 2436
+  Height: 1125
+  UnsafeAreaTop: 0
+  UnsafeAreaBottom: 63
+  UnsafeAreaLeft: 132
+  UnsafeAreaRight: 132
+  Cutouts:
+  - serializedVersion: 2
+    x: 2346
+    y: 250
+    width: 90
+    height: 625

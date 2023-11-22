@@ -4,6 +4,7 @@ using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
+using LightBuzz.BodyTracking;
 
 public class JointMono : MonoBehaviour
 {

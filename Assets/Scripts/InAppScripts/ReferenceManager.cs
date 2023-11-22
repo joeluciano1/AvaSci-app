@@ -4,6 +4,7 @@ using UnityEngine;
 using TMPro;
 using System;
 using System.Linq;
+using LightBuzz.BodyTracking;
 
 public class ReferenceManager : MonoBehaviour
 {

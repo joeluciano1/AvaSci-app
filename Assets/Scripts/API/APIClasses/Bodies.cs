@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using LightBuzz.BodyTracking;
 
 public class Bodies
 {
@@ -23,7 +24,7 @@ public class LoginBody
     public string password { get; set; }
 }
 
-public class Joint
+public class JointData
 {
     public JointType JointType { get; set; }
     public bool Healthy { get; set; }
@@ -34,22 +35,9 @@ public class Joint
 
 public class JointBody
 {
-    public List<Joint> Joints = new List<Joint>();
+    public List<JointData> Joints = new List<JointData>();
     public string Other { get; set; }
     public string LevelOfFitness { get; set; }
 }
 
-public enum JointType
-{
-    Cervical,
-    ShoulderRight,
-    ShoulderLeft,
-    Spine,
-    HipRight,
-    HipLeft,
-    KneeRight,
-    KneeLeft,
-    AnkleRight,
-    AnkleLeft,
-}
 

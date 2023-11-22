@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7e96d85e11a5141a7b817ebea00eb249, type: 3}
+  m_Name: HuaweiMate20Pro (Landscape)
+  m_EditorClassIdentifier: 
+  DisplayName: HuaweiMate20Pro (Landscape)
+  Orientation: 3
+  ModelNames:
+  - HUAWEI LYA-L29
+  Width: 3120
+  Height: 1440
+  UnsafeAreaTop: 0
+  UnsafeAreaBottom: 0
+  UnsafeAreaLeft: 100
+  UnsafeAreaRight: 0
+  Cutouts:
+  - serializedVersion: 2
+    x: 0
+    y: 374
+    width: 100
+    height: 693

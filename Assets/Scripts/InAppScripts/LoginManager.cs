@@ -208,7 +208,7 @@ public class LoginManager : MonoBehaviour
             JointBody jointBody = new JointBody();
             foreach(var item in JointMonos)
             {
-                Joint joint = new Joint()
+                JointData joint = new JointData()
                 {
                     JointType = item.JointType,
                     ExperiencePain = item.ExperiencePain,

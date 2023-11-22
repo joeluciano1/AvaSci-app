@@ -1,5 +1,18 @@
 {
   "dependencies": {
+    "com.lightbuzz.autocanvasscaler": {
+      "version": "https://github.com/lightbuzz/unity-canvas-scaler.git",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {},
+      "hash": "cb43705e2c6fa2c8d6de517d940ffb1f6359efe6"
+    },
+    "com.lightbuzz.bodytracking": {
+      "version": "file:/Users/ehtisham/Downloads/com.lightbuzz.bodytracking-6.0.0.tgz",
+      "depth": 0,
+      "source": "local-tarball",
+      "dependencies": {}
+    },
     "com.unity.2d.sprite": {
       "version": "1.0.0",
       "depth": 0,
@@ -147,6 +160,13 @@
         "com.unity.modules.jsonserialize": "1.0.0"
       },
       "url": "https://packages.unity.com"
+    },
+    "com.yasirkula.nativeshare": {
+      "version": "https://github.com/yasirkula/unitynativeshare.git",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {},
+      "hash": "70c1cc84230f4c60381a2955d4d64c85e4da3526"
     },
     "com.unity.modules.ai": {
       "version": "1.0.0",
