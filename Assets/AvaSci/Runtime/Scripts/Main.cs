@@ -40,7 +40,7 @@ namespace LightBuzz.AvaSci
 
         private async void Start()
         {
-            _version.text = $"v{Application.version}";
+            //_version.text = $"v{Application.version}";
             
             await _settingsView.Load();
 

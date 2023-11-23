@@ -81,7 +81,7 @@ public class ButtonHandler : MonoBehaviour
 
         //Make a temporary texture and read pixels from it
         Texture2D ss = new Texture2D(width, height, TextureFormat.ARGB32, false);
-        ss.ReadPixels(new Rect(0, 0, width, height), 0, 0);
+        ss.ReadPixels(new Rect(startX, startY, width, height), 0, 0);
         ss.Apply();
         
         ss = Resize(ss, 446, 288);

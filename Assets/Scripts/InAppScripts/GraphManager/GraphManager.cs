@@ -16,6 +16,7 @@ public class GraphManager : MonoBehaviour
     {
         ReferenceManager.instance.graphManagers.ForEach(x => x.gameObject.SetActive(false));
         var jointGraph = ReferenceManager.instance.graphManagers.FirstOrDefault(x => (int)x.JointType == value);
+        if(jointGraph !=null)
         jointGraph.gameObject.SetActive(true);
     }
 }
