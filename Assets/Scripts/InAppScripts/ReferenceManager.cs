@@ -5,6 +5,7 @@ using TMPro;
 using System;
 using System.Linq;
 using LightBuzz.BodyTracking;
+using LightBuzz.AvaSci.Measurements;
 
 public class ReferenceManager : MonoBehaviour
 {
@@ -25,28 +26,46 @@ public class ReferenceManager : MonoBehaviour
     /// </summary>
     ///
     public GameObject Screen1;
+
     private void Awake()
     {
         instance = this;
+    }
+
+    public  void GenerateGraph(MeasurementType measurementType)
+    {
+        
         List<string> jointTypes = new List<string>();
         List<TMP_Dropdown.OptionData> options = new List<TMP_Dropdown.OptionData>();
-        jointTypes = Enum.GetNames(typeof(JointType)).ToList();
+        jointTypes = Enum.GetNames(typeof(MeasurementType)).ToList();
         foreach(var item in jointTypes)
         {
-            GraphManager graphManager = Instantiate(GraphmanagerPrefab, GraphmanagerPrefab.transform.parent);
-            graphManager.Title.text = item +" Joint";
-            graphManager.JointType = Enum.Parse<JointType>(item);
-            graphManagers.Add(graphManager);
-            graphManager.name = item;
-            TMP_Dropdown.OptionData optionData = new TMP_Dropdown.OptionData()
+            if (Enum.GetName(typeof(MeasurementType), measurementType) == item && !ListOfJointsDropDown.options.Any(x=>x.text == item))
             {
-                text = item
-            };
-            options.Add(optionData);
-            ListOfJointsDropDown.onValueChanged.AddListener((int value) => graphManager.EnableMe(value-1));
-            graphManager.MySineWave.Start();
+                GraphManager graphManager = Instantiate(GraphmanagerPrefab, GraphmanagerPrefab.transform.parent);
+                graphManager.Title.text = item + " Joint";
+                graphManager.JointType = Enum.Parse<MeasurementType>(item);
+                graphManagers.Add(graphManager);
+                graphManager.name = item;
+                TMP_Dropdown.OptionData optionData = new TMP_Dropdown.OptionData()
+                {
+                    text = item
+                };
+                options.Add(optionData);
+                ListOfJointsDropDown.onValueChanged.AddListener((int value) => graphManager.EnableMe(value - 1));
+                graphManager.MySineWave.Start();
+            }
         }
         ListOfJointsDropDown.AddOptions(options);
         
+    }
+
+    public void ClearGraphs()
+    {
+        ListOfJointsDropDown.ClearOptions();
+        graphManagers.ForEach(x => Destroy(x.gameObject));
+        graphManagers.Clear();
+
+        ListOfJointsDropDown.options.Add(new TMP_Dropdown.OptionData() { text = "Select joint type..." });
     }
 }

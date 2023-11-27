@@ -9,6 +9,6 @@ public class ObjectRotator : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        transform.Rotate(RotationSpeed);
+        transform.Rotate(RotationSpeed*Time.deltaTime);
     }
 }

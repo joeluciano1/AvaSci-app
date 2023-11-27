@@ -2,13 +2,14 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using LightBuzz.AvaSci.Measurements;
 using LightBuzz.BodyTracking;
 using UnityEngine;
 using UnityEngine.UI;
 
 public class GraphManager : MonoBehaviour
 {
-    public JointType JointType;
+    public MeasurementType JointType;
     public SineWave MySineWave;
     public Text Title;
 

@@ -6580,7 +6580,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 511ef64dc78394a068f3673f504ec76a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  RotationSpeed: {x: 0, y: 0, z: -10}
+  RotationSpeed: {x: 0, y: 0, z: -300}
 --- !u!1 &541720721
 GameObject:
   m_ObjectHideFlags: 0
@@ -10713,6 +10713,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1193545770941761606, guid: cfe600f72b11643bcbf19767db7e8aea, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6586518628618987628, guid: cfe600f72b11643bcbf19767db7e8aea, type: 3}
+      propertyPath: m_IsActive
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7798758123816622018, guid: cfe600f72b11643bcbf19767db7e8aea, type: 3}

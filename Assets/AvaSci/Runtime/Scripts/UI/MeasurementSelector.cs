@@ -51,6 +51,7 @@ namespace LightBuzz.AvaSci.UI
             else
                 _selectedMeasurements.Remove(type);
 
+            
             RaiseEvent();
         }
 
