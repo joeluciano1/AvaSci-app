@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
@@ -25,7 +26,10 @@ public static class GeneralStaticManager
         }
         return newText.ToString();
     }
-
+    public static double DegreesToRadians(double degrees)
+    {
+        return (Math.PI / 180) * degrees;
+    }
     [DllImport("__Internal")]
     private static extern void _OpenFile(string path);
 

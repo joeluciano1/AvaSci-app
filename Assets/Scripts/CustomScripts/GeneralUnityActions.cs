@@ -7,27 +7,34 @@ public class GeneralUnityActions : MonoBehaviour
 {
 
 
-    public UnityEvent ActionToPerform;
-    public TypeOfAction typeOfAction;
+    public UnityEvent OnEnableAction;
+    public UnityEvent OnDisableAction;
+    public UnityEvent OnDistroyAction;
+    public UnityEvent WhenNoGraphAction;
 
     private void OnEnable()
     {
-        if(typeOfAction == TypeOfAction.LightbuzzWorld)
-           ActionToPerform.Invoke();
+        
+        OnEnableAction.Invoke();
+
     }
 
-    void Start()
+    private void OnDisable()
     {
-        
+        OnDisableAction.Invoke();
+        if(ReferenceManager.instance.graphManagers.Count == 0)
+        {
+            WhenNoGraphAction.Invoke();
+        }
     }
 
-    
-    void Update()
+    private void OnDestroy()
     {
-        
+        OnDistroyAction.Invoke();
+        if (ReferenceManager.instance.graphManagers.Count == 0)
+        {
+            WhenNoGraphAction.Invoke();
+        }
     }
-}
-public enum TypeOfAction
-{
-    LightbuzzWorld
+
 }

@@ -228,7 +228,6 @@ GameObject:
   - component: {fileID: 813307979}
   - component: {fileID: 813307978}
   - component: {fileID: 813307977}
-  - component: {fileID: 813307980}
   - component: {fileID: 813307981}
   m_Layer: 0
   m_Name: EventSystem
@@ -291,21 +290,6 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &813307980
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 813307976}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 162c1d6927a8f415ebccade7b3b47d06, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  graphChart: {fileID: 844402621}
-  drawGraph: 0
-  X: 0
 --- !u!114 &813307981
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -353,7 +337,7 @@ MonoBehaviour:
   onValueChanged:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 813307980}
+      - m_Target: {fileID: 0}
         m_TargetAssemblyTypeName: SineWave, Assembly-CSharp
         m_MethodName: ToggleGraphReeadging
         m_Mode: 0
@@ -381,6 +365,7 @@ GameObject:
   - component: {fileID: 844402618}
   - component: {fileID: 844402617}
   - component: {fileID: 844402616}
+  - component: {fileID: 844402622}
   m_Layer: 5
   m_Name: GraphChart
   m_TagString: Untagged
@@ -625,7 +610,7 @@ MonoBehaviour:
   maintainLabelSize: 0
   autoScrollHorizontally: 0
   horizontalScrolling: 0
-  autoScrollVertically: 0
+  autoScrollVertically: 1
   verticalScrolling: 0
   raycastTarget: 1
   MousePan:
@@ -655,7 +640,7 @@ MonoBehaviour:
     verticalViewSize: 10
     verticalViewOrigin: 0
     mSerializedData:
-    - Name: Left Elbow
+    - Name: Player 1
       InitialData: []
       IsBezierCurve: 0
       SegmentsPerCurve: 10
@@ -677,7 +662,7 @@ MonoBehaviour:
       PointSize: 6.619999885559082
       ViewOrder: 0
       AllowNonFunctionsBeta: 0
-    - Name: Spine
+    - Name: Player 2
       InitialData: []
       IsBezierCurve: 0
       SegmentsPerCurve: 10
@@ -712,6 +697,20 @@ MonoBehaviour:
     top: 0
     right: 0
     bottom: 0
+--- !u!114 &844402622
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 844402614}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 70c1abbbcf5655346b75bc72dd74a703, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  AnimationTime: 3
+  ModifyRange: 1
 --- !u!1 &1033906593
 GameObject:
   m_ObjectHideFlags: 0

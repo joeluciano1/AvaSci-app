@@ -32,11 +32,11 @@ namespace LightBuzz.AvaSci.Measurements
         public void Reset(params MeasurementType[] types)
         {
             _measurements.Clear();
-            ReferenceManager.instance.ClearGraphs();
+            //ReferenceManager.instance.ClearGraphs();
             foreach (MeasurementType type in types)
             {
                 _measurements.Add(type, Measurement.Create(type));
-                ReferenceManager.instance.GenerateGraph(type);
+                //ReferenceManager.instance.GenerateGraph(type);
             }
         }
 

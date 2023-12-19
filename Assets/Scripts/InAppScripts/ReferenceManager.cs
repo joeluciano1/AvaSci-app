@@ -6,6 +6,9 @@ using System;
 using System.Linq;
 using LightBuzz.BodyTracking;
 using LightBuzz.AvaSci.Measurements;
+using LightBuzz.AvaSci;
+using LightBuzz.AvaSci.UI;
+using UnityEngine.UI;
 
 public class ReferenceManager : MonoBehaviour
 {
@@ -21,17 +24,21 @@ public class ReferenceManager : MonoBehaviour
     public List<GraphManager> graphManagers = new List<GraphManager>();
     public GraphManager GraphmanagerPrefab;
     public TMP_Dropdown ListOfJointsDropDown;
+    public GraphMinimizer GraphMinimizer;
+    public Dropdown sensorTypeDropDown;
     /// <summary>
     /// Screens
     /// </summary>
     ///
     public GameObject Screen1;
 
+    public Main LightBuzzMain;
+
     private void Awake()
     {
         instance = this;
     }
-
+   
     public  void GenerateGraph(MeasurementType measurementType)
     {
         
@@ -42,18 +49,11 @@ public class ReferenceManager : MonoBehaviour
         {
             if (Enum.GetName(typeof(MeasurementType), measurementType) == item && !ListOfJointsDropDown.options.Any(x=>x.text == item))
             {
-                GraphManager graphManager = Instantiate(GraphmanagerPrefab, GraphmanagerPrefab.transform.parent);
-                graphManager.Title.text = item + " Joint";
-                graphManager.JointType = Enum.Parse<MeasurementType>(item);
-                graphManagers.Add(graphManager);
-                graphManager.name = item;
                 TMP_Dropdown.OptionData optionData = new TMP_Dropdown.OptionData()
                 {
                     text = item
                 };
                 options.Add(optionData);
-                ListOfJointsDropDown.onValueChanged.AddListener((int value) => graphManager.EnableMe(value - 1));
-                graphManager.MySineWave.Start();
             }
         }
         ListOfJointsDropDown.AddOptions(options);
@@ -66,6 +66,22 @@ public class ReferenceManager : MonoBehaviour
         graphManagers.ForEach(x => Destroy(x.gameObject));
         graphManagers.Clear();
 
-        ListOfJointsDropDown.options.Add(new TMP_Dropdown.OptionData() { text = "Select joint type..." });
+        ListOfJointsDropDown.options.Add(new TMP_Dropdown.OptionData() { text = "Select graph type..." });
+    }
+
+    public float secondsSpan;
+
+    [ContextMenu("Test TimeSpan")]
+    public void Chalao()
+    {
+        StartCoroutine(TestRoutine());
+    }
+
+    IEnumerator TestRoutine()
+    {
+        DateTime abhikawakt = DateTime.Now;
+        yield return new WaitForSeconds(5);
+        TimeSpan span = DateTime.Now - abhikawakt;
+        secondsSpan = MathF.Round((float)span.TotalSeconds,2);
     }
 }

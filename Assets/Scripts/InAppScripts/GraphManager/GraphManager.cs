@@ -12,7 +12,8 @@ public class GraphManager : MonoBehaviour
     public MeasurementType JointType;
     public SineWave MySineWave;
     public Text Title;
-
+    public RectTransform MySSRef;
+    public Texture2D GraphImage;
     public void EnableMe(int value)
     {
         ReferenceManager.instance.graphManagers.ForEach(x => x.gameObject.SetActive(false));
@@ -20,6 +21,7 @@ public class GraphManager : MonoBehaviour
         if(jointGraph !=null)
         jointGraph.gameObject.SetActive(true);
     }
+    
 }
 
 

@@ -10,6 +10,11 @@ namespace ChartAndGraph
 {
     public partial class GraphData : ScrollableChartData, IInternalGraphData
     {
+        public void GetCategoryLine(string v, object lineMaterial, object lineDouble, object materialTiling)
+        {
+            throw new NotImplementedException();
+        }
+
         partial class Slider : BaseSlider
         {
 

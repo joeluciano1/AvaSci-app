@@ -1,14 +1,19 @@
-﻿using Syncfusion.Drawing;
+﻿using ChartAndGraph;
+using LightBuzz.AvaSci.Measurements;
+using Syncfusion.Drawing;
 using Syncfusion.Pdf;
 using Syncfusion.Pdf.Graphics;
 using Syncfusion.Pdf.Parsing;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using UnityEngine;
 using UnityEngine.UI;
+using static UnityEngine.UI.GridLayoutGroup;
 
 public class ButtonHandler : MonoBehaviour
 {
@@ -30,111 +35,160 @@ public class ButtonHandler : MonoBehaviour
     public Vector2 MaxValueTwoPosition;
     public Vector2 RangeValueOnePosition;
     public Vector2 RangeValueTwoPosition;
-
     public Vector2 GraphImagePosition;
-    public RectTransform rectTransform1;
+    
+    public Canvas MainCanvas;
+    public ScrollRect scrollView;
+
+    private void Start()
+    {
+        ScrollViewFocusFunctions.FocusOnItem(scrollView, ReferenceManager.instance.graphManagers[0].GetComponent<RectTransform>());
+    }
     public void GeneratePDFTest()
     {
-        
-        GraphData graphData = new GraphData()
+        List<GraphData> graphDatas = new List<GraphData>();
+        foreach (GraphManager MyGraphManager in ReferenceManager.instance.graphManagers)
         {
-            Graph1Name = "Left",
-            Graph2Name = "Right",
-            JointThatIsReported = ReferenceManager.instance.graphManagers.FirstOrDefault(x=>x.gameObject.activeSelf).name,
-            MaxGraph1Value = "56",
-            MaxGraph2Value = "60",
-            MinGraph1Value = "20",
-            MinGraph2Value = "34",
-            RangeGraph1Value = "12",
-            RangeGraph2Value = "35",
-            Username = GeneralStaticManager.GlobalVar["UserName"]
-        };
+            string jointsinReport = Enum.GetName(typeof(MeasurementType), MyGraphManager.MySineWave.MyMeasurementType);
+            string maxX = Math.Round(MyGraphManager.MySineWave.graphChart.DataSource.GetMaxXValue(),2).ToString();
+            string maxY = Math.Round(MyGraphManager.MySineWave.graphChart.DataSource.GetMaxYValue(),2).ToString();
 
-        TestButton(graphData);
+            string minX = Math.Round(MyGraphManager.MySineWave.graphChart.DataSource.GetMinXValue(),2).ToString();
+            string minY = Math.Round(MyGraphManager.MySineWave.graphChart.DataSource.GetMinYValue(),2).ToString();
+
+
+            GraphData graphData = new GraphData()
+            {
+                Graph1Name = "",
+                Graph2Name = "",
+                JointThatIsReported = jointsinReport,
+                MaxGraph1Value = maxY,
+                MaxGraph2Value = "",
+                MinGraph1Value = minY,
+                MinGraph2Value = "",
+                RangeGraph1Value = maxX,
+                RangeGraph2Value = "",
+                Username = GeneralStaticManager.GlobalVar["UserName"]
+            };
+
+            graphDatas.Add(graphData);
+        }
+        TestButton(graphDatas);
     }
 
-    public RectTransform rectT; // Assign the UI element which you wanna capture
-    public int width; // width of the object to capture
-    public int height; // height of the object to capture
     
+
     [ContextMenu("TakeScreenShot")]    
     
     public void CaptureRectTransform()
     {
-       StartCoroutine(takeScreenShot());
+        if (ReferenceManager.instance.GraphMinimizer.GraphToResize.preferredHeight == 0)
+        {
+            ReferenceManager.instance.PopupManager.Show("Not Allowed", "Please maximize the graph first",true);
+            return;
+        }
+        
+       
+
+        StartCoroutine(takeScreenShot());
     }
+    
     public IEnumerator takeScreenShot()
     {
-        yield return new WaitForEndOfFrame(); // it must be a coroutine 
+        MainCanvas.renderMode = RenderMode.ScreenSpaceOverlay;
+        Canvas.ForceUpdateCanvases();
+        foreach (GraphManager graphManager in ReferenceManager.instance.graphManagers)
+        {
+            //Code will throw error at runtime if this is removed
+            ScrollViewFocusFunctions.FocusOnItem(scrollView, graphManager.GetComponent<RectTransform>());
+            
+            yield return new WaitForEndOfFrame();
+            yield return new WaitForEndOfFrame();
+            //Get the corners of RectTransform rect and store it in a array vector
+            Vector3[] corners = new Vector3[4];
+            graphManager.MySSRef.GetWorldCorners(corners);
 
-        yield return new WaitForEndOfFrame();
+            //Remove 100 and you will get error
+            int width = ((int)corners[3].x - (int)corners[0].x) - 100;
+            int height = (int)corners[1].y - (int)corners[0].y;
+            var startX = corners[0].x;
+            var startY = corners[0].y;
 
-        //Get the corners of RectTransform rect and store it in a array vector
-        Vector3[] corners = new Vector3[4];
-        rectT.GetWorldCorners(corners);
+            //Make a temporary texture and read pixels from it
+            Texture2D ss = new Texture2D(width, height, TextureFormat.RGB24, false);
 
-        //Remove 100 and you will get error
-        int width = ((int)corners[3].x - (int)corners[0].x) - 100;
-        int height = (int)corners[1].y - (int)corners[0].y;
-        var startX = corners[0].x;
-        var startY = corners[0].y;
+            ss.ReadPixels(new Rect(startX, startY, width, height), 0, 0);
 
-        //Make a temporary texture and read pixels from it
-        Texture2D ss = new Texture2D(width, height, TextureFormat.ARGB32, false);
-        ss.ReadPixels(new Rect(startX, startY, width, height), 0, 0);
-        ss.Apply();
-        
-        ss = Resize(ss, 446, 288);
-        
-        
-        GraphImage = ss;
+            ss.Apply();
+
+            GraphImage = ss;
+            graphManager.GraphImage = Resize(GraphImage, 446, 288);
+            
+        }
+        ReferenceManager.instance.LoadingManager.Show("Generating PDF Report for you");
         GeneratePDFTest();
+        MainCanvas.renderMode = RenderMode.ScreenSpaceCamera;
 
     }
-    public async void TestButton(GraphData graphData)
+    public async void TestButton(List<GraphData> graphDatas)
     {
         //Create a new PDF document.
-
         PdfDocument document = new PdfDocument();
-        PdfPage page = document.Pages.Add();
-        PdfGraphics graphics = page.Graphics;
-        
+        foreach (GraphData graphData in graphDatas)
+        {
+            PdfPage page = document.Pages.Add();
+            PdfGraphics graphics = page.Graphics;
 
-        byte[] bytesHeader = headerImage.EncodeToPNG();
-        Stream stream1 = new MemoryStream(bytesHeader);
-        PdfBitmap pdfBitmapHeader = new PdfBitmap(stream1);
 
-        byte[] graphImageBytes = GraphImage.EncodeToPNG();
-        Stream graphImageStream = new MemoryStream(graphImageBytes);
-        PdfBitmap graphImageBitMap = new PdfBitmap(graphImageStream);
-        
+            byte[] bytesHeader = headerImage.EncodeToPNG();
+            Stream stream1 = new MemoryStream(bytesHeader);
+            PdfBitmap pdfBitmapHeader = new PdfBitmap(stream1);
 
-        PdfStringFormat format = new PdfStringFormat();
-        format.Alignment = PdfTextAlignment.Justify;
+            GraphImage = ReferenceManager.instance.graphManagers.FirstOrDefault(x => Enum.GetName(typeof(MeasurementType), x.JointType) == graphData.JointThatIsReported).GraphImage;
 
-        
-        graphics.DrawImage(pdfBitmapHeader, new PointF(0, 0), new SizeF(page.Size.Width - 100, page.Size.Height));
-        graphics.DrawString(graphData.Username, new PdfStandardFont(PdfFontFamily.Helvetica,12,PdfFontStyle.Bold), PdfBrushes.Black, UsernamePosition.ToPointF());
-        graphics.DrawString($"{System.DateTime.Now.ToString("MM/dd/yyyy")}", new PdfStandardFont(PdfFontFamily.Helvetica, 12, PdfFontStyle.Regular), PdfBrushes.Black, DatePosition.ToPointF());
-        graphics.DrawString(graphData.JointThatIsReported, new PdfStandardFont(PdfFontFamily.Helvetica, 12, PdfFontStyle.Bold|PdfFontStyle.Bold), PdfBrushes.Black, JointNamePosition.ToPointF());
-        graphics.DrawString("Min", new PdfStandardFont(PdfFontFamily.Helvetica, 10, PdfFontStyle.Bold), PdfBrushes.Black, MinHeadingPosition.ToPointF());
-        graphics.DrawString("Max", new PdfStandardFont(PdfFontFamily.Helvetica, 10, PdfFontStyle.Bold), PdfBrushes.Black, MaxHeadingPosition.ToPointF());
-        graphics.DrawString("Range", new PdfStandardFont(PdfFontFamily.Helvetica, 10, PdfFontStyle.Bold), PdfBrushes.Black, RangeHeadingPosition.ToPointF());
+            byte[] graphImageBytes = GraphImage.EncodeToPNG();
+            Stream graphImageStream = new MemoryStream(graphImageBytes);
+            PdfBitmap graphImageBitMap = new PdfBitmap(graphImageStream);
 
-        graphics.DrawString(graphData.Graph1Name, new PdfStandardFont(PdfFontFamily.Helvetica, 10, PdfFontStyle.Bold), PdfBrushes.Red, HeadingGOnePosition.ToPointF());
-        graphics.DrawString(graphData.Graph2Name, new PdfStandardFont(PdfFontFamily.Helvetica, 10, PdfFontStyle.Bold), PdfBrushes.Blue, HeadingGTwoPosition.ToPointF());
 
-        graphics.DrawString(graphData.MinGraph1Value+ "º", new PdfStandardFont(PdfFontFamily.Helvetica, 10, PdfFontStyle.Bold), PdfBrushes.Red, MinValueOnePosition.ToPointF() ,format);
-        graphics.DrawString(graphData.MinGraph2Value + "º", new PdfStandardFont(PdfFontFamily.Helvetica, 10, PdfFontStyle.Bold), PdfBrushes.BlueViolet, MinValueTwoPosition.ToPointF(), format);
+            PdfStringFormat format = new PdfStringFormat();
+            format.Alignment = PdfTextAlignment.Justify;
 
-        graphics.DrawString(graphData.MaxGraph1Value + "º", new PdfStandardFont(PdfFontFamily.Helvetica, 10, PdfFontStyle.Bold), PdfBrushes.Red, MaxValueOnePosition.ToPointF(), format);
-        graphics.DrawString(graphData.MaxGraph2Value + "º", new PdfStandardFont(PdfFontFamily.Helvetica, 10, PdfFontStyle.Bold), PdfBrushes.BlueViolet, MaxValueTwoPosition.ToPointF(), format);
 
-        graphics.DrawString(graphData.RangeGraph1Value + "º", new PdfStandardFont(PdfFontFamily.Helvetica, 10, PdfFontStyle.Bold), PdfBrushes.Red, RangeValueOnePosition.ToPointF(), format);
-        graphics.DrawString(graphData.RangeGraph2Value + "º", new PdfStandardFont(PdfFontFamily.Helvetica, 10, PdfFontStyle.Bold), PdfBrushes.BlueViolet, RangeValueTwoPosition.ToPointF(), format);
+            graphics.DrawImage(pdfBitmapHeader, new PointF(0, 0), new SizeF(page.Size.Width - 100, page.Size.Height));
+            graphics.DrawString(graphData.Username, new PdfStandardFont(PdfFontFamily.Helvetica, 12, PdfFontStyle.Bold), PdfBrushes.Black, UsernamePosition.ToPointF());
+            graphics.DrawString($"{System.DateTime.Now.ToString("MM/dd/yyyy")}", new PdfStandardFont(PdfFontFamily.Helvetica, 12, PdfFontStyle.Regular), PdfBrushes.Black, DatePosition.ToPointF());
+            graphics.DrawString(graphData.JointThatIsReported, new PdfStandardFont(PdfFontFamily.Helvetica, 12, PdfFontStyle.Bold | PdfFontStyle.Bold), PdfBrushes.Black, JointNamePosition.ToPointF());
 
-        graphics.DrawImage(graphImageBitMap, GraphImagePosition.ToPointF());
+            if (!string.IsNullOrWhiteSpace(graphData.MinGraph1Value))
+                graphics.DrawString("Min", new PdfStandardFont(PdfFontFamily.Helvetica, 10, PdfFontStyle.Bold), PdfBrushes.Black, MinHeadingPosition.ToPointF());
+            if (!string.IsNullOrWhiteSpace(graphData.MaxGraph1Value))
+                graphics.DrawString("Max", new PdfStandardFont(PdfFontFamily.Helvetica, 10, PdfFontStyle.Bold), PdfBrushes.Black, MaxHeadingPosition.ToPointF());
+            if (!string.IsNullOrWhiteSpace(graphData.RangeGraph1Value))
+                graphics.DrawString("Range", new PdfStandardFont(PdfFontFamily.Helvetica, 10, PdfFontStyle.Bold), PdfBrushes.Black, RangeHeadingPosition.ToPointF());
 
+            if (!string.IsNullOrWhiteSpace(graphData.MinGraph1Value))
+                graphics.DrawString(graphData.Graph1Name, new PdfStandardFont(PdfFontFamily.Helvetica, 10, PdfFontStyle.Bold), PdfBrushes.Red, HeadingGOnePosition.ToPointF());
+            if (!string.IsNullOrWhiteSpace(graphData.MinGraph1Value))
+                graphics.DrawString(graphData.Graph2Name, new PdfStandardFont(PdfFontFamily.Helvetica, 10, PdfFontStyle.Bold), PdfBrushes.Blue, HeadingGTwoPosition.ToPointF());
+
+            if (!string.IsNullOrWhiteSpace(graphData.MinGraph1Value))
+                graphics.DrawString(graphData.MinGraph1Value + "º", new PdfStandardFont(PdfFontFamily.Helvetica, 10, PdfFontStyle.Bold), PdfBrushes.Red, MinValueOnePosition.ToPointF(), format);
+            if (!string.IsNullOrWhiteSpace(graphData.MinGraph2Value))
+                graphics.DrawString(graphData.MinGraph2Value + "º", new PdfStandardFont(PdfFontFamily.Helvetica, 10, PdfFontStyle.Bold), PdfBrushes.BlueViolet, MinValueTwoPosition.ToPointF(), format);
+
+            if (!string.IsNullOrWhiteSpace(graphData.MaxGraph1Value))
+                graphics.DrawString(graphData.MaxGraph1Value + "º", new PdfStandardFont(PdfFontFamily.Helvetica, 10, PdfFontStyle.Bold), PdfBrushes.Red, MaxValueOnePosition.ToPointF(), format);
+            if (!string.IsNullOrWhiteSpace(graphData.MaxGraph2Value))
+                graphics.DrawString(graphData.MaxGraph2Value + "º", new PdfStandardFont(PdfFontFamily.Helvetica, 10, PdfFontStyle.Bold), PdfBrushes.BlueViolet, MaxValueTwoPosition.ToPointF(), format);
+
+            if (!string.IsNullOrWhiteSpace(graphData.RangeGraph1Value))
+                graphics.DrawString(graphData.RangeGraph1Value + "º", new PdfStandardFont(PdfFontFamily.Helvetica, 10, PdfFontStyle.Bold), PdfBrushes.Red, RangeValueOnePosition.ToPointF(), format);
+            if (!string.IsNullOrWhiteSpace(graphData.RangeGraph2Value))
+                graphics.DrawString(graphData.RangeGraph2Value + "º", new PdfStandardFont(PdfFontFamily.Helvetica, 10, PdfFontStyle.Bold), PdfBrushes.BlueViolet, RangeValueTwoPosition.ToPointF(), format);
+
+            graphics.DrawImage(graphImageBitMap, GraphImagePosition.ToPointF());
+        }
         MemoryStream stream = new MemoryStream();
 
         
@@ -152,7 +206,7 @@ public class ButtonHandler : MonoBehaviour
 #if UNITY_EDITOR
         System.Diagnostics.Process.Start(path);
         Debug.Log("Is Editor");
-        
+
 #else
 
         string url = "file://" + path.Replace(" ", "%20");
@@ -160,11 +214,11 @@ public class ButtonHandler : MonoBehaviour
         Debug.Log("Persistance = " + path);
         GeneralStaticManager.OpenFile(path);
 #endif
+        ReferenceManager.instance.LoadingManager.Hide();
     }
-
     Texture2D Resize(Texture2D texture2D, int targetX, int targetY)
     {
-        RenderTexture rt = new RenderTexture(targetX, targetY, 24,RenderTextureFormat.ARGB32);
+        RenderTexture rt = new RenderTexture(targetX, targetY, 24, RenderTextureFormat.ARGB32);
         RenderTexture.active = rt;
         Graphics.Blit(texture2D, rt);
         Texture2D result = new Texture2D(targetX, targetY);

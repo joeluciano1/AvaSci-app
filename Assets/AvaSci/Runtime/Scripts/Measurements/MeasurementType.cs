@@ -3,6 +3,8 @@ namespace LightBuzz.AvaSci.Measurements
     /// <summary>
     /// The measurement type.
     /// </summary>
+    ///
+    [System.Serializable]
     public enum MeasurementType
     {
         /// <summary>
@@ -74,6 +76,8 @@ namespace LightBuzz.AvaSci.Measurements
         /// Right shoulder rotation.
         /// </summary>
         ShoulderRightRotation,
+        ShoulderLeftFlexion,
+        ShoulderRightFlexion,
 
         /// <summary>
         /// None.

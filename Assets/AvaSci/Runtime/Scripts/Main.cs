@@ -31,7 +31,7 @@ namespace LightBuzz.AvaSci
 
         private bool _pointCloudEnabled = false;
 
-        private readonly Movement _movement = new Movement();
+        public readonly Movement _movement = new Movement();
         
         private void Awake()
         {

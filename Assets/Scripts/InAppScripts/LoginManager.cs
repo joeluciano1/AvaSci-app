@@ -3,6 +3,8 @@ using UnityEngine;
 using Newtonsoft.Json;
 using TMPro;
 using System;
+using System.Collections;
+using UnityEngine.SceneManagement;
 
 public class LoginManager : MonoBehaviour
 {
@@ -45,15 +47,47 @@ public class LoginManager : MonoBehaviour
             SignUserIn();
         }
     }
-
+    public void Logout()
+    {
+        PlayerPrefs.DeleteAll();
+        ReferenceManager.instance.LoadingManager.Show("Logging You Out");
+        GeneralStaticManager.GlobalVar.Clear();
+        SceneManager.LoadSceneAsync("Main");
+    }
     public void SetIsAdvancedSurvey(bool value)
     {
         isAdvancedSurvey = value;
     }
+    public void FetchSequentiallyV()
+    {
+        StartCoroutine(FetchSequencially());
+    }
+    public IEnumerator FetchSequencially()
+    {
+        if (!GeneralStaticManager.GlobalVar.ContainsKey(StringConstants.COUNTRYRESPONSE))
+        {
+            GetCountries();
+            yield return new WaitUntil(() => GeneralStaticManager.GlobalVar.ContainsKey(StringConstants.COUNTRYRESPONSE));
+        }
+        if (!GeneralStaticManager.GlobalVar.ContainsKey(StringConstants.REASONSRESPONSE))
+        { 
+            GetReasonsList();
+        yield return new WaitUntil(() => GeneralStaticManager.GlobalVar.ContainsKey(StringConstants.REASONSRESPONSE));
+        }
+        if (!GeneralStaticManager.GlobalVar.ContainsKey(StringConstants.INTERESTSRESPONSE))
+        {
+            GetInterestsList();
+            yield return new WaitUntil(() => GeneralStaticManager.GlobalVar.ContainsKey(StringConstants.INTERESTSRESPONSE));
+        }
+    }
 
     public void GetCountries()
     {
-        ReferenceManager.instance.LoadingManager.ReasonLoading_Text.text = "Getting List of Countries";
+        if (GeneralStaticManager.GlobalVar.ContainsKey(StringConstants.COUNTRYRESPONSE))
+        {
+            return;
+        }
+            ReferenceManager.instance.LoadingManager.ReasonLoading_Text.text = "Getting List of Countries";
         APIHandler.instance.Get("General/GetCountries",
             onSuccess: (response) =>
             {
@@ -83,6 +117,7 @@ public class LoginManager : MonoBehaviour
                         fetchedReasons.name = item.name;
                         fetchedReasons.ItemName.text = item.name;
                     }
+                    GeneralStaticManager.GlobalVar.Add(StringConstants.REASONSRESPONSE, response);
                 }
                 if (reasonResponse.isError)
                 {
@@ -120,6 +155,7 @@ public class LoginManager : MonoBehaviour
                         fetchedInterests.name = item.name;
                         fetchedInterests.ItemName.text = item.name;
                     }
+                    GeneralStaticManager.GlobalVar.Add(StringConstants.INTERESTSRESPONSE, response);
                 }
                 if (interestsResponse.isError)
                 {
@@ -142,6 +178,7 @@ public class LoginManager : MonoBehaviour
     private void ProcessCountries(string response)
     {
         CountryResponse countryResponse = JsonConvert.DeserializeObject<CountryResponse>(response);
+        
         if (countryResponse.isSuccess)
         {
             List<TMP_Dropdown.OptionData> optionDatas = new List<TMP_Dropdown.OptionData>();
@@ -154,10 +191,9 @@ public class LoginManager : MonoBehaviour
 
                 optionDatas.Add(optionData);
             }
-            PlayerPrefs.SetString(StringConstants.COUNTRYRESPONSE, response);
+            GeneralStaticManager.GlobalVar.Add(StringConstants.COUNTRYRESPONSE, response);
             Country_DropDown.AddOptions(optionDatas);
-            if (string.IsNullOrEmpty(PlayerPrefs.GetString(StringConstants.COUNTRYRESPONSE)))
-                ReferenceManager.instance.PopupManager.Show("Success!", "Countries Fetched");
+            ReferenceManager.instance.PopupManager.Show("Success!", "Countries Fetched");
 
         }
         if (countryResponse.isError)
@@ -285,7 +321,7 @@ public class LoginManager : MonoBehaviour
               SignInResponse signinResponse = JsonConvert.DeserializeObject<SignInResponse>(response);
               if (signinResponse.isSuccess)
               {
-                  ReferenceManager.instance.PopupManager.Show("Success!", "You have successfully signed in");
+                  ReferenceManager.instance.PopupManager.Show("Success!", "You have successfully signed in",true);
                   StringConstants.TOKEN = signinResponse.result.token;
                   GeneralStaticManager.GlobalVar.Add("UserName", signinResponse.result.UserName);
                   ReferenceManager.instance.SigninPanel.SetActive(false);
