@@ -52,6 +52,7 @@ public class LoginManager : MonoBehaviour
         PlayerPrefs.DeleteAll();
         ReferenceManager.instance.LoadingManager.Show("Logging You Out");
         GeneralStaticManager.GlobalVar.Clear();
+        GeneralStaticManager.GraphsReadings.Clear();
         SceneManager.LoadSceneAsync("Main");
     }
     public void SetIsAdvancedSurvey(bool value)

@@ -24,12 +24,12 @@ namespace LightBuzz.AvaSci.Measurements
             Joint nose = body.Joints[KeyJoint1];
             Joint head = body.Joints[KeyJoint3];
 
-            Vector3D nose3D = nose.Position3D;
-            Vector3D head3D = head.Position3D;
+            Vector3D nosePos = nose.Position3D;
+            Vector3D headPos = head.Position3D;
 
-            float angle = Calculations.Rotation(nose3D, head3D, Plane.Sagittal);
+            float angle = Calculations.Rotation(nosePos, headPos, Plane.Sagittal);
 
-            if (nose3D.X > head3D.X) angle = -angle;
+            if (nosePos.X > headPos.X) angle = -angle;
 
             _value = angle * 1.52f;
             _angleStart = nose.Position2D;

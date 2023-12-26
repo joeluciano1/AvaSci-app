@@ -18,7 +18,7 @@ namespace LightBuzz.AvaSci.UI
         [SerializeField] private DeviceConfiguration _configuration;
 
         [Header("Video recording options")]
-    
+
         [SerializeField] private string _videoPath = string.Empty;
         [SerializeField] private VideoRecordingMode _mode = VideoRecordingMode.Default;
         [SerializeField][Range(0, 100)] private int _quality = 50;
@@ -101,23 +101,23 @@ namespace LightBuzz.AvaSci.UI
         /// Raised when the recording has started.
         /// </summary>
         public UnityEvent OnRecordingStarted = new UnityEvent();
-        
+
         /// <summary>
         /// Raised when the recording has stopped.
         /// </summary>
         public UnityEvent OnRecordingStopped = new UnityEvent();
-        
+
         /// <summary>
         /// Raised when the recording has been canceled.
         /// </summary>
         public UnityEvent OnRecordingCanceled = new UnityEvent();
-        
+
         /// <summary>
         /// Raised when the recording has completed saving data.
         /// </summary>
         public UnityEvent OnRecordingCompleted = new UnityEvent();
 
-        private void OnEnable()
+        private async void OnEnable()
         {
             _recorder.OnRecordingStarted += Recorder_OnRecordingStarted;
             _recorder.OnRecordingStopped += Recorder_OnRecordingStopped;
@@ -127,14 +127,14 @@ namespace LightBuzz.AvaSci.UI
 
             if (Permission.HasUserAuthorizedPermission(Permission.Camera))
             {
-                Open();
+                await Open();
             }
             else
             {
                 PermissionCallbacks callbacks = new PermissionCallbacks();
-                callbacks.PermissionGranted += (args) =>
+                callbacks.PermissionGranted += async (args) =>
                 {
-                    Open();
+                    await Open();
                 };
                 callbacks.PermissionDenied += (args) =>
                 {
@@ -148,7 +148,7 @@ namespace LightBuzz.AvaSci.UI
             }
         }
 
-        private void OnDisable()
+        private async void OnDisable()
         {
             OnRecordingReady?.RemoveAllListeners();
             OnRecordingStarted?.RemoveAllListeners();
@@ -162,20 +162,20 @@ namespace LightBuzz.AvaSci.UI
             _recorder.OnProgressUpdated -= Recorder_OnProgressUpdated;
             _recorder.Dispose();
 
-            Close();
+            await Close();
         }
 
-        private void OnDestroy()
+        private async void OnDestroy()
         {
-            Close();
+            await Close();
         }
 
-        private void OnApplicationFocus(bool focus)
+        private async void OnApplicationFocus(bool focus)
         {
             if (!Application.isMobilePlatform) return;
 
-            if (focus) Open();
-            else Close();
+            if (focus) await Open();
+            else await Close();
         }
 
         private void Update()
@@ -277,7 +277,7 @@ namespace LightBuzz.AvaSci.UI
         /// <summary>
         /// Opens the sensor asynchronously.
         /// </summary>
-        private async void Open()
+        private async Task Open()
         {
             _loading.SetActive(true);
 
@@ -293,7 +293,7 @@ namespace LightBuzz.AvaSci.UI
 
                 Debug.LogError("Could not create sensor. Check the configuration settings.");
                 OnRecordingReady?.Invoke(false);
-                
+
                 return;
             }
 
@@ -307,8 +307,11 @@ namespace LightBuzz.AvaSci.UI
             if (!Sensor.IsOpen)
             {
                 Debug.LogError("Could not open sensor. Check the configuration settings.");
+
+                _settingsButton.interactable = true;
+
                 OnRecordingReady?.Invoke(false);
-                
+
                 return;
             }
 
@@ -326,13 +329,16 @@ namespace LightBuzz.AvaSci.UI
         /// <summary>
         /// Closes the sensor asynchronously.
         /// </summary>
-        private async void Close()
+        private async Task Close()
         {
             if (Sensor == null) return;
 
-            Sensor.FrameDataArrived -= Sensor_OnFrameDataArrived;
-            Sensor.Close();
-            Sensor.Dispose();
+            await Task.Run(() =>
+            {
+                Sensor.FrameDataArrived -= Sensor_OnFrameDataArrived;
+                Sensor.Close();
+                Sensor.Dispose();
+            });
         }
 
         /// <summary>
@@ -405,7 +411,7 @@ namespace LightBuzz.AvaSci.UI
         /// Switches to the specified sensor type.
         /// </summary>
         /// <param name="type">The <see cref="SensorType"/> to switch to.</param>
-        public void SwitchSensor(SensorType type)
+        public async void SwitchSensor(SensorType type)
         {
             if (_isSwitching) return;
 
@@ -421,8 +427,8 @@ namespace LightBuzz.AvaSci.UI
                 _configuration.SensorType = type;
                 _configuration.DeviceIndex = 0;
 
-                Close();
-                Open();
+                await Close();
+                await Open();
 
                 _switchCameraButton.Stop();
                 _isSwitching = false;
@@ -433,7 +439,7 @@ namespace LightBuzz.AvaSci.UI
         /// Switches to the specified frame rate.
         /// </summary>
         /// <param name="fps">The new frame rate value.</param>
-        public void SwitchFrameRate(int fps)
+        public async void SwitchFrameRate(int fps)
         {
             if (_isSwitching) return;
 
@@ -444,8 +450,8 @@ namespace LightBuzz.AvaSci.UI
 
                 _configuration.RequestedFrameRate = fps;
 
-                Close();
-                Open();
+                await Close();
+                await Open();
 
                 _switchCameraButton.Stop();
                 _isSwitching = false;
@@ -455,7 +461,7 @@ namespace LightBuzz.AvaSci.UI
         /// <summary>
         /// Switch button handler.
         /// </summary>
-        public void OnSwitch_Click()
+        public async void OnSwitch_Click()
         {
             _isSwitching = true;
             _switchCameraButton.Play();
@@ -473,8 +479,8 @@ namespace LightBuzz.AvaSci.UI
                 {
                     _configuration.DeviceIndex = next;
 
-                    Close();
-                    Open();
+                    await Close();
+                    await Open();
                 }
             }
 

@@ -90,17 +90,8 @@ namespace LightBuzz.AvaSci.UI
 
             Debug.Log($"Found {countWebcam} RGB cameras.");
             Debug.Log($"Found {countLiDAR} LiDAR sensors.");
-
-            if (ReferenceManager.instance.sensorTypeDropDown.value != 1 && countLiDAR!=0)
-            {
-                ReferenceManager.instance.LoadingManager.Show("Setting Up Lidar Camera Please Wait...");
-                await System.Threading.Tasks.Task.Delay(1000);
-#if !UNITY_EDITOR
-                ReferenceManager.instance.sensorTypeDropDown.value = 1;
-#endif
-                ReferenceManager.instance.LoadingManager.Hide();
-            }
-
+            ReferenceManager.instance.LidarCount = countLiDAR;
+          
             _loading.SetActive(false);
             _scrollView.SetActive(true);
         }

@@ -1,4 +1,3 @@
-using System;
 using LightBuzz.AvaSci.Csv;
 using LightBuzz.AvaSci.Measurements;
 using LightBuzz.AvaSci.UI;
@@ -44,6 +43,7 @@ namespace LightBuzz.AvaSci
             
             await _settingsView.Load();
 
+            _loading.text = string.Empty;
             _videoRecorderView.Show();
         }
 
@@ -146,6 +146,7 @@ namespace LightBuzz.AvaSci
         /// <param name="value">The new <see cref="SensorType"/> option.</param>
         public void OnSensorChange(int sensorType)
         {
+            _settingsView.Hide();
             _videoRecorderView?.SwitchSensor((SensorType)sensorType);
         }
 
@@ -155,6 +156,7 @@ namespace LightBuzz.AvaSci
         /// <param name="fps">The new frame rate (frames per second).</param>
         public void OnFrameRateChange(int fps)
         {
+            _settingsView.Hide();
             _videoRecorderView?.SwitchFrameRate(fps);
         }
 

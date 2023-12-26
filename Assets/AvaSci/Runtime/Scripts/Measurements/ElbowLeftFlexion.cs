@@ -25,11 +25,11 @@ namespace LightBuzz.AvaSci.Measurements
             Joint elbow = body.Joints[KeyJoint2];
             Joint wrist = body.Joints[KeyJoint3];
 
-            Vector3D shoulder3D = shoulder.Position3D;
-            Vector3D elbow3D = elbow.Position3D;
-            Vector3D wrist3D = wrist.Position3D;
+            Vector2D shoulderPos = shoulder.Position2D;
+            Vector2D elbowPos = elbow.Position2D;
+            Vector2D wristPos = wrist.Position2D;
 
-            float angle = Calculations.Angle(shoulder3D, elbow3D, wrist3D);
+            float angle = Calculations.Angle(shoulderPos, elbowPos, wristPos);
 
             _value = angle;
             _angleStart = shoulder.Position2D;

@@ -128,11 +128,11 @@ namespace LightBuzz.AvaSci.Csv
                         Vector3D position3D = joint.Position3D;
 
                         string c = confidence.ToString("N2", CultureInfo.InvariantCulture);
-                        string x2 = position2D.X.ToString("N0", CultureInfo.InvariantCulture);
-                        string y2 = position2D.Y.ToString("N0", CultureInfo.InvariantCulture);
-                        string x3 = position3D.X.ToString("N2", CultureInfo.InvariantCulture);
-                        string y3 = position3D.Y.ToString("N2", CultureInfo.InvariantCulture);
-                        string z3 = position3D.Z.ToString("N2", CultureInfo.InvariantCulture);
+                        string x2 = position2D.X.ToString("N2", CultureInfo.InvariantCulture);
+                        string y2 = position2D.Y.ToString("N2", CultureInfo.InvariantCulture);
+                        string x3 = position3D.X.ToString("N3", CultureInfo.InvariantCulture);
+                        string y3 = position3D.Y.ToString("N3", CultureInfo.InvariantCulture);
+                        string z3 = position3D.Z.ToString("N3", CultureInfo.InvariantCulture);
 
                         sb.Append(
                             $"{c}{Delimiter}" +

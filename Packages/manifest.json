@@ -1,7 +1,7 @@
 {
   "dependencies": {
     "com.lightbuzz.autocanvasscaler": "https://github.com/lightbuzz/unity-canvas-scaler.git",
-    "com.lightbuzz.bodytracking": "file:/Users/ehtisham/Downloads/com.lightbuzz.bodytracking-6.0.0.tgz",
+    "com.lightbuzz.bodytracking": "file:/Users/ehtisham/Desktop/com.lightbuzz.bodytracking-6.0.0.tgz",
     "com.unity.2d.sprite": "1.0.0",
     "com.unity.collab-proxy": "2.2.0",
     "com.unity.feature.development": "1.0.2",

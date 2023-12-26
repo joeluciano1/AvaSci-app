@@ -9,7 +9,7 @@ using UnityEngine.UI;
 
 public class GraphManager : MonoBehaviour
 {
-    public MeasurementType JointType;
+    public MeasurementType JointType,SecondJointType;
     public SineWave MySineWave;
     public Text Title;
     public RectTransform MySSRef;

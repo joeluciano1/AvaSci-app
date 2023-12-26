@@ -3,11 +3,13 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Text;
+using LightBuzz.AvaSci.Measurements;
 using UnityEngine;
 
 public static class GeneralStaticManager 
 {
     public static Dictionary<string, string> GlobalVar = new Dictionary<string, string>();
+    public static Dictionary<string, List<float>> GraphsReadings = new Dictionary<string, List<float>>();
 
     public static string AddSpacesToSentence(string text, bool preserveAcronyms)
     {
@@ -40,5 +42,10 @@ public static class GeneralStaticManager
 #else
         Debug.Log("Only IOS");
 #endif
+    }
+
+    public static string GetMeasurementTypeName(this object value)
+    {
+        return Enum.GetName(typeof(MeasurementType), value);
     }
 }

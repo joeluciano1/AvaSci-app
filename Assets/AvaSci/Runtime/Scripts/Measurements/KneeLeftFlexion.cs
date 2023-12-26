@@ -25,11 +25,11 @@ namespace LightBuzz.AvaSci.Measurements
             Joint knee = body.Joints[KeyJoint2];
             Joint ankle = body.Joints[KeyJoint3];
 
-            Vector3D hip3D = hip.Position3D;
-            Vector3D knee3D = knee.Position3D;
-            Vector3D ankle3D = ankle.Position3D;
+            Vector3D hipPos = hip.Position3D;
+            Vector3D kneePos = knee.Position3D;
+            Vector3D anklePos = ankle.Position3D;
 
-            float angle = 180.0f - Calculations.Angle(hip3D, knee3D, ankle3D);
+            float angle = 180.0f - Calculations.Angle(hipPos, kneePos, anklePos);
 
             _value = angle;
             _angleStart = hip.Position2D;

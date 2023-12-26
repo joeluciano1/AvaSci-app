@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using ChartAndGraph;
 using LightBuzz.AvaSci.Measurements;
 using UnityEngine;
@@ -13,7 +14,7 @@ public class SineWave : MonoBehaviour
     public GraphChart graphChart;
     public bool drawGraph;
     public CustomChartPointer customChartPointer;
-    public MeasurementType MyMeasurementType;
+    
     public Toggle AutoScrollToggle;
 
     public Material lineMaterial;
@@ -90,26 +91,34 @@ public class SineWave : MonoBehaviour
             //}
             foreach (var item in main._movement.Measurements)
             {
-                if (item.Key != MyMeasurementType)
+                if (item.Key != myParentGraphManager.JointType)
                 {
-                    continue;
+                    if (item.Key != myParentGraphManager.SecondJointType)
+                    {
+                        continue;
+                    }
                 }
                 float previousAngle;
                 DateTime previousTime;
-
-                previousTime = string.IsNullOrWhiteSpace(PlayerPrefs.GetString(System.Enum.GetName(typeof(MeasurementType), item.Key) + " previousTime")) ? DateTime.Now : DateTime.Parse(PlayerPrefs.GetString(System.Enum.GetName(typeof(MeasurementType), item.Key) + " previousTime"));
-                TimeSpan timeSpan = DateTime.Now - previousTime;
                 string itemName = System.Enum.GetName(typeof(MeasurementType), item.Key);
+                previousTime = string.IsNullOrWhiteSpace(PlayerPrefs.GetString(itemName + " previousTime")) ? DateTime.Now : DateTime.Parse(PlayerPrefs.GetString(System.Enum.GetName(typeof(MeasurementType), item.Key) + " previousTime"));
+                TimeSpan timeSpan = DateTime.Now - previousTime;
+                
 
                 //previousAngle = PlayerPrefs.GetFloat(System.Enum.GetName(typeof(MeasurementType), item.Key) + " PreviousAngle");
-                if (!graphChart.DataSource.HasCategory(System.Enum.GetName(typeof(MeasurementType), item.Key)))
+                if (!graphChart.DataSource.HasCategory(itemName))
                 {
-                    Material material = new Material(lineMaterial);
-                    material.SetColor("_Color", Colors[UnityEngine.Random.Range(0, Colors.Count)]);
+                    Material lineMaterial = new Material(this.lineMaterial);
+                    lineMaterial.SetColor("_Color", Colors[UnityEngine.Random.Range(0, Colors.Count)]);
+                    string linecolor =ColorUtility.ToHtmlStringRGBA(lineMaterial.color);
+                    if(item.Key == myParentGraphManager.JointType)
+                        myParentGraphManager.Title.text = $"<color=#{linecolor}>{itemName}</color>";
+                    else
+                        myParentGraphManager.Title.text += $"\n<color=#{linecolor}>{itemName}</color>";
                     innerFill.color = UnityEngine.Random.ColorHSV();
                     Material pointMat = new Material(pointMaterial);
 
-                    pointMat.SetColor("_Combine", Colors[UnityEngine.Random.Range(0, Colors.Count)]);
+                    //pointMat.SetColor("_Combine", Colors[UnityEngine.Random.Range(0, Colors.Count)]);
                     pointMat.SetColor("_ColorFrom", Colors[UnityEngine.Random.Range(0, Colors.Count)]);
                     pointMat.SetColor("_ColorTo", Colors[UnityEngine.Random.Range(0, Colors.Count)]);
                     Material innFillMat = new Material(innerFill);
@@ -119,7 +128,7 @@ public class SineWave : MonoBehaviour
                     var color2 = Colors[UnityEngine.Random.Range(0, Colors.Count)];
                     color2.a = 0.1f;
                     innFillMat.SetColor("_ColorTo", color2);
-                    graphChart.DataSource.AddCategory(System.Enum.GetName(typeof(MeasurementType), item.Key), material, lineThickness, lineTiling, null, true, pointMat, pointSize);
+                    graphChart.DataSource.AddCategory(itemName, lineMaterial, lineThickness, lineTiling, null, true, pointMat, pointSize);
                 }
 
                 //double angularSpeedY = (GeneralStaticManager.DegreesToRadians(item.Value.Value) - GeneralStaticManager.DegreesToRadians(previousAngle)) / (timeSpan.TotalSeconds);
@@ -127,8 +136,16 @@ public class SineWave : MonoBehaviour
 
                 //graphChart.DataSource.AddPointToCategory(System.Enum.GetName(typeof(MeasurementType), item.Key), changeInangleX, MathF.Round((float)angularSpeedY, 2));
                 int value = PlayerPrefs.GetInt(itemName);
-                graphChart.DataSource.AddPointToCategoryRealtime(System.Enum.GetName(typeof(MeasurementType), item.Key), DateTime.Now, item.Value.Value,1);
+                graphChart.DataSource.AddPointToCategoryRealtime(itemName, DateTime.Now, item.Value.Value,1);
 
+                if (GeneralStaticManager.GraphsReadings.ContainsKey(itemName))
+                {
+                    GeneralStaticManager.GraphsReadings[itemName].Add(item.Value.Value);
+                }
+                else
+                {
+                    GeneralStaticManager.GraphsReadings.Add(itemName, new List<float> { item.Value.Value});
+                }
 
                 //PlayerPrefs.SetFloat(System.Enum.GetName(typeof(MeasurementType), item.Key) + " PreviousAngle", item.Value.Value);
                 //PlayerPrefs.SetString(System.Enum.GetName(typeof(MeasurementType), item.Key) + " previousTime", DateTime.Now.ToString());

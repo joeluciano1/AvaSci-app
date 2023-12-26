@@ -25,16 +25,16 @@ namespace LightBuzz.AvaSci.Measurements
             Joint eyeLeft = body.Joints[KeyJoint1];
             Joint eyeRight = body.Joints[KeyJoint3];
 
-            Vector3D neck3D = neck.Position3D;
-            Vector3D eyeLeft3D = eyeLeft.Position3D;
-            Vector3D eyeRight3D = eyeRight.Position3D;
+            Vector3D neckPos = neck.Position3D;
+            Vector3D eyeLeftPos = eyeLeft.Position3D;
+            Vector3D eyeRightPos = eyeRight.Position3D;
 
             Vector2D eyeCenter2D = (eyeLeft.Position2D + eyeRight.Position2D) / 2.0f;
-            Vector3D eyeCenter3D = (eyeLeft3D + eyeRight3D) / 2.0f;
+            Vector3D eyeCenter3D = (eyeLeftPos + eyeRightPos) / 2.0f;
 
-            float angle = Calculations.Rotation(neck3D, eyeCenter3D, Plane.Sagittal);
+            float angle = Calculations.Rotation(neckPos, eyeCenter3D, Plane.Sagittal);
 
-            if (eyeCenter3D.X > neck3D.X) angle = -angle;
+            if (eyeCenter3D.X > neckPos.X) angle = -angle;
 
             _value = angle;
             _angleStart = eyeCenter2D;

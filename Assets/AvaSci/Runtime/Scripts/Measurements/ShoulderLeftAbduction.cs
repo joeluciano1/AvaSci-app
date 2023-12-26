@@ -16,7 +16,7 @@ namespace LightBuzz.AvaSci.Measurements
             
             KeyJoint1 = JointType.ShoulderLeft;
             KeyJoint2 = JointType.ElbowLeft;
-            KeyJoint3 = JointType.WristLeft;
+            KeyJoint3 = JointType.HipLeft;
         }
 
         public override void Update(Body body)
@@ -25,11 +25,11 @@ namespace LightBuzz.AvaSci.Measurements
             Joint elbow = body.Joints[KeyJoint2];
             Joint hip = body.Joints[KeyJoint3];
 
-            Vector3D shoulder3D = shoulder.Position2D;
-            Vector3D elbow3D = elbow.Position2D;
-            Vector3D hip3D = hip.Position2D;
+            Vector3D shoulderPos = shoulder.Position2D;
+            Vector3D elbowPos = elbow.Position2D;
+            Vector3D hipPos = hip.Position2D;
 
-            float angle = Calculations.Angle(hip3D, shoulder3D, elbow3D);
+            float angle = Calculations.Angle(hipPos, shoulderPos, elbowPos);
 
             _value = angle;
             _angleStart = elbow.Position2D;
