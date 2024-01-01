@@ -48,9 +48,9 @@ namespace LightBuzz.AvaSci.UI
         public void OnMeasurementSelected(MeasurementType type, bool isOn)
         {
             string itemName = Enum.GetName(typeof(MeasurementType), type);
-            string jointName = itemName.Replace("Left",",").Replace("Right",",");
+            string jointName = itemName.Replace("Left", ",").Replace("Right", ",");
             Debug.Log("---------------------------" + jointName);
-           
+
 
             if (isOn)
             {
@@ -63,8 +63,8 @@ namespace LightBuzz.AvaSci.UI
                     graphManager.gameObject.SetActive(true);
                     graphManager.JointType = type;
                     //await System.Threading.Tasks.Task.Delay(5000);
-                    
-                   // graphManager.Title.text = Enum.GetName(typeof(MeasurementType), type);
+
+                    // graphManager.Title.text = Enum.GetName(typeof(MeasurementType), type);
                     ReferenceManager.instance.graphManagers.Add(graphManager);
                     graphManager.MySineWave.graphChart.DataSource.GetCategoryFill(Enum.GetName(typeof(MeasurementType), type), out Material fillMat, out bool stretch);
                     graphManager.MySineWave.graphChart.DataSource.GetCategoryLine(Enum.GetName(typeof(MeasurementType), type), out Material lineMaterial, out double LineThickness, out ChartAndGraph.MaterialTiling lineTiling);
@@ -108,7 +108,7 @@ namespace LightBuzz.AvaSci.UI
                 }
                 else
                 {
-                    
+
                     alreadyPresentJointGraph.SecondJointType = type;
                     //await System.Threading.Tasks.Task.Delay(5000);
                     //alreadyPresentJointGraph.Title.text += ", "+Enum.GetName(typeof(MeasurementType), type);
@@ -157,7 +157,7 @@ namespace LightBuzz.AvaSci.UI
             else
             {
                 GeneralStaticManager.GraphsReadings.Remove(itemName);
-                GraphManager alreadyPresentJointGraph = ReferenceManager.instance.graphManagers.FirstOrDefault(x => (x.JointType == type || x.SecondJointType == type) && (x.JointType != MeasurementType.None || x.SecondJointType!=MeasurementType.None));
+                GraphManager alreadyPresentJointGraph = ReferenceManager.instance.graphManagers.FirstOrDefault(x => (x.JointType == type || x.SecondJointType == type) && (x.JointType != MeasurementType.None || x.SecondJointType != MeasurementType.None));
                 if (alreadyPresentJointGraph == null)
                 {
                     GraphManager graphManager = ReferenceManager.instance.graphManagers.FirstOrDefault(x => x.JointType == type || x.SecondJointType == type);
@@ -207,23 +207,32 @@ namespace LightBuzz.AvaSci.UI
                     string color = "";
                     if (alreadyPresentJointGraph.SecondJointType == type)
                     {
-                        alreadyPresentJointGraph.SecondJointType = MeasurementType.None;
                         alreadyPresentJointGraph.MySineWave.graphChart.DataSource.GetCategoryLine(GeneralStaticManager.GetMeasurementTypeName(alreadyPresentJointGraph.JointType), out Material lineMat, out double value, out ChartAndGraph.MaterialTiling tiling);
-                        color = ColorUtility.ToHtmlStringRGBA(lineMat.color);
+                        alreadyPresentJointGraph.SecondJointType = MeasurementType.None;
+                        if (alreadyPresentJointGraph.JointType != MeasurementType.None)
+                        {
+                            color = ColorUtility.ToHtmlStringRGBA(lineMat.color);
+                        }
                     }
-                    else if( alreadyPresentJointGraph.JointType == type)
+                    else if (alreadyPresentJointGraph.JointType == type)
                     {
-                        alreadyPresentJointGraph.JointType = MeasurementType.None;
                         alreadyPresentJointGraph.MySineWave.graphChart.DataSource.GetCategoryLine(GeneralStaticManager.GetMeasurementTypeName(alreadyPresentJointGraph.SecondJointType), out Material lineMat, out double value, out ChartAndGraph.MaterialTiling tiling);
-                        color = ColorUtility.ToHtmlStringRGBA(lineMat.color);
+                        alreadyPresentJointGraph.JointType = MeasurementType.None;
+                        if (alreadyPresentJointGraph.SecondJointType != MeasurementType.None)
+                        {
+                            color = ColorUtility.ToHtmlStringRGBA(lineMat.color);
+                        }
                     }
-                    
-                    
-                    alreadyPresentJointGraph.Title.text = $"<color=#{color}>{Enum.GetName(typeof(MeasurementType), alreadyPresentJointGraph.JointType == MeasurementType.None? alreadyPresentJointGraph.SecondJointType:alreadyPresentJointGraph.JointType)}</color>";
+
+                    if (color != "")
+                    {
+                        alreadyPresentJointGraph.Title.text = $"<color=#{color}>{Enum.GetName(typeof(MeasurementType), alreadyPresentJointGraph.JointType == MeasurementType.None ? alreadyPresentJointGraph.SecondJointType : alreadyPresentJointGraph.JointType)}</color>";
+                    }
                     alreadyPresentJointGraph.MySineWave.graphChart.DataSource.ClearCategory(itemName);
                     alreadyPresentJointGraph.MySineWave.graphChart.DataSource.RemoveCategory(itemName);
                     if (alreadyPresentJointGraph.JointType == MeasurementType.None && alreadyPresentJointGraph.SecondJointType == MeasurementType.None)
                     {
+                        ReferenceManager.instance.graphManagers.Remove(alreadyPresentJointGraph);
                         Destroy(alreadyPresentJointGraph.gameObject);
                     }
 
@@ -231,7 +240,7 @@ namespace LightBuzz.AvaSci.UI
                 _selectedMeasurements.Remove(type);
             }
 
-            
+
             RaiseEvent();
         }
 
@@ -266,9 +275,9 @@ namespace LightBuzz.AvaSci.UI
             MeasurementType[] types = new MeasurementType[_selectedMeasurements.Count];
 
             _selectedMeasurements.CopyTo(types);
-            
+
             onMeasurementsChanged?.Invoke(types);
-            
+
             _label.text = $"Selected measurements: {_selectedMeasurements.Count}";
         }
     }

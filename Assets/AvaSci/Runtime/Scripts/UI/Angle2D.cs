@@ -29,7 +29,7 @@ public class Angle2D : MonoBehaviour
     [SerializeField] private string _displayMessage;
 
     private RectTransform _rect;
-
+        Vector2 positionOffset;
     /// <summary>
     /// The scaled image view.
     /// This member is used for scaling the angle arc according to the image view's scale.
@@ -84,16 +84,21 @@ public class Angle2D : MonoBehaviour
         get => _displayMessage;
         set => _displayMessage = value;
     }
-
-    private void OnValidate()
+        private void Awake()
+        {
+            if(positionOffset == Vector2.zero)
+            positionOffset = new Vector2(Random.Range(-90, 90), /*Random.Range(-90, 90)*/0);
+        }
+        private void OnValidate()
     {
         //Load();
     }
+        
 
-    /// <summary>
-    /// Refreshes the angle arc data.
-    /// </summary>
-    public void Refresh()
+        /// <summary>
+        /// Refreshes the angle arc data.
+        /// </summary>
+        public void Refresh()
     {
         if (_rect == null) _rect = gameObject.transform as RectTransform;
 
@@ -162,11 +167,11 @@ public class Angle2D : MonoBehaviour
         if (measurement == null) return;
 
         _start = _imageView.GetPosition(measurement.AngleStart);
-        _center = _imageView.GetPosition(measurement.AngleCenter);
+        _center = _imageView.GetPosition(measurement.AngleCenter) + positionOffset;
         _end = _imageView.GetPosition(measurement.AngleEnd);
 
         _angle = measurement.Value;
-        _displayMessage = $"{measurement.Value:N0}°";
+        _displayMessage = $"{measurement.Value:N0}° <size=15>{measurement.Type}</size>";
 
         Refresh();
     }

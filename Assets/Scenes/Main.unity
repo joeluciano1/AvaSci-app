@@ -31138,7 +31138,19 @@ MonoBehaviour:
   m_Value: 0
   m_OnValueChanged:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 109808598}
+        m_TargetAssemblyTypeName: ReferenceManager, Assembly-CSharp
+        m_MethodName: OnVideoScrolled
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
   onHandle:
     m_PersistentCalls:
       m_Calls: []
@@ -31732,6 +31744,18 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 1
+      - m_Target: {fileID: 109808598}
+        m_TargetAssemblyTypeName: ReferenceManager, Assembly-CSharp
+        m_MethodName: ClearAllGraphs
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &1110179771499023357
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -32398,6 +32422,7 @@ GameObject:
   - component: {fileID: 1110179771904496463}
   - component: {fileID: 1110179771904496461}
   - component: {fileID: 1110179771904496460}
+  - component: {fileID: 1110179771904496464}
   m_Layer: 5
   m_Name: Pause
   m_TagString: Untagged
@@ -32424,6 +32449,54 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: -16, y: -16}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &1110179771904496464
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1110179771904496462}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: afcb29986777642a797de478ba8382bc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  OnEnableAction:
+    m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 109808598}
+        m_TargetAssemblyTypeName: ReferenceManager, Assembly-CSharp
+        m_MethodName: PlayAllGraphs
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+  OnDisableAction:
+    m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 109808598}
+        m_TargetAssemblyTypeName: ReferenceManager, Assembly-CSharp
+        m_MethodName: StopAllGraphs
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+  OnDistroyAction:
+    m_PersistentCalls:
+      m_Calls: []
+  WhenNoGraphAction:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!224 &1110179772002885552
 RectTransform:
   m_ObjectHideFlags: 0
@@ -33344,6 +33417,7 @@ MonoBehaviour:
   X: 0
   zoomIn: 0
   zoomOut: 0
+  isReading: 0
   myParentGraphManager: {fileID: 7200860755421968986}
   Body: {fileID: 1400368208}
 --- !u!224 &1158704729872732618
@@ -38364,7 +38438,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   SimpleView: 0
-  format: 1
+  format: 0
   withEdges: 0
   depth:
     Automatic: 1
@@ -38372,7 +38446,7 @@ MonoBehaviour:
   mainDivisions:
     messure: 0
     unitsPerDivision: 0
-    total: 2
+    total: 4
     material: {fileID: 2100000, guid: 8f4ec85425306614c9a6d154f2e9407b, type: 2}
     materialTiling:
       EnableTiling: 1
@@ -49099,6 +49173,18 @@ MonoBehaviour:
       - m_Target: {fileID: 293443694687857911}
         m_TargetAssemblyTypeName: LightBuzz.AvaSci.VideoRecordingView, Assembly-CSharp
         m_MethodName: OnRecord_Click
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+      - m_Target: {fileID: 109808598}
+        m_TargetAssemblyTypeName: ReferenceManager, Assembly-CSharp
+        m_MethodName: ClearAllGraphs
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}

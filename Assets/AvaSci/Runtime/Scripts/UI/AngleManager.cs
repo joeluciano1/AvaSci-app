@@ -13,7 +13,7 @@ namespace LightBuzz.AvaSci.UI
         [SerializeField] private ImageView _imageView;
         [SerializeField] private Angle2D _anglePrefab;
 
-        private readonly Dictionary<MeasurementType, Angle2D> _angles = new Dictionary<MeasurementType, Angle2D>();
+        public readonly Dictionary<MeasurementType, Angle2D> _angles = new Dictionary<MeasurementType, Angle2D>();
 
         private void OnDestroy()
         {
@@ -73,7 +73,7 @@ namespace LightBuzz.AvaSci.UI
 
                 _angles.Add(type, go);
             }
-
+            
             if (body.Joints[measurement.KeyJoint1].TrackingState == TrackingState.Inferred ||
                     body.Joints[measurement.KeyJoint2].TrackingState == TrackingState.Inferred ||
                     body.Joints[measurement.KeyJoint3].TrackingState == TrackingState.Inferred)
@@ -86,8 +86,9 @@ namespace LightBuzz.AvaSci.UI
             {
                 _angles[type].gameObject.SetActive(true);
             }
-
+            
             _angles[type].Load(measurement);
+            
         }
     }
 }

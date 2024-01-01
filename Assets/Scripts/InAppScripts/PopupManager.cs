@@ -37,6 +37,6 @@ public class PopupManager : MonoBehaviour
 
     public void OnOkClick()
     {
-        MyImage.DOFade(0, 1f).OnComplete(() => Destroy(gameObject));
+         Destroy(gameObject);
     }
 }

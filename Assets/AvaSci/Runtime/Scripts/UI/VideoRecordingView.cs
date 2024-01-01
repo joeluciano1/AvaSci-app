@@ -392,6 +392,7 @@ namespace LightBuzz.AvaSci.UI
             if (!_recorder.IsRecording)
             {
                 OnStart();
+                ReferenceManager.instance.ClearAllGraphs();
             }
             else
             {

@@ -44,7 +44,7 @@ public class ReferenceManager : MonoBehaviour
     {
         instance = this;
     }
-   public async void SwitchToLidar()
+    public async void SwitchToLidar()
     {
 #if !UNITY_EDITOR
         ReferenceManager.instance.LoadingManager.Show("Setting Up Lidar Camera Please Wait...");
@@ -60,15 +60,15 @@ public class ReferenceManager : MonoBehaviour
 #endif
 
     }
-    public  void GenerateGraph(MeasurementType measurementType)
+    public void GenerateGraph(MeasurementType measurementType)
     {
-        
+
         List<string> jointTypes = new List<string>();
         List<TMP_Dropdown.OptionData> options = new List<TMP_Dropdown.OptionData>();
         jointTypes = Enum.GetNames(typeof(MeasurementType)).ToList();
-        foreach(var item in jointTypes)
+        foreach (var item in jointTypes)
         {
-            if (Enum.GetName(typeof(MeasurementType), measurementType) == item && !ListOfJointsDropDown.options.Any(x=>x.text == item))
+            if (Enum.GetName(typeof(MeasurementType), measurementType) == item && !ListOfJointsDropDown.options.Any(x => x.text == item))
             {
                 TMP_Dropdown.OptionData optionData = new TMP_Dropdown.OptionData()
                 {
@@ -78,7 +78,7 @@ public class ReferenceManager : MonoBehaviour
             }
         }
         ListOfJointsDropDown.AddOptions(options);
-        
+
     }
 
     public void ClearGraphs()
@@ -97,21 +97,55 @@ public class ReferenceManager : MonoBehaviour
             SettingToggle.interactable = false;
             SettingToggle.GetComponent<Image>().color = UnityEngine.Color.gray;
             SettingsPanel.DOAnchorPosY(-10000, 0f);
-            SettingsPanel.DOAnchorPosY(0, 0.5f).OnComplete(()=>SettingToggle.interactable = true);
+            SettingsPanel.DOAnchorPosY(0, 0.5f).OnComplete(() => SettingToggle.interactable = true);
             SettingsPanel.gameObject.SetActive(true);
         }
         else
         {
-            SettingsPanel.DOAnchorPosY(-1000, 0.5f).OnComplete(()=>
+            SettingsPanel.DOAnchorPosY(-1000, 0.5f).OnComplete(() =>
             {
                 SettingToggle.interactable = true;
-               SettingsPanel.gameObject.SetActive(false);
+                SettingsPanel.gameObject.SetActive(false);
                 SettingToggle.GetComponent<Image>().color = UnityEngine.Color.white;
 
             });
         }
     }
 
- 
+    public void StopAllGraphs()
+    {
+        graphManagers.ForEach(x => x.MySineWave.isReading = false);
+    }
 
+    public void PlayAllGraphs()
+    {
+        graphManagers.ForEach(x =>
+        {
+            x.MySineWave.isReading = false;
+            x.MySineWave.graphChart.AutoScrollHorizontally = false;
+        });
+    }
+
+    public void OnVideoScrolled(float value)
+    {
+        if (graphManagers.Any(x => !x.MySineWave.isReading))
+        {
+
+            graphManagers.ForEach(x =>
+            {
+                x.MySineWave.graphChart.AutoScrollHorizontally = false;
+                x.MySineWave.graphChart.HorizontalScrolling = value * 10;
+            });
+
+        }
+    }
+    public void ClearAllGraphs()
+    {
+        graphManagers.ForEach(x =>
+       {
+           x.MySineWave.Start();
+           x.MySineWave.graphChart.AutoScrollHorizontally = true;
+       });
+        graphManagers.ForEach(x => x.MySineWave.graphChart.DataSource.Clear());
+    }
 }

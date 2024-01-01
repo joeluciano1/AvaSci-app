@@ -14,7 +14,7 @@ public class SineWave : MonoBehaviour
     public GraphChart graphChart;
     public bool drawGraph;
     public CustomChartPointer customChartPointer;
-    
+
     public Toggle AutoScrollToggle;
 
     public Material lineMaterial;
@@ -27,7 +27,7 @@ public class SineWave : MonoBehaviour
     public float X;
     public bool zoomIn;
     public bool zoomOut;
-
+    public bool isReading;
     public GraphManager myParentGraphManager;
     GraphManager myLinearGraph;
 
@@ -54,11 +54,11 @@ public class SineWave : MonoBehaviour
         drawGraph = value;
         if (value)
         {
-            
+
         }
         else
         {
-            
+
         }
     }
 
@@ -66,13 +66,14 @@ public class SineWave : MonoBehaviour
 
     public void Start()
     {
+        isReading = true;
         StartCoroutine(StartReadingGraphs());
     }
 
     public IEnumerator StartReadingGraphs()
     {
 
-        while (true)
+        while (isReading)
         {
             if (customChartPointer == null)
             {
@@ -103,15 +104,15 @@ public class SineWave : MonoBehaviour
                 string itemName = System.Enum.GetName(typeof(MeasurementType), item.Key);
                 previousTime = string.IsNullOrWhiteSpace(PlayerPrefs.GetString(itemName + " previousTime")) ? DateTime.Now : DateTime.Parse(PlayerPrefs.GetString(System.Enum.GetName(typeof(MeasurementType), item.Key) + " previousTime"));
                 TimeSpan timeSpan = DateTime.Now - previousTime;
-                
+
 
                 //previousAngle = PlayerPrefs.GetFloat(System.Enum.GetName(typeof(MeasurementType), item.Key) + " PreviousAngle");
                 if (!graphChart.DataSource.HasCategory(itemName))
                 {
                     Material lineMaterial = new Material(this.lineMaterial);
                     lineMaterial.SetColor("_Color", Colors[UnityEngine.Random.Range(0, Colors.Count)]);
-                    string linecolor =ColorUtility.ToHtmlStringRGBA(lineMaterial.color);
-                    if(item.Key == myParentGraphManager.JointType)
+                    string linecolor = ColorUtility.ToHtmlStringRGBA(lineMaterial.color);
+                    if (item.Key == myParentGraphManager.JointType)
                         myParentGraphManager.Title.text = $"<color=#{linecolor}>{itemName}</color>";
                     else
                         myParentGraphManager.Title.text += $"\n<color=#{linecolor}>{itemName}</color>";
@@ -128,6 +129,7 @@ public class SineWave : MonoBehaviour
                     var color2 = Colors[UnityEngine.Random.Range(0, Colors.Count)];
                     color2.a = 0.1f;
                     innFillMat.SetColor("_ColorTo", color2);
+                    PlayerPrefs.SetInt(itemName, 0);
                     graphChart.DataSource.AddCategory(itemName, lineMaterial, lineThickness, lineTiling, null, true, pointMat, pointSize);
                 }
 
@@ -136,7 +138,7 @@ public class SineWave : MonoBehaviour
 
                 //graphChart.DataSource.AddPointToCategory(System.Enum.GetName(typeof(MeasurementType), item.Key), changeInangleX, MathF.Round((float)angularSpeedY, 2));
                 int value = PlayerPrefs.GetInt(itemName);
-                graphChart.DataSource.AddPointToCategoryRealtime(itemName, DateTime.Now, item.Value.Value,1);
+                graphChart.DataSource.AddPointToCategoryRealtime(itemName, value, item.Value.Value, 1);
 
                 if (GeneralStaticManager.GraphsReadings.ContainsKey(itemName))
                 {
@@ -144,7 +146,7 @@ public class SineWave : MonoBehaviour
                 }
                 else
                 {
-                    GeneralStaticManager.GraphsReadings.Add(itemName, new List<float> { item.Value.Value});
+                    GeneralStaticManager.GraphsReadings.Add(itemName, new List<float> { item.Value.Value });
                 }
 
                 //PlayerPrefs.SetFloat(System.Enum.GetName(typeof(MeasurementType), item.Key) + " PreviousAngle", item.Value.Value);
@@ -156,9 +158,9 @@ public class SineWave : MonoBehaviour
             X += 1;
         }
     }
-    
 
-     public void SetGraphsAutoScroll(bool value)
+
+    public void SetGraphsAutoScroll(bool value)
     {
         //graphChart.AutoScrollHorizontally = value;
         //graphChart.AutoScrollVertically = value;
@@ -173,7 +175,7 @@ public class SineWave : MonoBehaviour
     {
         zoomInOutValue = 0.1f;
         zoomOut = value;
-        
+
         AutoScrollToggle.isOn = value;
     }
     [ContextMenu("Zoom Down")]
@@ -181,7 +183,7 @@ public class SineWave : MonoBehaviour
     {
         zoomInOutValue = 0.1f;
         zoomIn = value;
-        
+
         AutoScrollToggle.isOn = value;
     }
     float zoomInOutValue;
@@ -194,7 +196,7 @@ public class SineWave : MonoBehaviour
             SetGraphsAutoScroll(false);
             zoomInOutValue += 0.1f;
         }
-       else if (zoomOut)
+        else if (zoomOut)
         {
             graphChart.DataSource.HorizontalViewSize += 0.1f;
             graphChart.DataSource.VerticalViewSize += 0.1f;
