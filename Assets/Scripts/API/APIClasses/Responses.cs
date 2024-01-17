@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 public class Responses
 {
-   
+
 }
 
 
@@ -64,6 +64,7 @@ public class SignInResult
 {
     public string token { get; set; }
     public string UserName { get; set; }
+    public List<string> Roles { get; set; }
 }
 
 public class SignInResponse
@@ -90,3 +91,66 @@ public class GetReasonResponse
     public List<ServiceError> serviceErrors { get; set; }
 }
 
+public class ResponseWithNoObject
+{
+    public bool isSuccess { get; set; }
+    public bool isError { get; set; }
+    public int status { get; set; }
+    public List<ServiceError> serviceErrors { get; set; }
+}
+
+public class AdminResponse
+{
+    public bool isSuccess { get; set; }
+    public bool isError { get; set; }
+    public int status { get; set; }
+    public AdminResponseData result { get; set; }
+    public List<ServiceError> serviceErrors { get; set; }
+}
+
+public class AdminResponseData
+{
+    public AdminResponseData()
+    {
+        users = new List<User>();
+        roles = new List<string>();
+        forgetPasses = new List<ForgetPass>();
+    }
+    public List<User> users { get; set; }
+    public List<string> roles { get; set; }
+    public List<ForgetPass> forgetPasses { get; set; }
+}
+public class User
+{
+    public string Email { get; set; }
+    public string Username { get; set; }
+    public string CountryName { get; set; }
+    public string ReasonForDownload { get; set; }
+    public string Gender { get; set; }
+    public string DateCreated { get; set; }
+    public string Interests { get; set; }
+    public string AdvancedSurvey { get; set; }
+    public string Role { get; set; }
+}
+
+public class ForgetPass
+{
+    public string Code { get; set; }
+    public bool IsConsumed { get; set; }
+    public string CreatedOn { get; set; }
+    public string UserEmail { get; set; }
+}
+
+public class InstructionsResponseData
+{
+    public string InstructionTitle { get; set; }
+    public string Instruction { get; set; }
+}
+public class InstructionsResponse
+{
+    public bool isSuccess { get; set; }
+    public bool isError { get; set; }
+    public int status { get; set; }
+    public List<InstructionsResponseData> result { get; set; }
+    public List<ServiceError> serviceErrors { get; set; }
+}

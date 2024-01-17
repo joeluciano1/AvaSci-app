@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -6,12 +7,12 @@ using UnityEngine.Networking;
 public class APIHandler : MonoBehaviour
 {
     public static APIHandler instance;
-    
+
 
     private void Awake()
     {
         instance = this;
-    
+
     }
 
     public void Get(string endpoint, System.Action<string> onSuccess, System.Action<string> onError)
@@ -22,7 +23,7 @@ public class APIHandler : MonoBehaviour
 
     private IEnumerator GetRequest(string url, System.Action<string> onSuccess, System.Action<string> onError)
     {
-       
+
         using (UnityWebRequest www = UnityWebRequest.Get(url))
         {
             yield return www.SendWebRequest();
@@ -47,7 +48,7 @@ public class APIHandler : MonoBehaviour
 
     private IEnumerator PostRequest(string url, string json, System.Action<string> onSuccess, System.Action<string> onError)
     {
-        
+
         var request = new UnityWebRequest(url, "POST");
         byte[] jsonToSend = new System.Text.UTF8Encoding().GetBytes(json);
         request.uploadHandler = (UploadHandler)new UploadHandlerRaw(jsonToSend);

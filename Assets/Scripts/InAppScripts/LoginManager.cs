@@ -5,6 +5,7 @@ using TMPro;
 using System;
 using System.Collections;
 using UnityEngine.SceneManagement;
+using UnityEngine.Events;
 
 public class LoginManager : MonoBehaviour
 {
@@ -18,7 +19,7 @@ public class LoginManager : MonoBehaviour
     public TMP_InputField BirthDate_InputField;
     public FetchedInterests FetchedInterestsPrefab;
     public FetchedReasons FetchedReasonsPrefab;
-    [HideInInspector]public List<FetchedInterests> SelectedFetchedInterests = new List<FetchedInterests>();
+    [HideInInspector] public List<FetchedInterests> SelectedFetchedInterests = new List<FetchedInterests>();
     [HideInInspector] public List<FetchedReasons> SelectedFetchedReasons = new List<FetchedReasons>();
     public TMP_InputField Other;
     public TMP_InputField LevelOfFitness;
@@ -33,7 +34,7 @@ public class LoginManager : MonoBehaviour
 
     private void Start()
     {
-        if(string.IsNullOrWhiteSpace(PlayerPrefs.GetString(StringConstants.LOGINEMAIL)))
+        if (string.IsNullOrWhiteSpace(PlayerPrefs.GetString(StringConstants.LOGINEMAIL)))
         {
             ReferenceManager.instance.SignupPanel.SetActive(true);
             ReferenceManager.instance.SigninPanel.SetActive(false);
@@ -47,6 +48,7 @@ public class LoginManager : MonoBehaviour
             SignUserIn();
         }
     }
+    #region Login And Signup
     public void Logout()
     {
         PlayerPrefs.DeleteAll();
@@ -71,9 +73,9 @@ public class LoginManager : MonoBehaviour
             yield return new WaitUntil(() => GeneralStaticManager.GlobalVar.ContainsKey(StringConstants.COUNTRYRESPONSE));
         }
         if (!GeneralStaticManager.GlobalVar.ContainsKey(StringConstants.REASONSRESPONSE))
-        { 
+        {
             GetReasonsList();
-        yield return new WaitUntil(() => GeneralStaticManager.GlobalVar.ContainsKey(StringConstants.REASONSRESPONSE));
+            yield return new WaitUntil(() => GeneralStaticManager.GlobalVar.ContainsKey(StringConstants.REASONSRESPONSE));
         }
         if (!GeneralStaticManager.GlobalVar.ContainsKey(StringConstants.INTERESTSRESPONSE))
         {
@@ -88,7 +90,7 @@ public class LoginManager : MonoBehaviour
         {
             return;
         }
-            ReferenceManager.instance.LoadingManager.ReasonLoading_Text.text = "Getting List of Countries";
+        ReferenceManager.instance.LoadingManager.ReasonLoading_Text.text = "Getting List of Countries";
         APIHandler.instance.Get("General/GetCountries",
             onSuccess: (response) =>
             {
@@ -147,7 +149,7 @@ public class LoginManager : MonoBehaviour
                 InterestsResponse interestsResponse = JsonConvert.DeserializeObject<InterestsResponse>(response);
                 if (interestsResponse.isSuccess)
                 {
-                    foreach(var item in interestsResponse.result)
+                    foreach (var item in interestsResponse.result)
                     {
                         FetchedInterests fetchedInterests = Instantiate(FetchedInterestsPrefab, FetchedInterestsPrefab.transform.parent);
                         item.name = GeneralStaticManager.AddSpacesToSentence(item.name, true);
@@ -179,7 +181,7 @@ public class LoginManager : MonoBehaviour
     private void ProcessCountries(string response)
     {
         CountryResponse countryResponse = JsonConvert.DeserializeObject<CountryResponse>(response);
-        
+
         if (countryResponse.isSuccess)
         {
             List<TMP_Dropdown.OptionData> optionDatas = new List<TMP_Dropdown.OptionData>();
@@ -194,7 +196,7 @@ public class LoginManager : MonoBehaviour
             }
             GeneralStaticManager.GlobalVar.Add(StringConstants.COUNTRYRESPONSE, response);
             Country_DropDown.AddOptions(optionDatas);
-            ReferenceManager.instance.PopupManager.Show("Success!", "Countries Fetched");
+            ReferenceManager.instance.PopupManager.Show("Success!", "Countries Fetched", okPressed: () => { Debug.Log("Chall Gya"); });
 
         }
         if (countryResponse.isError)
@@ -214,7 +216,7 @@ public class LoginManager : MonoBehaviour
     {
         ReferenceManager.instance.LoadingManager.ReasonLoading_Text.text = "Signing You Up!";
         string interestIds = "";
-        foreach(var item in SelectedFetchedInterests)
+        foreach (var item in SelectedFetchedInterests)
         {
             if (string.IsNullOrWhiteSpace(interestIds))
             {
@@ -243,7 +245,7 @@ public class LoginManager : MonoBehaviour
         if (isAdvancedSurvey)
         {
             JointBody jointBody = new JointBody();
-            foreach(var item in JointMonos)
+            foreach (var item in JointMonos)
             {
                 JointData joint = new JointData()
                 {
@@ -259,8 +261,8 @@ public class LoginManager : MonoBehaviour
             }
             advancedSurveyJson = JsonConvert.SerializeObject(jointBody);
         }
-            
-        
+
+
         SignupBody signupBody = new SignupBody()
         {
             countryId = selectedCountryId,
@@ -270,13 +272,13 @@ public class LoginManager : MonoBehaviour
             birthDate = DateTime.Parse(BirthDate_InputField.text + "-01-01"),
             reasonForDownload = reasonsIds,
             interests = interestIds,
-            AdvancedSurvey = isAdvancedSurvey? advancedSurveyJson:null
+            AdvancedSurvey = isAdvancedSurvey ? advancedSurveyJson : null
         };
         string jsonData = JsonConvert.SerializeObject(signupBody);
-        APIHandler.instance.Post("Auth/Signup",jsonData,
+        APIHandler.instance.Post("Auth/Signup", jsonData,
            onSuccess: (response) =>
            {
-             SignupResponse signupResponse = JsonConvert.DeserializeObject<SignupResponse>(response);
+               SignupResponse signupResponse = JsonConvert.DeserializeObject<SignupResponse>(response);
                if (signupResponse.isSuccess)
                {
                    ReferenceManager.instance.PopupManager.Show("Success!", "You have successfully signedup");
@@ -284,7 +286,7 @@ public class LoginManager : MonoBehaviour
                if (signupResponse.isError)
                {
                    string reasons = "";
-                   foreach(var item in signupResponse.serviceErrors)
+                   foreach (var item in signupResponse.serviceErrors)
                    {
                        reasons += $"\n {item.code} {item.description}";
                    }
@@ -322,7 +324,7 @@ public class LoginManager : MonoBehaviour
               SignInResponse signinResponse = JsonConvert.DeserializeObject<SignInResponse>(response);
               if (signinResponse.isSuccess)
               {
-                  ReferenceManager.instance.PopupManager.Show("Success!", "You have successfully signed in",true);
+                  ReferenceManager.instance.PopupManager.Show("Success!", "You have successfully signed in", true);
                   StringConstants.TOKEN = signinResponse.result.token;
                   GeneralStaticManager.GlobalVar.Add("UserName", signinResponse.result.UserName);
                   ReferenceManager.instance.SigninPanel.SetActive(false);
@@ -330,6 +332,15 @@ public class LoginManager : MonoBehaviour
                   PlayerPrefs.SetString(StringConstants.LOGINPASSWORD, LoginPassword_InputField.text);
                   ReferenceManager.instance.UsernameText.text = signinResponse.result.UserName;
                   ReferenceManager.instance.Screen1.SetActive(true);
+                  ReferenceManager.instance.uiManager.LogoutButton.SetActive(true);
+                  if (signinResponse.result.Roles.Contains("SuperUser"))
+                  {
+                      ReferenceManager.instance.uiManager.AdminButton.SetActive(true);
+                  }
+                  else
+                  {
+                      ReferenceManager.instance.uiManager.AdminButton.SetActive(false);
+                  }
               }
               if (signinResponse.isError)
               {
@@ -341,7 +352,7 @@ public class LoginManager : MonoBehaviour
                   ReferenceManager.instance.PopupManager.Show("Signin Failed!", $"Reasons are: {reasons}");
                   Debug.Log($"{signinResponse.serviceErrors}");
               }
-              
+
               Debug.Log($"Success: {response}");
 
           },
@@ -352,12 +363,132 @@ public class LoginManager : MonoBehaviour
           });
     }
 
-   public void ClearAllFields()
+    public void ClearAllFields()
     {
         Email_InputField.text = string.Empty;
         Password_InputField.text = string.Empty;
         BirthDate_InputField.text = string.Empty;
     }
+    #endregion
+    public void TriggerEmailOnBackend(TMP_InputField emailInput)
+    {
+        ReferenceManager.instance.forgetPasswordManager.EmailRequested = emailInput.text;
+        SendEmailRequest request = new SendEmailRequest()
+        {
+            ToEmail = emailInput.text,
+            Subject = "ForgotPassword",
+            Message = ""
+        };
+        string json = JsonConvert.SerializeObject(request);
+        Debug.Log(json);
+        APIHandler.instance.Post("Auth/ForgetPassword", json,
+        onSuccess: (response) =>
+        {
+            ResponseWithNoObject sendEmailResponse = JsonConvert.DeserializeObject<ResponseWithNoObject>(response);
+            if (sendEmailResponse.isSuccess)
+            {
+                ReferenceManager.instance.forgetPasswordManager.EnterCodeSection.SetActive(true);
+            }
+            if (sendEmailResponse.isError)
+            {
+                string reasons = "";
+                foreach (var item in sendEmailResponse.serviceErrors)
+                {
+                    reasons += $"\n {item.code} {item.description}";
+                }
+                ReferenceManager.instance.PopupManager.Show("Signin Failed!", $"Reasons are: {reasons}");
+                Debug.Log($"{sendEmailResponse.serviceErrors}");
+            }
 
-    
+        },
+        onError: (error) =>
+        {
+            ReferenceManager.instance.PopupManager.Show("Email Sending Failed!", $"Reasons are: {error}");
+            Debug.LogError($"Error: {error}");
+        }
+        );
+    }
+
+    public void ValidateCodeFromBackend(TMP_InputField codeInput)
+    {
+        CheckCodeBody request = new CheckCodeBody()
+        {
+            Email = ReferenceManager.instance.forgetPasswordManager.EmailRequested,
+            Code = codeInput.text
+        };
+        string json = JsonConvert.SerializeObject(request);
+
+        APIHandler.instance.Post("Auth/CheckCode", json,
+        onSuccess: (response) =>
+        {
+            ResponseWithNoObject codeValidateReponse = JsonConvert.DeserializeObject<ResponseWithNoObject>(response);
+            if (codeValidateReponse.isSuccess)
+            {
+                ReferenceManager.instance.forgetPasswordManager.EnterNewPasswordSecion.SetActive(true);
+            }
+            if (codeValidateReponse.isError)
+            {
+                string reasons = "";
+                foreach (var item in codeValidateReponse.serviceErrors)
+                {
+                    reasons += $"\n {item.code} {item.description}";
+                }
+                ReferenceManager.instance.PopupManager.Show("Signin Failed!", $"Reasons are: {reasons}");
+                Debug.Log($"{codeValidateReponse.serviceErrors}");
+            }
+
+        },
+        onError: (error) =>
+        {
+            ReferenceManager.instance.PopupManager.Show("Email Sending Failed!", $"Reasons are: {error}");
+            Debug.LogError($"Error: {error}");
+        }
+        );
+    }
+    public void ResetPassword()
+    {
+        string newPassword = ReferenceManager.instance.forgetPasswordManager.NewPasswordField.text;
+        string confirmPassword = ReferenceManager.instance.forgetPasswordManager.ConfirmPasswordField.text;
+
+        if (!newPassword.Equals(confirmPassword) || string.IsNullOrEmpty(newPassword))
+        {
+            ReferenceManager.instance.PopupManager.Show("Issue!", "Passwords DontMatch or cant be empty please try again");
+            return;
+        }
+
+        ResetPasswordBody request = new ResetPasswordBody()
+        {
+            Email = ReferenceManager.instance.forgetPasswordManager.EmailRequested,
+            NewPassword = newPassword
+        };
+        string json = JsonConvert.SerializeObject(request);
+
+        APIHandler.instance.Post("Auth/ResetPassword", json,
+        onSuccess: async (response) =>
+        {
+            ResponseWithNoObject codeValidateReponse = JsonConvert.DeserializeObject<ResponseWithNoObject>(response);
+            if (codeValidateReponse.isSuccess)
+            {
+                ReferenceManager.instance.PopupManager.Show("Password is Reset!", "Your Password Is Reset Successfully", okPressed: () => { ReferenceManager.instance.forgetPasswordManager.gameObject.SetActive(false); });
+            }
+            if (codeValidateReponse.isError)
+            {
+                string reasons = "";
+                foreach (var item in codeValidateReponse.serviceErrors)
+                {
+                    reasons += $"\n {item.code} {item.description}";
+                }
+                ReferenceManager.instance.PopupManager.Show("Signin Failed!", $"Reasons are: {reasons}");
+                Debug.Log($"{codeValidateReponse.serviceErrors}");
+            }
+
+        },
+        onError: (error) =>
+        {
+            ReferenceManager.instance.PopupManager.Show("Email Sending Failed!", $"Reasons are: {error}");
+            Debug.LogError($"Error: {error}");
+        }
+        );
+    }
+
 }

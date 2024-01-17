@@ -57,7 +57,7 @@ namespace LightBuzz.AvaSci.Warnings
                     }
                 }
 
-                _message = $"The following joints have low tracking confidence: {sb}";
+                _message = $"Low Tracking Joints: {sb}";
             }
 
             _display = lowConfidenceJoints.Count > 0;

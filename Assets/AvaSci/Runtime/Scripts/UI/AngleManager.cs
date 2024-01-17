@@ -73,7 +73,7 @@ namespace LightBuzz.AvaSci.UI
 
                 _angles.Add(type, go);
             }
-            
+
             if (body.Joints[measurement.KeyJoint1].TrackingState == TrackingState.Inferred ||
                     body.Joints[measurement.KeyJoint2].TrackingState == TrackingState.Inferred ||
                     body.Joints[measurement.KeyJoint3].TrackingState == TrackingState.Inferred)
@@ -86,9 +86,9 @@ namespace LightBuzz.AvaSci.UI
             {
                 _angles[type].gameObject.SetActive(true);
             }
-            
-            _angles[type].Load(measurement);
-            
+
+            _angles[type].Load(body, measurement);
+
         }
     }
 }

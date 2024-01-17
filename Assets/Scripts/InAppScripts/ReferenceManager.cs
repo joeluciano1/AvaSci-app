@@ -16,6 +16,7 @@ public class ReferenceManager : MonoBehaviour
     public LoginManager LoginManager;
     public LoadingManager LoadingManager;
     public PopupManager PopupManager;
+    public ForgetPasswordManager forgetPasswordManager;
     public GameObject SigninPanel;
     public GameObject SignupPanel;
     public ParentChangerDropDown CountryParentDropDown;
@@ -27,6 +28,8 @@ public class ReferenceManager : MonoBehaviour
     public GraphMinimizer GraphMinimizer;
     public Dropdown sensorTypeDropDown;
     public int LidarCount;
+
+    public List<Angle2D> AnglesAdded = new List<Angle2D>();
     /// <summary>
     /// Screens
     /// </summary>
@@ -40,6 +43,7 @@ public class ReferenceManager : MonoBehaviour
     /// </summary>
     public Toggle SettingToggle;
     public RectTransform SettingsPanel;
+    public UiManager uiManager;
     private void Awake()
     {
         instance = this;
@@ -47,16 +51,19 @@ public class ReferenceManager : MonoBehaviour
     public async void SwitchToLidar()
     {
 #if !UNITY_EDITOR
+if(ReferenceManager.instance.sensorTypeDropDown.value != 1){
         ReferenceManager.instance.LoadingManager.Show("Setting Up Lidar Camera Please Wait...");
         await System.Threading.Tasks.Task.Delay(2000);
-        if (ReferenceManager.instance.sensorTypeDropDown.value != 1 && LidarCount != 0)
+        if (LidarCount != 0)
         {
             
 
                 ReferenceManager.instance.sensorTypeDropDown.value = 1;
 
-        ReferenceManager.instance.LoadingManager.Hide();
+        
         }
+        ReferenceManager.instance.LoadingManager.Hide();
+}
 #endif
 
     }

@@ -60,7 +60,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_RaycastTarget: 1
+  m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
@@ -68,7 +68,7 @@ MonoBehaviour:
       m_Calls: []
   m_FontData:
     m_Font: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
-    m_FontSize: 28
+    m_FontSize: 24
     m_FontStyle: 1
     m_BestFit: 0
     m_MinSize: 0
@@ -77,7 +77,7 @@ MonoBehaviour:
     m_AlignByGeometry: 0
     m_RichText: 1
     m_HorizontalOverflow: 0
-    m_VerticalOverflow: 0
+    m_VerticalOverflow: 1
     m_LineSpacing: 1
   m_Text: 0
 --- !u!114 &3941021847145782413
@@ -106,6 +106,7 @@ GameObject:
   - component: {fileID: 8790709412944194984}
   - component: {fileID: 7776642668407066646}
   - component: {fileID: 8971243072530343391}
+  - component: {fileID: 4100179075837508353}
   m_Layer: 5
   m_Name: Background
   m_TagString: Untagged
@@ -172,6 +173,20 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &4100179075837508353
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4144172353085979388}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 24dfede67b4424207937d2c9c9a725e5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  isDragging: 0
+  _rect: {fileID: 8790709412944194984}
 --- !u!1 &7461724032137592647
 GameObject:
   m_ObjectHideFlags: 0
@@ -182,6 +197,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4831087291830169773}
   - component: {fileID: 3538557964374531573}
+  - component: {fileID: 6454375400498975600}
   m_Layer: 5
   m_Name: Angle
   m_TagString: Untagged
@@ -199,7 +215,7 @@ RectTransform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
+  m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 8790709412944194984}
   m_Father: {fileID: 0}
@@ -207,7 +223,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 89.1146, y: 89.1146}
+  m_SizeDelta: {x: 62.0005, y: 62.0005}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &3538557964374531573
 MonoBehaviour:
@@ -225,11 +241,25 @@ MonoBehaviour:
   _backgroundImage: {fileID: 8971243072530343391}
   _foregroundImage: {fileID: 8512407794543227007}
   _text: {fileID: 3940488475626902282}
+  leftAdded: 0
+  rightAdded: 0
   _angle: 150
   _start: {x: 0, y: 0}
   _center: {x: 0, y: 0}
   _end: {x: 0, y: 0}
   _displayMessage: 
+  positionOffset: {x: 0, y: 0}
+  MinScale: 0.3
+  MaxScale: 1
+  initialDifference: 0
+--- !u!222 &6454375400498975600
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7461724032137592647}
+  m_CullTransparentMesh: 1
 --- !u!1 &8774747854789740960
 GameObject:
   m_ObjectHideFlags: 0
@@ -289,7 +319,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
   m_Color: {r: 0, g: 0.67073345, b: 1, a: 1}
-  m_RaycastTarget: 1
+  m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
@@ -300,7 +330,7 @@ MonoBehaviour:
   m_PreserveAspect: 0
   m_FillCenter: 1
   m_FillMethod: 4
-  m_FillAmount: 0
+  m_FillAmount: 1
   m_FillClockwise: 1
   m_FillOrigin: 0
   m_UseSpriteMesh: 0

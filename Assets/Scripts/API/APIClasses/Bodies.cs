@@ -4,7 +4,7 @@ using LightBuzz.BodyTracking;
 
 public class Bodies
 {
-    
+
 }
 public class SignupBody
 {
@@ -40,4 +40,21 @@ public class JointBody
     public string LevelOfFitness { get; set; }
 }
 
+public class SendEmailRequest
+{
+    public string ToEmail { get; set; }
+    public string Subject { get; set; }
+    public string Message { get; set; }
+}
 
+public class CheckCodeBody
+{
+    public string Email { get; set; }
+    public string Code { get; set; }
+}
+
+public class ResetPasswordBody
+{
+    public string Email { get; set; }
+    public string NewPassword { get; set; }
+}

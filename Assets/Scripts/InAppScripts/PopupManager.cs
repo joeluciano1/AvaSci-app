@@ -4,6 +4,8 @@ using UnityEngine;
 using TMPro;
 using DG.Tweening;
 using UnityEngine.UI;
+using System.Threading.Tasks;
+using UnityEngine.Events;
 
 public class PopupManager : MonoBehaviour
 {
@@ -11,7 +13,8 @@ public class PopupManager : MonoBehaviour
     public TMP_Text ContentText;
     [HideInInspector] public bool doFade;
     [HideInInspector] public Image MyImage;
-    public async void Show(string heading, string content, bool fade=false)
+    public UnityEvent onSuccess;
+    public async void Show(string heading, string content, bool fade = false, System.Action okPressed = null)
     {
         PopupManager popupManager = Instantiate(this, this.transform.parent);
         popupManager.doFade = fade;
@@ -23,20 +26,28 @@ public class PopupManager : MonoBehaviour
         popupManager.ContentText.DOFade(1, 1f);
         popupManager.HeadingText.text = heading;
         popupManager.ContentText.text = content;
+        popupManager.onSuccess.AddListener(() => { okPressed?.Invoke(); });
         await System.Threading.Tasks.Task.Delay(3000);
-        if (popupManager.doFade &&popupManager!=null)
+        if (popupManager.doFade && popupManager != null)
         {
             popupManager.transform.SetAsLastSibling();
             popupManager.HeadingText.DOFade(0, 1f);
             popupManager.ContentText.DOFade(0, 1f);
-            popupManager.MyImage.DOFade(0, 2f).OnComplete(() => Destroy(popupManager.gameObject)) ;
-            
+            popupManager.MyImage.DOFade(0, 2f).OnComplete(() => Destroy(popupManager.gameObject));
+
         }
-        
+
+
+
+
+
     }
 
     public void OnOkClick()
     {
-         Destroy(gameObject);
+
+        onSuccess?.Invoke();
+
+        Destroy(gameObject);
     }
 }

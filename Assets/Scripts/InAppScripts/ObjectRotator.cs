@@ -1,14 +1,25 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using UnityEngine;
 
 public class ObjectRotator : MonoBehaviour
 {
-    public Vector3 RotationSpeed;
-
-    // Update is called once per frame
-    void Update()
+    public float RotationSpeed;
+    public float angleToRotate;
+    void Start()
     {
-        transform.Rotate(RotationSpeed*Time.deltaTime);
+        StartCoroutine(Rotate());
     }
+
+    public IEnumerator Rotate()
+    {
+        while (gameObject.activeSelf)
+        {
+            transform.eulerAngles = new Vector3(0, 0, transform.eulerAngles.z - angleToRotate);
+            yield return new WaitForSeconds(RotationSpeed);
+        }
+    }
+
+
 }

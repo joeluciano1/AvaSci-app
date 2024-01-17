@@ -35,28 +35,30 @@ namespace LightBuzz.AvaSci.Warnings
         {
             if (!_display)
             {
-                if (MyMessage!=null)
+                if (MyMessage == null)
                 {
 
-                    //MyMessage.SetActive(false);
-                    
+                    // MyMessage.SetActive(false);
+                    gameObject.SetActive(false);
                 }
             }
             else
             {
-                if (MyMessage==null)
+                if (MyMessage == null)
                 {
-                    //gameObject.SetActive(true);
-                    Warning warning = Instantiate(this, this.transform.parent);
-                    warning.gameObject.SetActive(true);
-                    warning._label.text = _message;
-                    MyMessage = warning.gameObject;
-                    warning.transform.DOMoveY(1, 3f);
-                    warning.GetComponent<Image>().DOFade(0, 3);
-                    warning._label.DOFade(0, 3);
+                    gameObject.SetActive(true);
+                    _label.text = _message;
 
-                    await System.Threading.Tasks.Task.Delay(3000);
-                    Destroy(warning.gameObject);
+                    // Warning warning = Instantiate(this, this.transform.parent);
+                    // warning.gameObject.SetActive(true);
+                    // warning._label.text = _message;
+                    // MyMessage = warning.gameObject;
+                    // warning.transform.DOMoveY(1, 3f);
+                    // warning.GetComponent<Image>().DOFade(0, 3);
+                    // warning._label.DOFade(0, 3);
+
+                    // await System.Threading.Tasks.Task.Delay(3000);
+                    // Destroy(warning.gameObject);
                 }
             }
         }
