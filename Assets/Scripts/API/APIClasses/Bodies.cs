@@ -58,3 +58,16 @@ public class ResetPasswordBody
     public string Email { get; set; }
     public string NewPassword { get; set; }
 }
+
+public class VideoSaveBody
+{
+    public string FileName { get; set; }
+    public string FileData { get; set; }
+}
+
+public class ReportRecordBody
+{
+    public string UserName { get; set; }
+    public string VideoURL { get; set; }
+    public string? ReportURL { get; set; }
+}

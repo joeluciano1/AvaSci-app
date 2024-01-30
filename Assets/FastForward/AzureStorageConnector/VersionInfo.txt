@@ -1,0 +1,4 @@
+Version 1.0.2 - April 13 2023
+    - Fixing import settings on cover.png
+Version 1.0.1 - March 22 2023
+    - Initial Version

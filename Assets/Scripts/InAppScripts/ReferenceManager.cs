@@ -10,11 +10,17 @@ using LightBuzz.AvaSci;
 using LightBuzz.AvaSci.UI;
 using UnityEngine.UI;
 using DG.Tweening;
+using System.IO;
+using Newtonsoft.Json;
+using System.Threading.Tasks;
+using System.Globalization;
 public class ReferenceManager : MonoBehaviour
 {
+    public TMP_Text AppVersion;
     public static ReferenceManager instance;
     public LoginManager LoginManager;
     public LoadingManager LoadingManager;
+    public ProgressManager ProgressManager;
     public PopupManager PopupManager;
     public ForgetPasswordManager forgetPasswordManager;
     public GameObject SigninPanel;
@@ -38,32 +44,47 @@ public class ReferenceManager : MonoBehaviour
 
     public Main LightBuzzMain;
 
+    [HideInInspector]
+    public bool videoRecorded;
+    [HideInInspector]
+    public string recorderPath;
+
     /// <summary>
     /// settings
     /// </summary>
     public Toggle SettingToggle;
     public RectTransform SettingsPanel;
     public UiManager uiManager;
+    public AzureStorageManager azureStorageManager;
+    public GameObject VideoPlayerView;
+    public Text TotalVideoTime;
     private void Awake()
     {
         instance = this;
+        AppVersion.text = $"version:{Application.version}";
     }
+    public bool isDone;
+    public bool isShowingRecording;
+
+    public MeasurementSelector measurementSelector;
     public async void SwitchToLidar()
     {
 #if !UNITY_EDITOR
-if(ReferenceManager.instance.sensorTypeDropDown.value != 1){
-        ReferenceManager.instance.LoadingManager.Show("Setting Up Lidar Camera Please Wait...");
-        await System.Threading.Tasks.Task.Delay(2000);
-        if (LidarCount != 0)
+        if (ReferenceManager.instance.sensorTypeDropDown.value != 1 && !isDone && !isShowingRecording)
         {
-            
+            ReferenceManager.instance.LoadingManager.Show("Setting Up Lidar Camera Please Wait...");
+            await System.Threading.Tasks.Task.Delay(2000);
+            if (LidarCount != 0)
+            {
+
 
                 ReferenceManager.instance.sensorTypeDropDown.value = 1;
 
-        
+
+            }
+            isDone = true;
+            ReferenceManager.instance.LoadingManager.Hide();
         }
-        ReferenceManager.instance.LoadingManager.Hide();
-}
 #endif
 
     }
@@ -96,6 +117,10 @@ if(ReferenceManager.instance.sensorTypeDropDown.value != 1){
 
         ListOfJointsDropDown.options.Add(new TMP_Dropdown.OptionData() { text = "Select graph type..." });
     }
+    public void DisableAllGraphs()
+    {
+        measurementSelector._toggles.ToList().ForEach(x => x.isOn = false);
+    }
 
     public void OpenSettings(bool value)
     {
@@ -123,18 +148,45 @@ if(ReferenceManager.instance.sensorTypeDropDown.value != 1){
     {
         graphManagers.ForEach(x => x.MySineWave.isReading = false);
     }
-
-    public void PlayAllGraphs()
+    public void UnpauseAllGraphs()
     {
+        graphManagers.ForEach(x => x.MySineWave.Start());
+    }
+    bool ready;
+    public async void PlayAllGraphs()
+    {
+        if (!VideoPlayerView.activeSelf)
+        {
+            return;
+        }
+        while (graphManagers.Count == 0 || graphManagers.Any(x => x.MySineWave.graphChart.DataSource.GetMaxXValue() < TimeSpan.ParseExact(TotalVideoTime.text, "mm':'ss", CultureInfo.InvariantCulture).Duration().TotalSeconds))
+        {
+            if (graphManagers.Count != 0)
+            {
+                Debug.Log(graphManagers[0].MySineWave.graphChart.DataSource.GetMaxXValue());
+                Debug.Log(TimeSpan.ParseExact(TotalVideoTime.text, "mm':'ss", CultureInfo.InvariantCulture).Duration().TotalSeconds);
+            }
+            else
+            {
+                Debug.Log("Count is zero");
+            }
+
+        }
+
         graphManagers.ForEach(x =>
         {
             x.MySineWave.isReading = false;
             x.MySineWave.graphChart.AutoScrollHorizontally = false;
         });
+
     }
 
     public void OnVideoScrolled(float value)
     {
+        if (graphManagers.Count == 0 || graphManagers.Any(x => x.MySineWave.graphChart.DataSource.GetMaxXValue() < TimeSpan.ParseExact(TotalVideoTime.text, "mm':'ss", CultureInfo.InvariantCulture).Duration().TotalSeconds))
+        {
+            return;
+        }
         if (graphManagers.Any(x => !x.MySineWave.isReading))
         {
 
@@ -146,7 +198,7 @@ if(ReferenceManager.instance.sensorTypeDropDown.value != 1){
 
         }
     }
-    public void ClearAllGraphs()
+    public void ClearAllGraphs() // we clear the graphs when a new recording is started
     {
         graphManagers.ForEach(x =>
        {
@@ -154,5 +206,47 @@ if(ReferenceManager.instance.sensorTypeDropDown.value != 1){
            x.MySineWave.graphChart.AutoScrollHorizontally = true;
        });
         graphManagers.ForEach(x => x.MySineWave.graphChart.DataSource.Clear());
+    }
+    private void Update()
+    {
+        if (videoRecorded)
+        {
+            AskToUploadVideo(recorderPath);
+            videoRecorded = false;
+        }
+    }
+    public void AskToUploadVideo(string path)
+    {
+        PopupManager.Show("Save Video?", "Would you like the video to be saved to be viewed Later?", false, okPressed: () => UploadVideo(path), true);
+    }
+    public void UploadVideo(string path)
+    {
+        var directory = new DirectoryInfo(path);
+        var myFiles = directory.GetFiles().ToList();
+
+        List<VideoSaveBody> videoSaveBodies = new List<VideoSaveBody>();
+        foreach (var myFile in myFiles)
+        {
+            using (FileStream fs = myFile.OpenRead())
+            {
+                byte[] bytes;
+                using (var memoryStream = new MemoryStream())
+                {
+                    fs.CopyTo(memoryStream);
+                    bytes = memoryStream.ToArray();
+                }
+
+                string base64 = Convert.ToBase64String(bytes);
+                VideoSaveBody videoSaveBody = new VideoSaveBody()
+                {
+                    FileName = myFile.Name,
+                    FileData = base64
+                };
+                videoSaveBodies.Add(videoSaveBody);
+            }
+        }
+        string json = JsonConvert.SerializeObject(videoSaveBodies);
+        azureStorageManager.UploadVideo(json, $"{GeneralStaticManager.GlobalVar["UserName"]}_");
+
     }
 }

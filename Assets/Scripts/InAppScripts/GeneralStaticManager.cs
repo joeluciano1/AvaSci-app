@@ -6,9 +6,10 @@ using System.Text;
 using LightBuzz.AvaSci.Measurements;
 using UnityEngine;
 
-public static class GeneralStaticManager 
+public static class GeneralStaticManager
 {
     public static Dictionary<string, string> GlobalVar = new Dictionary<string, string>();
+    public static Dictionary<string, Sprite> GlobalImage = new Dictionary<string, Sprite>();
     public static Dictionary<string, List<float>> GraphsReadings = new Dictionary<string, List<float>>();
 
     public static string AddSpacesToSentence(string text, bool preserveAcronyms)

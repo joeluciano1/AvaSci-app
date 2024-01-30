@@ -154,3 +154,20 @@ public class InstructionsResponse
     public List<InstructionsResponseData> result { get; set; }
     public List<ServiceError> serviceErrors { get; set; }
 }
+
+public class UserReportData
+{
+    public string UserName { get; set; }
+    public string VideoURL { get; set; }
+    public string ReportURL { get; set; }
+    public string CreatedOn { get; set; }
+}
+
+public class UserReportResponse
+{
+    public bool isSuccess { get; set; }
+    public bool isError { get; set; }
+    public int status { get; set; }
+    public List<UserReportData> result { get; set; }
+    public List<ServiceError> serviceErrors { get; set; }
+}

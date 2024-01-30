@@ -16,7 +16,7 @@ public class GeneralUnityActions : MonoBehaviour
 
     public UnityEvent WhenScrolledToTop;
     public GameObject LoaderPrefab;
-    public GameObject loadedLoader;
+    [HideInInspector] public GameObject loadedLoader;
     Vector2 initialPositionoOfContent;
 
 

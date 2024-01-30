@@ -16,8 +16,8 @@ namespace LightBuzz.AvaSci
         [SerializeField] private SettingsView _settingsView;
         [SerializeField] private LightBuzzViewer _viewer;
         [SerializeField] private AngleManager _angles;
-        [SerializeField] private VideoRecordingView _videoRecorderView;
-        [SerializeField] private VideoPlayerView _videoPlayerView;
+        [SerializeField] public VideoRecordingView _videoRecorderView;
+        [SerializeField] public VideoPlayerView _videoPlayerView;
         [SerializeField] private MeasurementSelector _measurementSelector;
 
         [SerializeField] private WarningCollection _warnings;
@@ -31,7 +31,7 @@ namespace LightBuzz.AvaSci
         private bool _pointCloudEnabled = false;
 
         public readonly Movement _movement = new Movement();
-        
+
         private void Awake()
         {
             Application.targetFrameRate = 60;
@@ -40,11 +40,14 @@ namespace LightBuzz.AvaSci
         private async void Start()
         {
             //_version.text = $"v{Application.version}";
-            
+
             await _settingsView.Load();
 
             _loading.text = string.Empty;
             _videoRecorderView.Show();
+
+
+
         }
 
         private void Update()
@@ -88,6 +91,7 @@ namespace LightBuzz.AvaSci
 
             _viewer.gameObject.SetActive(true);
             _loading.text = _isReady ? string.Empty : "Could not start the specified camera. Check your configuration settings.";
+
         }
 
         /// <summary>

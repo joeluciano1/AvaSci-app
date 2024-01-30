@@ -72,7 +72,7 @@ public class SineWave : MonoBehaviour
 
     public IEnumerator StartReadingGraphs()
     {
-
+        var main = ReferenceManager.instance.LightBuzzMain;
         while (isReading)
         {
             if (customChartPointer == null)
@@ -84,7 +84,7 @@ public class SineWave : MonoBehaviour
             else if (customChartPointer.IsOut && !customChartPointer.IsMouseDown)
                 SetGraphsAutoScroll(true);
 
-            var main = ReferenceManager.instance.LightBuzzMain;
+
 
             //if (myParentGraphManager == null||myLinearGraph==null)
             //{
@@ -131,13 +131,14 @@ public class SineWave : MonoBehaviour
                     innFillMat.SetColor("_ColorTo", color2);
                     PlayerPrefs.SetInt(itemName, 0);
                     graphChart.DataSource.AddCategory(itemName, lineMaterial, lineThickness, lineTiling, null, true, pointMat, pointSize);
+                    PlayerPrefs.SetFloat(itemName, 0);
                 }
 
                 //double angularSpeedY = (GeneralStaticManager.DegreesToRadians(item.Value.Value) - GeneralStaticManager.DegreesToRadians(previousAngle)) / (timeSpan.TotalSeconds);
                 //double changeInangleX = (GeneralStaticManager.DegreesToRadians(item.Value.Value) - GeneralStaticManager.DegreesToRadians(previousAngle));
 
                 //graphChart.DataSource.AddPointToCategory(System.Enum.GetName(typeof(MeasurementType), item.Key), changeInangleX, MathF.Round((float)angularSpeedY, 2));
-                int value = PlayerPrefs.GetInt(itemName);
+                float value = PlayerPrefs.GetFloat(itemName);
                 graphChart.DataSource.AddPointToCategoryRealtime(itemName, value, item.Value.Value, 1);
 
                 if (GeneralStaticManager.GraphsReadings.ContainsKey(itemName))
@@ -150,13 +151,14 @@ public class SineWave : MonoBehaviour
                 }
 
                 //PlayerPrefs.SetFloat(System.Enum.GetName(typeof(MeasurementType), item.Key) + " PreviousAngle", item.Value.Value);
-                //PlayerPrefs.SetString(System.Enum.GetName(typeof(MeasurementType), item.Key) + " previousTime", DateTime.Now.ToString());
-
-                PlayerPrefs.SetInt(itemName, PlayerPrefs.GetInt(itemName) + 1);
+                PlayerPrefs.SetString(itemName + " previousTime", DateTime.Now.ToString());
+                PlayerPrefs.SetFloat(itemName, PlayerPrefs.GetFloat(itemName) + 0.1f);
+                // PlayerPrefs.SetFloat(itemName, PlayerPrefs.GetFloat(itemName) + (float)timeSpan.TotalSeconds);
             }
-            yield return new WaitForSeconds(1);
+            yield return new WaitForSeconds(0.1f);
             X += 1;
         }
+
     }
 
 

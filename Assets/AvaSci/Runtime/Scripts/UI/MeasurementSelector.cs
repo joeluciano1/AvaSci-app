@@ -14,7 +14,7 @@ namespace LightBuzz.AvaSci.UI
     public class MeasurementSelector : MonoBehaviour
     {
         [SerializeField] private GameObject _list;
-        [SerializeField] private Toggle[] _toggles;
+        [SerializeField] public Toggle[] _toggles;
         [SerializeField] private TMPro.TMP_Text _label;
         [SerializeField] private Image _arrow;
 

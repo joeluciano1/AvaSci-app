@@ -5,6 +5,7 @@ using Newtonsoft.Json;
 using TMPro;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.Networking;
 using UnityEngine.UI;
 
 public class UiManager : MonoBehaviour
@@ -26,6 +27,7 @@ public class UiManager : MonoBehaviour
 
     public GameObject InstructionsPanel;
     public TMP_Text InstructionsText;
+    public Image InstructionImage;
 
     public void ClickButton(Button selectedButton)
     {
@@ -50,7 +52,9 @@ public class UiManager : MonoBehaviour
                 if (instructionsResponse.isSuccess)
                 {
                     string instruction = instructionsResponse.result.FirstOrDefault(x => x.InstructionTitle.Contains("Consent")).Instruction;
+
                     instruction = instruction.Replace("\\n", "\n");
+
                     ConsentText.text = $"{instruction}";
                 }
                 if (instructionsResponse.isError)
@@ -71,6 +75,20 @@ public class UiManager : MonoBehaviour
             });
         }
     }
+    IEnumerator DownloadImage(string MediaUrl)
+    {
+        UnityWebRequest request = UnityWebRequestTexture.GetTexture(MediaUrl);
+        yield return request.SendWebRequest();
+        if (request.isNetworkError || request.isHttpError)
+            Debug.Log(request.error);
+        else
+        {
+            Texture2D texture = ((DownloadHandlerTexture)request.downloadHandler).texture;
+            InstructionImage.sprite = Sprite.Create(texture, new Rect(0.0f, 0.0f, texture.width, texture.height), new Vector2(0.5f, 0.5f), 100.0f);
+            InstructionImage.gameObject.SetActive(true);
+            GeneralStaticManager.GlobalImage.Add("Instructions", InstructionImage.sprite);
+        }
+    }
     bool fetchedInstructions;
     public void GetInstructions(bool value)
     {
@@ -86,9 +104,13 @@ public class UiManager : MonoBehaviour
                               {
                                   string instruction = instructionsResponse.result.FirstOrDefault(x => x.InstructionTitle.Contains("Instruction")).Instruction;
                                   instruction = instruction.Replace("\\n", "\n");
-                                  InstructionsText.text = $"{instruction}";
+                                  string contentOfInstruction = instruction.Split('=')[0].Replace("image", "");
+                                  string imageURL = instruction.Split('=')[1];
+                                  StartCoroutine(DownloadImage(imageURL));
+                                  InstructionsText.text = $"{contentOfInstruction}";
                                   fetchedInstructions = true;
-                                  GeneralStaticManager.GlobalVar.Add("Instructions", instruction);
+                                  GeneralStaticManager.GlobalVar.Add("Instructions", contentOfInstruction);
+
                               }
                               if (instructionsResponse.isError)
                               {
@@ -110,6 +132,7 @@ public class UiManager : MonoBehaviour
             else
             {
                 InstructionsText.text = GeneralStaticManager.GlobalVar["Instructions"];
+                InstructionImage.sprite = GeneralStaticManager.GlobalImage["Instructions"];
             }
         }
         else

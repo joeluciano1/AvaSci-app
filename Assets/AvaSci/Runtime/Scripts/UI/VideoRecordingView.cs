@@ -1,6 +1,9 @@
 using LightBuzz.BodyTracking;
 using LightBuzz.BodyTracking.Video;
 using System;
+using System.Collections;
+using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Android;
@@ -19,7 +22,7 @@ namespace LightBuzz.AvaSci.UI
 
         [Header("Video recording options")]
 
-        [SerializeField] private string _videoPath = string.Empty;
+        [SerializeField] public string _videoPath = string.Empty;
         [SerializeField] private VideoRecordingMode _mode = VideoRecordingMode.Default;
         [SerializeField][Range(0, 100)] private int _quality = 50;
         [SerializeField] private bool _recordColorData = true;
@@ -265,8 +268,10 @@ namespace LightBuzz.AvaSci.UI
         private void Recorder_OnRecordingCompleted()
         {
             Debug.Log("Recording completed saving data.");
-
+            ReferenceManager.instance.recorderPath = _recorder.Settings.Path;
+            ReferenceManager.instance.videoRecorded = true;
             _completed = true;
+
         }
 
         private void Recorder_OnProgressUpdated(float percentage)
@@ -277,7 +282,7 @@ namespace LightBuzz.AvaSci.UI
         /// <summary>
         /// Opens the sensor asynchronously.
         /// </summary>
-        private async Task Open()
+        public async Task Open()
         {
             _loading.SetActive(true);
 
@@ -344,7 +349,7 @@ namespace LightBuzz.AvaSci.UI
         /// <summary>
         /// Starts the recording.
         /// </summary>
-        public void OnStart()
+        public async void OnStart()
         {
             if (string.IsNullOrWhiteSpace(_videoPath))
             {
@@ -371,6 +376,7 @@ namespace LightBuzz.AvaSci.UI
             };
             _recorder.SmoothingType = Sensor.SmoothingType;
             _recorder.Start();
+
         }
 
         /// <summary>
