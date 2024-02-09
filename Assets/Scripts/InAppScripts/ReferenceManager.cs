@@ -16,6 +16,8 @@ using System.Threading.Tasks;
 using System.Globalization;
 public class ReferenceManager : MonoBehaviour
 {
+    public bool isProduction;
+    public GameObject DebugButton;
     public TMP_Text AppVersion;
     public static ReferenceManager instance;
     public LoginManager LoginManager;
@@ -58,15 +60,28 @@ public class ReferenceManager : MonoBehaviour
     public AzureStorageManager azureStorageManager;
     public GameObject VideoPlayerView;
     public Text TotalVideoTime;
+    public GameObject IAPPAnel;
+    public IAPManager iAPManager;
+
     private void Awake()
     {
         instance = this;
-        AppVersion.text = $"version:{Application.version}";
+
+        AppVersion.text = isProduction ? "" : $"version:{Application.version}";
+        if (isProduction)
+        {
+            AppVersion.transform.parent.gameObject.SetActive(false);
+        }
+        if (isProduction)
+        {
+            DebugButton.SetActive(false);
+        }
     }
     public bool isDone;
     public bool isShowingRecording;
 
     public MeasurementSelector measurementSelector;
+    public GameObject VideoPlayButton;
     public async void SwitchToLidar()
     {
 #if !UNITY_EDITOR
@@ -159,18 +174,18 @@ public class ReferenceManager : MonoBehaviour
         {
             return;
         }
-        while (graphManagers.Count == 0 || graphManagers.Any(x => x.MySineWave.graphChart.DataSource.GetMaxXValue() < TimeSpan.ParseExact(TotalVideoTime.text, "mm':'ss", CultureInfo.InvariantCulture).Duration().TotalSeconds))
+        while (!VideoPlayButton.activeSelf || graphManagers.Count == 0 || graphManagers.Any(x => x.MySineWave.graphChart.DataSource.GetMaxXValue() < TimeSpan.ParseExact(TotalVideoTime.text, "mm':'ss", CultureInfo.InvariantCulture).Duration().TotalSeconds))
         {
             if (graphManagers.Count != 0)
             {
                 Debug.Log(graphManagers[0].MySineWave.graphChart.DataSource.GetMaxXValue());
                 Debug.Log(TimeSpan.ParseExact(TotalVideoTime.text, "mm':'ss", CultureInfo.InvariantCulture).Duration().TotalSeconds);
             }
-            else
-            {
-                Debug.Log("Count is zero");
-            }
-
+            // else
+            // {
+            //     Debug.Log("Count is zero");
+            // }
+            await Task.Delay(100);
         }
 
         graphManagers.ForEach(x =>
@@ -211,7 +226,15 @@ public class ReferenceManager : MonoBehaviour
     {
         if (videoRecorded)
         {
-            AskToUploadVideo(recorderPath);
+            if (!isProduction)
+            {
+                AskToUploadVideo(recorderPath);
+            }
+            else
+            {
+                UploadVideo(recorderPath);
+                videoRecorded = false;
+            }
             videoRecorded = false;
         }
     }

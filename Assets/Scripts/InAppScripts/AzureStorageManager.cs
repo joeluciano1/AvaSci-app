@@ -17,16 +17,16 @@ public class AzureStorageManager : MonoBehaviour
     void Start()
     {
         AzureConnector.Instance.Init(accountName, accountKey);
-        StartCoroutine(InitiateContainers());
+        // StartCoroutine(InitiateContainers());
     }
-    public IEnumerator InitiateContainers()
-    {
-        var waitForSeconds = new WaitForSeconds(delayBetweenCalls);
-        yield return waitForSeconds;
-        AzureConnector.Instance.ListContainers(ListContainersCallback);
-        yield return waitForSeconds;
-        AzureConnector.Instance.ListBlobs(container, ListBlobsCallback);
-    }
+    // public IEnumerator InitiateContainers()
+    // {
+    //     var waitForSeconds = new WaitForSeconds(delayBetweenCalls);
+    //     yield return waitForSeconds;
+    //     AzureConnector.Instance.ListContainers(ListContainersCallback);
+    //     yield return waitForSeconds;
+    //     AzureConnector.Instance.ListBlobs(container, ListBlobsCallback);
+    // }
 
     public void UploadVideo(string json, string fileName)
     {

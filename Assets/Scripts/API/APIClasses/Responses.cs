@@ -65,6 +65,12 @@ public class SignInResult
     public string token { get; set; }
     public string UserName { get; set; }
     public List<string> Roles { get; set; }
+    public string CountryName { get; set; }
+    public string Age { get; set; }
+    public string Gender { get; set; }
+    public string SpecialMessage { get; set; }
+    public string UserId { get; set; }
+    public bool IsSubscribed { get; set; }
 }
 
 public class SignInResponse

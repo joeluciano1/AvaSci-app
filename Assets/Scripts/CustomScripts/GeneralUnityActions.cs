@@ -51,7 +51,7 @@ public class GeneralUnityActions : MonoBehaviour
             initialPositionoOfContent = scrollRect.content.anchoredPosition;
         }
         float difference = initialPositionoOfContent.y - scrollRect.content.anchoredPosition.y;
-        Debug.Log(difference);
+        // Debug.Log(difference);
         if (difference >= 10 && loadedLoader == null)
         {
             loadedLoader = Instantiate(LoaderPrefab, scrollRect.content.transform.parent);

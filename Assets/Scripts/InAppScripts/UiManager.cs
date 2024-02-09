@@ -28,7 +28,8 @@ public class UiManager : MonoBehaviour
     public GameObject InstructionsPanel;
     public TMP_Text InstructionsText;
     public Image InstructionImage;
-
+    int instructionsSiblingIndex;
+    public TMP_Text UserInfotext;
     public void ClickButton(Button selectedButton)
     {
         ButtonImages.ForEach(x => x.image.color = UnSelectedWindowColor);
@@ -43,6 +44,7 @@ public class UiManager : MonoBehaviour
 
     void Start()
     {
+        instructionsSiblingIndex = InstructionsPanel.transform.GetSiblingIndex();
         if (PlayerPrefs.GetInt(StringConstants.FIRSTTIMEAPPRUN) == 0)
         {
             AvasciConsentPanel.SetActive(true);
@@ -94,6 +96,7 @@ public class UiManager : MonoBehaviour
     {
         if (value)
         {
+            InstructionsPanel.transform.SetAsLastSibling();
             InstructionsPanel.SetActive(true);
             if (!fetchedInstructions)
             {
@@ -132,25 +135,38 @@ public class UiManager : MonoBehaviour
             else
             {
                 InstructionsText.text = GeneralStaticManager.GlobalVar["Instructions"];
-                InstructionImage.sprite = GeneralStaticManager.GlobalImage["Instructions"];
+                if (GeneralStaticManager.GlobalImage.ContainsKey("Instructions"))
+                    InstructionImage.sprite = GeneralStaticManager.GlobalImage["Instructions"];
             }
         }
         else
         {
+            InstructionsPanel.transform.SetSiblingIndex(instructionsSiblingIndex);
             InstructionsPanel.SetActive(false);
         }
     }
 
     public void OnScroll()
     {
-        Debug.Log("alskdjflsajflisajflsajdfsdf: " + scrollRect.verticalNormalizedPosition);
+
         if (scrollRect.verticalNormalizedPosition <= 0 && Input.GetMouseButton(0))
         {
             AcceptButton.interactable = true;
         }
 
     }
-
+    public void DisplayUserInfo()
+    {
+        if (GeneralStaticManager.GlobalVar.ContainsKey("UserName"))
+        {
+            string username = GeneralStaticManager.GlobalVar["UserName"];
+            string roles = GeneralStaticManager.GlobalVar["UserRoles"];
+            string country = GeneralStaticManager.GlobalVar["UserCountry"];
+            string gender = GeneralStaticManager.GlobalVar["UserGender"];
+            string age = GeneralStaticManager.GlobalVar["UserAge"];
+            UserInfotext.text = $"<b>User Name: </b> {username}\n \n<b>Roles: </b>{roles}\n \n<b>Country: </b>{country}\n \n<b>Gender: </b>{gender}\n \n<b>Age: </b>{age}";
+        }
+    }
     public void AcceptConsent()
     {
         PlayerPrefs.SetInt(StringConstants.FIRSTTIMEAPPRUN, 1);

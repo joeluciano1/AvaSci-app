@@ -50,7 +50,9 @@ public class UserReportController : MonoBehaviour
                     userReportFromDB.gameObject.SetActive(true);
                     userReportFromDB.UserName.text = item.UserName;
                     userReportFromDB.CreatedOn.text = item.CreatedOn;
-                    StartCoroutine(GetText(item.VideoURL, userReportFromDB.WatchBtn, userReportFromDB));
+                    userReportFromDB.WatchBtn.interactable = true;
+                    userReportFromDB.WatchBtn.onClick.AddListener(() => StartCoroutine(GetText(item.VideoURL, userReportFromDB.WatchBtn, userReportFromDB)));
+                    userReportFromDB.ButtonText.text = "Download Video";
                     userReportFromDBs.Add(userReportFromDB);
                 }
             }
@@ -116,9 +118,17 @@ public class UserReportController : MonoBehaviour
             btn.onClick.RemoveAllListeners();
             btn.onClick.AddListener(() => CreateFileAndView(videoSaveBodies));
             btn.interactable = true;
-
+            userReportFromDB.ProgressImage.gameObject.SetActive(false);
+            userReportFromDB.ButtonText.text = $"Watch";
+            if (userReportFromDB.request.downloadProgress == 0)
+            {
+                userReportFromDB.ButtonText.text = "Retry? No Data Found";
+            }
+            requests.Remove(userReportFromDB.request);
+            userReportFromDB.request.Dispose();
+            userReportFromDB.request = null;
             // Show results as text
-            Debug.Log(request.downloadHandler.text);
+            // Debug.Log(request.downloadHandler.text);
 
 
             // Or retrieve results as binary data
@@ -155,13 +165,18 @@ public class UserReportController : MonoBehaviour
                     item.ProgressImage.fillAmount = request.downloadProgress;
 
                     item.ButtonText.text = $"{Math.Round(request.downloadProgress, 4) * 100}%";
-                    if (item.ProgressImage.fillAmount == 1)
+                    if (item.ProgressImage.fillAmount >= 0.95f)
                     {
                         item.ProgressImage.gameObject.SetActive(false);
                         item.ButtonText.text = $"Watch";
+                        if (request.downloadProgress == 0)
+                        {
+                            item.ButtonText.text = "Retry? No Data Found";
+                        }
                     }
                 }
             }
+
         }
     }
 

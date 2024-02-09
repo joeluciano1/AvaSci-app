@@ -325,9 +325,22 @@ public class LoginManager : MonoBehaviour
               SignInResponse signinResponse = JsonConvert.DeserializeObject<SignInResponse>(response);
               if (signinResponse.isSuccess)
               {
-                  ReferenceManager.instance.PopupManager.Show("Success!", "You have successfully signed in", true);
+                  if (signinResponse.result.IsSubscribed)
+                  {
+                      if (!ReferenceManager.instance.iAPManager.CheckSubscription("avascimonthlysub") && !ReferenceManager.instance.iAPManager.CheckSubscription("avasciyearlysub"))
+                      {
+                          ReferenceManager.instance.PopupManager.Show("Signin Failed!", $"Your Subscription has Ended and you need to subscribe", false, okPressed: () => { ReferenceManager.instance.IAPPAnel.SetActive(true); });
+                          return;
+                      }
+                  }
+                  ReferenceManager.instance.PopupManager.Show("Success!", $"You have successfully signed in\n{signinResponse.result.SpecialMessage}", true);
                   StringConstants.TOKEN = signinResponse.result.token;
                   GeneralStaticManager.GlobalVar.Add("UserName", signinResponse.result.UserName);
+                  GeneralStaticManager.GlobalVar.Add("UserRoles", string.Join(',', signinResponse.result.Roles));
+                  GeneralStaticManager.GlobalVar.Add("UserAge", signinResponse.result.Age);
+                  GeneralStaticManager.GlobalVar.Add("UserCountry", signinResponse.result.CountryName);
+                  GeneralStaticManager.GlobalVar.Add("UserGender", signinResponse.result.Gender);
+                  GeneralStaticManager.GlobalVar.Add("UserID", signinResponse.result.UserId);
                   ReferenceManager.instance.SigninPanel.SetActive(false);
                   PlayerPrefs.SetString(StringConstants.LOGINEMAIL, LoginEmail_InputField.text);
                   PlayerPrefs.SetString(StringConstants.LOGINPASSWORD, LoginPassword_InputField.text);
@@ -346,11 +359,23 @@ public class LoginManager : MonoBehaviour
               if (signinResponse.isError)
               {
                   string reasons = "";
+                  bool isSubscriptionEnded = false;
                   foreach (var item in signinResponse.serviceErrors)
                   {
                       reasons += $"\n {item.code} {item.description}";
+                      if (item.code == "E0020")
+                      {
+                          isSubscriptionEnded = true;
+                      }
                   }
-                  ReferenceManager.instance.PopupManager.Show("Signin Failed!", $"Reasons are: {reasons}");
+                  if (isSubscriptionEnded)
+                  {
+                      ReferenceManager.instance.PopupManager.Show("Signin Failed!", $"Your Trial has Ended and you need to subscribe", false, okPressed: () => { ReferenceManager.instance.IAPPAnel.SetActive(true); });
+                  }
+                  else
+                  {
+                      ReferenceManager.instance.PopupManager.Show("Signin Failed!", $"Reasons are: {reasons}");
+                  }
                   Debug.Log($"{signinResponse.serviceErrors}");
               }
 
