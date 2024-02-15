@@ -62,6 +62,10 @@ public class ReferenceManager : MonoBehaviour
     public Text TotalVideoTime;
     public GameObject IAPPAnel;
     public IAPManager iAPManager;
+    public VideoPlayerView videoPlayerView;
+
+    public Image UploadingImage;
+    public Transform UploaderAnimation;
 
     private void Awake()
     {
@@ -170,48 +174,61 @@ public class ReferenceManager : MonoBehaviour
     bool ready;
     public async void PlayAllGraphs()
     {
-        if (!VideoPlayerView.activeSelf)
-        {
-            return;
-        }
-        while (!VideoPlayButton.activeSelf || graphManagers.Count == 0 || graphManagers.Any(x => x.MySineWave.graphChart.DataSource.GetMaxXValue() < TimeSpan.ParseExact(TotalVideoTime.text, "mm':'ss", CultureInfo.InvariantCulture).Duration().TotalSeconds))
-        {
-            if (graphManagers.Count != 0)
-            {
-                Debug.Log(graphManagers[0].MySineWave.graphChart.DataSource.GetMaxXValue());
-                Debug.Log(TimeSpan.ParseExact(TotalVideoTime.text, "mm':'ss", CultureInfo.InvariantCulture).Duration().TotalSeconds);
-            }
-            // else
-            // {
-            //     Debug.Log("Count is zero");
-            // }
-            await Task.Delay(100);
-        }
+        graphManagers.ForEach(x => x.MySineWave.isReading = false);
+        // if (!VideoPlayerView.activeSelf)
+        // {
+        //     return;
+        // }
+        // while (!VideoPlayButton.activeSelf || graphManagers.Count == 0 || graphManagers.Any(x => x.MySineWave.graphChart.DataSource.GetMaxXValue() < TimeSpan.ParseExact(TotalVideoTime.text, "mm':'ss", CultureInfo.InvariantCulture).Duration().TotalSeconds))
+        // {
+        //     if (graphManagers.Count != 0)
+        //     {
+        //         Debug.Log(graphManagers[0].MySineWave.graphChart.DataSource.GetMaxXValue());
+        //         Debug.Log(TimeSpan.ParseExact(TotalVideoTime.text, "mm':'ss", CultureInfo.InvariantCulture).Duration().TotalSeconds);
+        //     }
+        //     // else
+        //     // {
+        //     //     Debug.Log("Count is zero");
+        //     // }
+        //     await Task.Delay(100);
+        // }
 
-        graphManagers.ForEach(x =>
-        {
-            x.MySineWave.isReading = false;
-            x.MySineWave.graphChart.AutoScrollHorizontally = false;
-        });
+        // graphManagers.ForEach(x =>
+        // {
+        //     x.MySineWave.isReading = false;
+        //     x.MySineWave.graphChart.AutoScrollHorizontally = false;
+        // });
 
     }
 
     public void OnVideoScrolled(float value)
     {
-        if (graphManagers.Count == 0 || graphManagers.Any(x => x.MySineWave.graphChart.DataSource.GetMaxXValue() < TimeSpan.ParseExact(TotalVideoTime.text, "mm':'ss", CultureInfo.InvariantCulture).Duration().TotalSeconds))
-        {
-            return;
-        }
-        if (graphManagers.Any(x => !x.MySineWave.isReading))
-        {
+        // if (graphManagers.Count == 0 || graphManagers.Any(x => x.MySineWave.graphChart.DataSource.GetMaxXValue() < TimeSpan.ParseExact(TotalVideoTime.text, "mm':'ss", CultureInfo.InvariantCulture).Duration().TotalSeconds))
+        // {
+        //     return;
+        // }
 
-            graphManagers.ForEach(x =>
+        // if (graphManagers.Any(x => !x.MySineWave.isReading))
+        // {
+
+        Debug.Log(videoPlayerView.VideoPlayer.TimeElapsed.TotalSeconds);
+        graphManagers.ForEach(x =>
+        {
+            x.MySineWave.isReading = false;
+            x.MySineWave.graphChart.AutoScrollHorizontally = false;
+            x.MySineWave.SetReadingValue((float)videoPlayerView.VideoPlayer.TimeElapsed.TotalSeconds);
+
+        });
+
+
+        graphManagers.ForEach(x =>
+        {
+            if (!x.MySineWave.isReading)
             {
-                x.MySineWave.graphChart.AutoScrollHorizontally = false;
-                x.MySineWave.graphChart.HorizontalScrolling = value * 10;
-            });
-
-        }
+                x.MySineWave.graphChart.HorizontalScrolling = videoPlayerView.VideoPlayer.TimeElapsed.TotalSeconds;
+            }
+        });
+        // }
     }
     public void ClearAllGraphs() // we clear the graphs when a new recording is started
     {

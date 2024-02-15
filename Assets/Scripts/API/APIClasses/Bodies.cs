@@ -77,3 +77,9 @@ public class SubscriptionBody
     public string UserEmail { get; set; }
     public bool IsMonthlySub { get; set; }
 }
+
+public class ReportDeleteBody
+{
+    public string UserId { get; set; }
+    public string VideoURL { get; set; }
+}

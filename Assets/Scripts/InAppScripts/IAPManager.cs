@@ -4,13 +4,16 @@ using System.Collections.Generic;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using TMPro;
+using Unity.Services.Core;
+using Unity.Services.Core.Environments;
 using UnityEngine;
 using UnityEngine.Purchasing;
+using UnityEngine.Purchasing.Extension;
 
-public class IAPManager : MonoBehaviour, IStoreListener
+public class IAPManager : MonoBehaviour, IDetailedStoreListener
 {
-    public static string PRODUCT_ID_MONTHLY_SUB = "avascimonthlysub";
-    public static string PRODUCT_ID_YEARLY_SUB = "avasciyearlysub";
+    public string PRODUCT_ID_MONTHLY_SUB = "avascimonthlysub";
+    public string PRODUCT_ID_YEARLY_SUB = "avasciyearlysub";
 
     private static IStoreController m_StoreController;
     private static IExtensionProvider m_StoreExtensionProvider;
@@ -26,8 +29,12 @@ public class IAPManager : MonoBehaviour, IStoreListener
         Debug.Log($"You have pata nai kitne Month(s) {difference.Days} Days and {difference.TotalHours} Hours Left Before Trial Ends");
         Debug.Log(dateTimeThen.ToString("yyyy-MM-ddTHH:mm:ss.fffffff"));
     }
-    public void Start()
+    public async void Start()
     {
+        var options = new InitializationOptions()
+               .SetEnvironmentName("production");
+
+        await UnityServices.InitializeAsync(options);
         if (m_StoreController == null)
         {
             InitializePurchasing();
@@ -35,10 +42,11 @@ public class IAPManager : MonoBehaviour, IStoreListener
     }
     void InitializePurchasing()
     {
-        if (IsInitialized())
-        {
-            return;
-        }
+        // if (IsInitialized())
+        // {
+        //     return;
+        // }
+        Debug.Log("Id aik = " + PRODUCT_ID_MONTHLY_SUB);
 
         var builder = ConfigurationBuilder.Instance(StandardPurchasingModule.Instance());
 
@@ -89,31 +97,46 @@ public class IAPManager : MonoBehaviour, IStoreListener
     }
     public bool CheckSubscription(string productID)
     {
-        Product product = m_StoreController.products.WithID(productID);
-        return IsSubscriptionValid(product);
+
+        return IsSubscriptionValid(productID);
     }
-    public bool IsSubscriptionValid(Product product)
+
+    public bool IsSubscriptionValid(string productID)
     {
-        if (product == null || !product.hasReceipt)
+        // Ensure the IAP system has been initialized
+        if (m_StoreController == null || m_StoreExtensionProvider == null)
         {
+            Debug.Log("IAP system not initialized");
             return false;
         }
 
-        var receipt = product.receipt;
-        var jsonReceipt = JObject.Parse(receipt);
-        var payload = jsonReceipt["Payload"]; // This might vary based on the platform
+        // Get the Product by its ID
 
-        // For Google Play Store
-        // var googleReceipt = JObject.Parse(payload["json"].ToString());
-        // var expiryDate = googleReceipt["expiryTimeMillis"].ToString();
+        Product product = m_StoreController.products.WithID(productID);
+        // Check if the product exists and has a receipt
+        if (product != null && !string.IsNullOrEmpty(product.receipt))
+        {
+            // Create a new SubscriptionManager
+            var subscriptionManager = new SubscriptionManager(product, product.definition.storeSpecificId);
+            var info = subscriptionManager.getSubscriptionInfo();
 
-        // For Apple App Store
-        var appleReceipt = JObject.Parse(payload.ToString());
-        var expiryDate = appleReceipt["expires_date_ms"].ToString();
-
-        var currentDate = DateTime.UtcNow;
-        var subscriptionExpiryDate = UnixTimeStampToDateTime(double.Parse(expiryDate));
-        return subscriptionExpiryDate > currentDate;
+            // Check if the subscription is active
+            if (info.isSubscribed() == Result.True)
+            {
+                Debug.Log("User is subscribed to: " + product);
+                return true;
+            }
+            else
+            {
+                Debug.Log("User is NOT subscribed to: " + product);
+                return false;
+            }
+        }
+        else
+        {
+            Debug.Log("Product not found or no receipt available");
+            return false;
+        }
     }
 
     private static DateTime UnixTimeStampToDateTime(double unixTimeStamp)
@@ -233,5 +256,10 @@ public class IAPManager : MonoBehaviour, IStoreListener
             }
         }
         return "Not Available";
+    }
+
+    public void OnPurchaseFailed(Product product, PurchaseFailureDescription failureDescription)
+    {
+        Debug.Log($"OnPurchaseFailed: FAIL. Product: '{product.definition.storeSpecificId}', PurchaseFailureReason: {failureDescription}");
     }
 }

@@ -46,6 +46,7 @@ public class UserReportController : MonoBehaviour
                         continue;
                     }
                     UserReportFromDB userReportFromDB = Instantiate(userReportFromDBPrefab, userReportFromDBPrefab.transform.parent);
+                    userReportFromDB.UserId = item.UserID;
                     userReportFromDB.VideoURL = item.VideoURL;
                     userReportFromDB.gameObject.SetActive(true);
                     userReportFromDB.UserName.text = item.UserName;

@@ -402,6 +402,7 @@ namespace LightBuzz.AvaSci.UI
             }
             else
             {
+                ReferenceManager.instance.StopAllGraphs();
                 OnStop();
             }
         }

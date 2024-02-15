@@ -310,6 +310,7 @@ public class LoginManager : MonoBehaviour
 
     public void SignUserIn()
     {
+
         ReferenceManager.instance.LoadingManager.ReasonLoading_Text.text = "Signing You In!";
         LoginBody loginBody = new LoginBody()
         {
@@ -322,6 +323,7 @@ public class LoginManager : MonoBehaviour
         APIHandler.instance.Post("Auth/Login", jsonData,
           onSuccess: (response) =>
           {
+
               SignInResponse signinResponse = JsonConvert.DeserializeObject<SignInResponse>(response);
               if (signinResponse.isSuccess)
               {
@@ -381,12 +383,17 @@ public class LoginManager : MonoBehaviour
 
               Debug.Log($"Success: {response}");
 
+
+
+
           },
           onError: (error) =>
           {
               ReferenceManager.instance.PopupManager.Show("Signin Failed!", $"Reasons are: {error}");
               Debug.LogError($"Error: {error}");
           });
+
+
     }
 
     public void ClearAllFields()

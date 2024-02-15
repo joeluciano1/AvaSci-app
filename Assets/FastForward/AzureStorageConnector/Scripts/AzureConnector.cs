@@ -7,6 +7,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Web;
 
+using TMPro;
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -23,6 +24,7 @@ namespace FastForward.CAS
         private bool _isInit;
 
         private string _storageServiceVersion = "2017-04-17";
+        public int NumberOfVideosUploading;
 
         #region Public functions
 
@@ -68,6 +70,56 @@ namespace FastForward.CAS
             else
             {
                 Debug.LogWarning("Attempting to use AzureConnector before calling Init to set account name and key.");
+            }
+        }
+        public void DeleteBlob(string containerName, string blobName, AzureUploadCallback deleteCallback = null)
+        {
+            if (_isInit)
+            {
+                StartCoroutine(DeleteBlobRoutine(containerName, blobName, deleteCallback));
+            }
+            else
+            {
+                Debug.LogWarning("Attempting to use AzureConnector before calling Init to set account name and key.");
+            }
+        }
+
+        private IEnumerator DeleteBlobRoutine(string containerName, string blobName, AzureUploadCallback deleteCallback)
+        {
+            string requestMethod = "DELETE";
+
+            // Construct the URI
+            string uri = $"https://{_accountName}.blob.core.windows.net/{containerName}/{blobName}";
+
+            // Get the time
+            DateTime now = DateTime.UtcNow;
+            string date = now.ToString("R", CultureInfo.InvariantCulture);
+
+            using (UnityWebRequest request = UnityWebRequest.Delete(uri))
+            {
+                request.SetRequestHeader("x-ms-date", date);
+                request.SetRequestHeader("x-ms-version", _storageServiceVersion);
+
+                string canonicalizedHeaders = $"x-ms-date:{date}\nx-ms-version:{_storageServiceVersion}\n";
+                string canonicalizedResource = GetCanonicalizedResource(request.uri, _accountName);
+
+                string signature = $"{requestMethod}\n\n\n\n\n\n\n\n\n\n\n\n{canonicalizedHeaders}{canonicalizedResource}";
+                string encodedSignature = EncodeMessageSignature(signature);
+
+                request.SetRequestHeader("Authorization", encodedSignature);
+
+                yield return request.SendWebRequest();
+
+                if (request.result != UnityWebRequest.Result.Success)
+                {
+                    Debug.LogWarning($"DELETE error: {request.error}");
+                    deleteCallback?.Invoke(false, request.error);
+                }
+                else
+                {
+                    Debug.Log("DELETE complete");
+                    deleteCallback?.Invoke(true, null);
+                }
             }
         }
 
@@ -312,15 +364,18 @@ namespace FastForward.CAS
 
                 // Send the request.
                 request.SendWebRequest();
-
+                NumberOfVideosUploading += 1;
                 while (!request.isDone)
                 {
                     Debug.Log($"GET progress: {request.uploadProgress}");
-                    ReferenceManager.instance.ProgressManager.Show("Uploading Video", request.uploadProgress);
+                    ReferenceManager.instance.UploadingImage.gameObject.SetActive(true);
+                    ReferenceManager.instance.UploadingImage.transform.GetChild(0).GetComponent<UnityEngine.UI.Image>().fillAmount = request.uploadProgress;
+                    ReferenceManager.instance.UploadingImage.transform.GetChild(1).GetComponent<TMP_Text>().text = NumberOfVideosUploading.ToString();
+                    // ReferenceManager.instance.ProgressManager.Show("Uploading Video", request.uploadProgress);
 
                     yield return 0;
                 }
-                ReferenceManager.instance.ProgressManager.Hide();
+                // ReferenceManager.instance.ProgressManager.Hide();
                 if (request.result != UnityWebRequest.Result.Success)
                 {
                     Debug.LogWarning($"PUT error: {request.error}");

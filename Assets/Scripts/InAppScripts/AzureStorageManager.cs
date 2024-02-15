@@ -3,8 +3,9 @@ using System.Collections;
 using System.Collections.Generic;
 using FastForward.CAS;
 using Newtonsoft.Json;
+using TMPro;
 using UnityEngine;
-
+using DG.Tweening;
 public class AzureStorageManager : MonoBehaviour
 {
 
@@ -30,7 +31,13 @@ public class AzureStorageManager : MonoBehaviour
 
     public void UploadVideo(string json, string fileName)
     {
-
+        ReferenceManager.instance.UploaderAnimation.gameObject.SetActive(true);
+        ReferenceManager.instance.UploaderAnimation.DOMove(ReferenceManager.instance.UploadingImage.GetComponent<Transform>().position, 2).OnComplete(() =>
+        {
+            ReferenceManager.instance.UploaderAnimation.gameObject.SetActive(false);
+            ReferenceManager.instance.UploaderAnimation.GetComponent<RectTransform>().anchoredPosition = Vector3.zero;
+        });
+        ReferenceManager.instance.UploaderAnimation.GetComponent<RectTransform>().DOSizeDelta(ReferenceManager.instance.UploadingImage.GetComponent<RectTransform>().sizeDelta, 2);
         AzureConnector.Instance.UploadText(json, container, fileName, true, UploadTextCallback);
 
     }
@@ -50,7 +57,13 @@ public class AzureStorageManager : MonoBehaviour
                 ResponseWithNoObject responseWithNoObject = JsonConvert.DeserializeObject<ResponseWithNoObject>(response);
                 if (responseWithNoObject.isSuccess)
                 {
-                    ReferenceManager.instance.PopupManager.Show("Video Save Success!", $"Your Video has been saved successfully", true);
+                    // ReferenceManager.instance.PopupManager.Show("Video Save Success!", $"Your Video has been saved successfully", true);
+                    AzureConnector.Instance.NumberOfVideosUploading -= 1;
+                    if (AzureConnector.Instance.NumberOfVideosUploading <= 0)
+                    {
+                        ReferenceManager.instance.UploadingImage.gameObject.SetActive(false);
+                    }
+                    ReferenceManager.instance.UploadingImage.transform.GetChild(1).GetComponent<TMP_Text>().text = AzureConnector.Instance.NumberOfVideosUploading.ToString();
                 }
                 if (responseWithNoObject.isError)
                 {
@@ -60,17 +73,32 @@ public class AzureStorageManager : MonoBehaviour
                         reasons += $"\n {item.code} {item.description}";
                     }
                     ReferenceManager.instance.PopupManager.Show("Video Save Failed!", $"Reasons are: {reasons}");
-                    Debug.Log($"{responseWithNoObject.serviceErrors}");
+                    AzureConnector.Instance.NumberOfVideosUploading -= 1;
+                    if (AzureConnector.Instance.NumberOfVideosUploading <= 0)
+                    {
+                        ReferenceManager.instance.UploadingImage.gameObject.SetActive(false);
+                    }
+                    ReferenceManager.instance.UploadingImage.transform.GetChild(1).GetComponent<TMP_Text>().text = AzureConnector.Instance.NumberOfVideosUploading.ToString();
                 }
             }, onError: (error) =>
             {
                 ReferenceManager.instance.PopupManager.Show("Video Save Failed!", $"Reasons are: {error}");
-                Debug.LogError($"Error: {error}");
+                AzureConnector.Instance.NumberOfVideosUploading -= 1;
+                if (AzureConnector.Instance.NumberOfVideosUploading <= 0)
+                {
+                    ReferenceManager.instance.UploadingImage.gameObject.SetActive(false);
+                }
+                ReferenceManager.instance.UploadingImage.transform.GetChild(1).GetComponent<TMP_Text>().text = AzureConnector.Instance.NumberOfVideosUploading.ToString();
             });
         }
         else
         {
-            Debug.LogWarning("Video upload failed. " + error);
+            AzureConnector.Instance.NumberOfVideosUploading -= 1;
+            if (AzureConnector.Instance.NumberOfVideosUploading <= 0)
+            {
+                ReferenceManager.instance.UploadingImage.gameObject.SetActive(false);
+            }
+            ReferenceManager.instance.UploadingImage.transform.GetChild(1).GetComponent<TMP_Text>().text = AzureConnector.Instance.NumberOfVideosUploading.ToString();
         }
     }
 

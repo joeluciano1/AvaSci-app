@@ -31,6 +31,7 @@ public class SineWave : MonoBehaviour
     public GraphManager myParentGraphManager;
     GraphManager myLinearGraph;
 
+
     #region Duplicate graph if circular is added to add linear graph to it
     //public async void Start()
     //{
@@ -66,8 +67,11 @@ public class SineWave : MonoBehaviour
 
     public void Start()
     {
-        isReading = true;
-        StartCoroutine(StartReadingGraphs());
+        if (!ReferenceManager.instance.VideoPlayerView.activeSelf)
+        {
+            isReading = true;
+            StartCoroutine(StartReadingGraphs());
+        }
     }
 
     public IEnumerator StartReadingGraphs()
@@ -132,6 +136,7 @@ public class SineWave : MonoBehaviour
                     PlayerPrefs.SetInt(itemName, 0);
                     graphChart.DataSource.AddCategory(itemName, lineMaterial, lineThickness, lineTiling, null, true, pointMat, pointSize);
                     PlayerPrefs.SetFloat(itemName, 0);
+                    GeneralStaticManager.GraphsReadings.Remove(itemName);
                 }
 
                 //double angularSpeedY = (GeneralStaticManager.DegreesToRadians(item.Value.Value) - GeneralStaticManager.DegreesToRadians(previousAngle)) / (timeSpan.TotalSeconds);
@@ -160,7 +165,75 @@ public class SineWave : MonoBehaviour
         }
 
     }
+    public void SetReadingValue(float time)
+    {
+        var main = ReferenceManager.instance.LightBuzzMain;
+        foreach (var item in main._movement.Measurements)
+        {
+            if (item.Key != myParentGraphManager.JointType)
+            {
+                if (item.Key != myParentGraphManager.SecondJointType)
+                {
+                    continue;
+                }
+            }
+            float previousAngle;
+            DateTime previousTime;
+            string itemName = System.Enum.GetName(typeof(MeasurementType), item.Key);
+            previousTime = string.IsNullOrWhiteSpace(PlayerPrefs.GetString(itemName + " previousTime")) ? DateTime.Now : DateTime.Parse(PlayerPrefs.GetString(System.Enum.GetName(typeof(MeasurementType), item.Key) + " previousTime"));
+            TimeSpan timeSpan = DateTime.Now - previousTime;
 
+
+            //previousAngle = PlayerPrefs.GetFloat(System.Enum.GetName(typeof(MeasurementType), item.Key) + " PreviousAngle");
+            if (!graphChart.DataSource.HasCategory(itemName))
+            {
+                Material lineMaterial = new Material(this.lineMaterial);
+                lineMaterial.SetColor("_Color", Colors[UnityEngine.Random.Range(0, Colors.Count)]);
+                string linecolor = ColorUtility.ToHtmlStringRGBA(lineMaterial.color);
+                if (item.Key == myParentGraphManager.JointType)
+                    myParentGraphManager.Title.text = $"<color=#{linecolor}>{itemName}</color>";
+                else
+                    myParentGraphManager.Title.text += $"\n<color=#{linecolor}>{itemName}</color>";
+                innerFill.color = UnityEngine.Random.ColorHSV();
+                Material pointMat = new Material(pointMaterial);
+
+                //pointMat.SetColor("_Combine", Colors[UnityEngine.Random.Range(0, Colors.Count)]);
+                pointMat.SetColor("_ColorFrom", Colors[UnityEngine.Random.Range(0, Colors.Count)]);
+                pointMat.SetColor("_ColorTo", Colors[UnityEngine.Random.Range(0, Colors.Count)]);
+                Material innFillMat = new Material(innerFill);
+                var color1 = Colors[UnityEngine.Random.Range(0, Colors.Count)];
+                color1.a = 0.5f;
+                innFillMat.SetColor("_ColorFrom", color1);
+                var color2 = Colors[UnityEngine.Random.Range(0, Colors.Count)];
+                color2.a = 0.1f;
+                innFillMat.SetColor("_ColorTo", color2);
+                PlayerPrefs.SetInt(itemName, 0);
+                graphChart.DataSource.AddCategory(itemName, lineMaterial, lineThickness, lineTiling, null, true, pointMat, pointSize);
+                PlayerPrefs.SetFloat(itemName, 0);
+                GeneralStaticManager.GraphsReadings.Remove(itemName);
+            }
+
+            //double angularSpeedY = (GeneralStaticManager.DegreesToRadians(item.Value.Value) - GeneralStaticManager.DegreesToRadians(previousAngle)) / (timeSpan.TotalSeconds);
+            //double changeInangleX = (GeneralStaticManager.DegreesToRadians(item.Value.Value) - GeneralStaticManager.DegreesToRadians(previousAngle));
+
+            //graphChart.DataSource.AddPointToCategory(System.Enum.GetName(typeof(MeasurementType), item.Key), changeInangleX, MathF.Round((float)angularSpeedY, 2));
+
+            graphChart.DataSource.AddPointToCategory(itemName, time, item.Value.Value, 1);
+
+            if (GeneralStaticManager.GraphsReadings.ContainsKey(itemName))
+            {
+                GeneralStaticManager.GraphsReadings[itemName].Add(item.Value.Value);
+            }
+            else
+            {
+                GeneralStaticManager.GraphsReadings.Add(itemName, new List<float> { item.Value.Value });
+            }
+
+            //PlayerPrefs.SetFloat(System.Enum.GetName(typeof(MeasurementType), item.Key) + " PreviousAngle", item.Value.Value);
+
+            // PlayerPrefs.SetFloat(itemName, PlayerPrefs.GetFloat(itemName) + (float)timeSpan.TotalSeconds);
+        }
+    }
 
     public void SetGraphsAutoScroll(bool value)
     {

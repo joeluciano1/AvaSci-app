@@ -218,6 +218,7 @@ namespace LightBuzz.AvaSci.UI
             {
                 initialDifference = GetComponent<RectTransform>().sizeDelta.x;
                 float scale = MinScale + (MaxScale - MinScale) * (1 - (body.Joints[JointType.Neck].Position3D.Z - 1) / (3 - 1));
+                scale = Math.Clamp(scale, 0.5f, 1f);
                 transform.localScale = new Vector3(scale, scale, scale);
                 positionOffset.x = initialDifference - (scale * 100);
                 if (item == this || rightAdded || leftAdded)

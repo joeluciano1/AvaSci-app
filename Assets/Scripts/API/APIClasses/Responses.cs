@@ -163,6 +163,7 @@ public class InstructionsResponse
 
 public class UserReportData
 {
+    public string UserID { get; set; }
     public string UserName { get; set; }
     public string VideoURL { get; set; }
     public string ReportURL { get; set; }
