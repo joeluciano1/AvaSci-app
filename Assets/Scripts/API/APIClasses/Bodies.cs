@@ -83,3 +83,8 @@ public class ReportDeleteBody
     public string UserId { get; set; }
     public string VideoURL { get; set; }
 }
+
+public class DeleteAccountBody
+{
+    public string UserID { get; set; }
+}

@@ -53,6 +53,7 @@ public class LoginManager : MonoBehaviour
     public void Logout()
     {
         PlayerPrefs.DeleteAll();
+        PlayerPrefs.SetInt(StringConstants.FIRSTTIMEAPPRUN, 1);
         ReferenceManager.instance.LoadingManager.Show("Logging You Out");
         GeneralStaticManager.GlobalVar.Clear();
         GeneralStaticManager.GraphsReadings.Clear();
@@ -522,6 +523,36 @@ public class LoginManager : MonoBehaviour
             Debug.LogError($"Error: {error}");
         }
         );
+    }
+    public void DeleteAccount()
+    {
+        DeleteAccountBody deleteAccountBody = new DeleteAccountBody()
+        {
+            UserID = GeneralStaticManager.GlobalVar["UserID"]
+        };
+        string json = JsonConvert.SerializeObject(deleteAccountBody);
+        APIHandler.instance.Post("Auth/DeleteAccount", json, onSuccess: (response) =>
+        {
+            ResponseWithNoObject deleteAccountResponse = JsonConvert.DeserializeObject<ResponseWithNoObject>(response);
+            if (deleteAccountResponse.isSuccess)
+            {
+                ReferenceManager.instance.PopupManager.Show("Account Deleted!", "Your Account Is Deleted Successfully", okPressed: () => { Logout(); });
+            }
+            if (deleteAccountResponse.isError)
+            {
+                string reasons = "";
+                foreach (var item in deleteAccountResponse.serviceErrors)
+                {
+                    reasons += $"\n {item.code} {item.description}";
+                }
+                ReferenceManager.instance.PopupManager.Show("Account Deletion Failed!", $"Reasons are: {reasons}");
+                Debug.Log($"{deleteAccountResponse.serviceErrors}");
+            }
+
+        }, onError: (error) =>
+        {
+            ReferenceManager.instance.PopupManager.Show("Account Deletion Failed!", $"Reasons are: {error}");
+        });
     }
 
 }

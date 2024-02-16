@@ -172,4 +172,18 @@ public class UiManager : MonoBehaviour
         PlayerPrefs.SetInt(StringConstants.FIRSTTIMEAPPRUN, 1);
         AvasciConsentPanel.SetActive(false);
     }
+    public void RateUs()
+    {
+        Application.OpenURL("https://apps.apple.com/us/app/avasci/id6477493063");
+    }
+
+    public void PrivacyPolicy()
+    {
+        Application.OpenURL("https://avasci.com/privacy-policy/");
+    }
+
+    public void TermsofUse()
+    {
+        Application.OpenURL("https://www.apple.com/legal/internet-services/itunes/dev/stdeula/");
+    }
 }

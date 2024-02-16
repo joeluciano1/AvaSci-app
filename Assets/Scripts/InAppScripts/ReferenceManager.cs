@@ -147,13 +147,13 @@ public class ReferenceManager : MonoBehaviour
         {
             SettingToggle.interactable = false;
             SettingToggle.GetComponent<Image>().color = UnityEngine.Color.gray;
-            SettingsPanel.DOAnchorPosY(-10000, 0f);
-            SettingsPanel.DOAnchorPosY(0, 0.5f).OnComplete(() => SettingToggle.interactable = true);
+            SettingsPanel.DOAnchorPosX(10000, 0f);
+            SettingsPanel.DOAnchorPosX(0, 0.5f).OnComplete(() => SettingToggle.interactable = true);
             SettingsPanel.gameObject.SetActive(true);
         }
         else
         {
-            SettingsPanel.DOAnchorPosY(-1000, 0.5f).OnComplete(() =>
+            SettingsPanel.DOAnchorPosX(1000, 0.5f).OnComplete(() =>
             {
                 SettingToggle.interactable = true;
                 SettingsPanel.gameObject.SetActive(false);
