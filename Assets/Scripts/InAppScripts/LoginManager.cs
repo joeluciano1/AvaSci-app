@@ -330,7 +330,7 @@ public class LoginManager : MonoBehaviour
               {
                   if (signinResponse.result.IsSubscribed)
                   {
-                      if (!ReferenceManager.instance.iAPManager.CheckSubscription("avascimonthlysub") && !ReferenceManager.instance.iAPManager.CheckSubscription("avasciyearlysub"))
+                      if (!ReferenceManager.instance.iAPManager.CheckSubscription("avascimonthlysub", signinResponse.result.Receipt) && !ReferenceManager.instance.iAPManager.CheckSubscription("avasciyearlysub", signinResponse.result.Receipt))
                       {
                           ReferenceManager.instance.PopupManager.Show("Signin Failed!", $"Your Subscription has Ended and you need to subscribe", false, okPressed: () => { ReferenceManager.instance.IAPPAnel.SetActive(true); });
                           return;

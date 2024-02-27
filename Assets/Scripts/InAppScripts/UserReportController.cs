@@ -32,8 +32,12 @@ public class UserReportController : MonoBehaviour
     // Start is called before the first frame update
     public void Start()
     {
-
-        APIHandler.instance.Get("UserReport/GetReports", onSuccess: (response) =>
+        GetReportsBody getReportsBody = new GetReportsBody()
+        {
+            UserID = GeneralStaticManager.GlobalVar["UserID"]
+        };
+        string json = JsonConvert.SerializeObject(getReportsBody);
+        APIHandler.instance.Post("UserReport/GetReports", json, onSuccess: (response) =>
         {
             UserReportResponse userReportResponse = JsonConvert.DeserializeObject<UserReportResponse>(response);
             if (userReportResponse.isSuccess)

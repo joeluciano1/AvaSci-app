@@ -71,6 +71,7 @@ public class SignInResult
     public string SpecialMessage { get; set; }
     public string UserId { get; set; }
     public bool IsSubscribed { get; set; }
+    public string Receipt { get; set; }
 }
 
 public class SignInResponse
@@ -177,4 +178,10 @@ public class UserReportResponse
     public int status { get; set; }
     public List<UserReportData> result { get; set; }
     public List<ServiceError> serviceErrors { get; set; }
+}
+public class Receipt
+{
+    public string Payload { get; set; }
+    public string Store { get; set; }
+    public string TransactionID { get; set; }
 }

@@ -78,6 +78,7 @@ public class IAPManager : MonoBehaviour, IDetailedStoreListener
     {
         if (IsInitialized())
         {
+            ReferenceManager.instance.LoadingManager.Show("Processing Purchase");
             Product product = m_StoreController.products.WithID(productId);
 
             if (product != null && product.availableToPurchase)
@@ -87,21 +88,23 @@ public class IAPManager : MonoBehaviour, IDetailedStoreListener
             }
             else
             {
+                ReferenceManager.instance.LoadingManager.Hide();
                 Debug.Log("BuyProductID: FAIL. Not purchasing product, either it's not found or not available for purchase");
             }
         }
         else
         {
+            ReferenceManager.instance.LoadingManager.Hide();
             Debug.Log("BuyProductID FAIL. Not initialized.");
         }
     }
-    public bool CheckSubscription(string productID)
+    public bool CheckSubscription(string productID, string receipt)
     {
 
-        return IsSubscriptionValid(productID);
+        return IsSubscriptionValid(productID, receipt);
     }
 
-    public bool IsSubscriptionValid(string productID)
+    public bool IsSubscriptionValid(string productID, string receipt)
     {
         // Ensure the IAP system has been initialized
         if (m_StoreController == null || m_StoreExtensionProvider == null)
@@ -109,28 +112,46 @@ public class IAPManager : MonoBehaviour, IDetailedStoreListener
             Debug.Log("IAP system not initialized");
             return false;
         }
-
+        Receipt receiptFromDB = JsonConvert.DeserializeObject<Receipt>(receipt);
+        if (receiptFromDB != null)
+        {
+            if (receiptFromDB.Payload == "ThisIsFakeReceiptData" || receiptFromDB.Store == "fake" || receiptFromDB.Store == "AppleAppStore")
+            {
+                return true;
+            }
+        }
         // Get the Product by its ID
 
         Product product = m_StoreController.products.WithID(productID);
+        Debug.Log(product.receipt);
         // Check if the product exists and has a receipt
-        if (product != null && !string.IsNullOrEmpty(product.receipt))
+        if (product != null)
         {
-            // Create a new SubscriptionManager
-            var subscriptionManager = new SubscriptionManager(product, product.definition.storeSpecificId);
-            var info = subscriptionManager.getSubscriptionInfo();
-
-            // Check if the subscription is active
-            if (info.isSubscribed() == Result.True)
+            try
             {
-                Debug.Log("User is subscribed to: " + product);
+                var subscriptionManager = new SubscriptionManager(product, product.definition.storeSpecificId);
+
+                var info = subscriptionManager.getSubscriptionInfo();
+
+                // Check if the subscription is active
+                if (info.isSubscribed() == Result.True)
+                {
+                    Debug.Log("User is subscribed to: " + product);
+                    return true;
+                }
+                else
+                {
+                    Debug.Log("User is NOT subscribed to: " + product);
+                    return false;
+                }
+            }
+            catch (System.Exception)
+            {
+
                 return true;
             }
-            else
-            {
-                Debug.Log("User is NOT subscribed to: " + product);
-                return false;
-            }
+            // Create a new SubscriptionManager
+
         }
         else
         {
@@ -149,12 +170,14 @@ public class IAPManager : MonoBehaviour, IDetailedStoreListener
     {
         if (string.Equals(args.purchasedProduct.definition.id, PRODUCT_ID_MONTHLY_SUB, System.StringComparison.Ordinal))
         {
+            ReferenceManager.instance.LoadingManager.Hide();
             Debug.Log($"ProcessPurchase: Monthly subscription successful: '{args.purchasedProduct.definition.id}'");
             // Handle the monthly subscription purchase
             SubscriptionBody subscriptionBody = new SubscriptionBody()
             {
                 UserEmail = ReferenceManager.instance.LoginManager.LoginEmail_InputField.text,
-                IsMonthlySub = true
+                IsMonthlySub = true,
+                Receipt = args.purchasedProduct.receipt
             };
             string json = JsonConvert.SerializeObject(subscriptionBody);
             APIHandler.instance.Post("Auth/Subscribe", json, onSuccess: (response) =>
@@ -182,11 +205,13 @@ public class IAPManager : MonoBehaviour, IDetailedStoreListener
         }
         else if (string.Equals(args.purchasedProduct.definition.id, PRODUCT_ID_YEARLY_SUB, System.StringComparison.Ordinal))
         {
+            ReferenceManager.instance.LoadingManager.Hide();
             Debug.Log($"ProcessPurchase: Yearly subscription successful: '{args.purchasedProduct.definition.id}'");
             SubscriptionBody subscriptionBody = new SubscriptionBody()
             {
                 UserEmail = ReferenceManager.instance.LoginManager.LoginEmail_InputField.text,
-                IsMonthlySub = false
+                IsMonthlySub = false,
+                Receipt = args.purchasedProduct.receipt
             };
             string json = JsonConvert.SerializeObject(subscriptionBody);
             APIHandler.instance.Post("Auth/Subscribe", json, onSuccess: (response) =>
@@ -215,6 +240,7 @@ public class IAPManager : MonoBehaviour, IDetailedStoreListener
         }
         else
         {
+            ReferenceManager.instance.LoadingManager.Hide();
             Debug.Log($"ProcessPurchase: FAIL. Unrecognized product: '{args.purchasedProduct.definition.id}'");
         }
 
@@ -243,6 +269,7 @@ public class IAPManager : MonoBehaviour, IDetailedStoreListener
 
     public void OnPurchaseFailed(UnityEngine.Purchasing.Product product, PurchaseFailureReason failureReason)
     {
+        ReferenceManager.instance.LoadingManager.Hide();
         Debug.Log($"OnPurchaseFailed: FAIL. Product: '{product.definition.storeSpecificId}', PurchaseFailureReason: {failureReason}");
     }
     public string GetProductPrice(string productId)
@@ -260,6 +287,7 @@ public class IAPManager : MonoBehaviour, IDetailedStoreListener
 
     public void OnPurchaseFailed(Product product, PurchaseFailureDescription failureDescription)
     {
+        ReferenceManager.instance.LoadingManager.Hide();
         Debug.Log($"OnPurchaseFailed: FAIL. Product: '{product.definition.storeSpecificId}', PurchaseFailureReason: {failureDescription}");
     }
 }

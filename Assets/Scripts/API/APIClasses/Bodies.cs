@@ -76,6 +76,7 @@ public class SubscriptionBody
 {
     public string UserEmail { get; set; }
     public bool IsMonthlySub { get; set; }
+    public string Receipt { get; set; }
 }
 
 public class ReportDeleteBody
@@ -85,6 +86,11 @@ public class ReportDeleteBody
 }
 
 public class DeleteAccountBody
+{
+    public string UserID { get; set; }
+}
+
+public class GetReportsBody
 {
     public string UserID { get; set; }
 }
