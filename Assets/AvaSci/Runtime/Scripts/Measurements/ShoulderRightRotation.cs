@@ -3,9 +3,9 @@ using LightBuzz.BodyTracking;
 namespace LightBuzz.AvaSci.Measurements
 {
     /// <summary>
-    /// Measures the rotation angle of the right shoulder.
+    /// Measures the abduction angle of the right shoulder.
     /// </summary>
-    public class ShoulderRightRotation : ShoulderLeftRotation
+    public class ShoulderRightRotation : ShoulderLeftAbduction
     {
         /// <summary>
         /// Creates a new instance of <see cref="ShoulderRightRotation"/>.

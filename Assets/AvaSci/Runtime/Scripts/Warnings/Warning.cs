@@ -1,8 +1,6 @@
 using LightBuzz.AvaSci.Measurements;
 using LightBuzz.BodyTracking;
 using UnityEngine;
-using DG.Tweening;
-using UnityEngine.UI;
 
 namespace LightBuzz.AvaSci.Warnings
 {
@@ -22,7 +20,7 @@ namespace LightBuzz.AvaSci.Warnings
         /// The warning message text.
         /// </summary>
         protected string _message = string.Empty;
-        public GameObject MyMessage;
+        
         /// <summary>
         /// Checks if the warning should be displayed.
         /// Call this base method to toggle a warning's visibility.
@@ -31,34 +29,22 @@ namespace LightBuzz.AvaSci.Warnings
         /// <param name="frame">The <see cref="FrameData"/> to check.</param>
         /// <param name="body">The <see cref="Body"/> skeleton data to check.</param>
         /// <param name="movement">The <see cref="Movement"/> data to check.</param>
-        public async virtual void Check(FrameData frame = null, Body body = null, Movement movement = null)
+        public virtual void Check(FrameData frame = null, Body body = null, Movement movement = null)
         {
             if (!_display)
             {
-                if (MyMessage == null)
+                if (gameObject.activeSelf)
                 {
-
-                    // MyMessage.SetActive(false);
                     gameObject.SetActive(false);
                 }
             }
             else
             {
-                if (MyMessage == null)
+                if (!gameObject.activeSelf)
                 {
                     gameObject.SetActive(true);
+
                     _label.text = _message;
-
-                    // Warning warning = Instantiate(this, this.transform.parent);
-                    // warning.gameObject.SetActive(true);
-                    // warning._label.text = _message;
-                    // MyMessage = warning.gameObject;
-                    // warning.transform.DOMoveY(1, 3f);
-                    // warning.GetComponent<Image>().DOFade(0, 3);
-                    // warning._label.DOFade(0, 3);
-
-                    // await System.Threading.Tasks.Task.Delay(3000);
-                    // Destroy(warning.gameObject);
                 }
             }
         }

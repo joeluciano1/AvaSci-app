@@ -53,8 +53,8 @@ namespace LightBuzz.AvaSci.Warnings
             }
 
             _message =
-                isValidDistance ? string.Empty : "Too Close or Too Far";
-            // $"Distance should be between {_minDistance:N2} and {_maxDistance:N2}m.";
+                isValidDistance ? string.Empty :
+                $"Distance should be between {_minDistance:N2} and {_maxDistance:N2}m.";
 
             _display = !isValidDistance;
         }

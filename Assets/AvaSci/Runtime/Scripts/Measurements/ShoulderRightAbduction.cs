@@ -16,7 +16,7 @@ namespace LightBuzz.AvaSci.Measurements
             
             KeyJoint1 = JointType.ShoulderRight;
             KeyJoint2 = JointType.ElbowRight;
-            KeyJoint3 = JointType.HipRight;
+            KeyJoint3 = JointType.WristRight;
         }
 
         public override void Update(Body body)

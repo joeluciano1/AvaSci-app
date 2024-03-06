@@ -28,7 +28,7 @@ namespace LightBuzz.AvaSci.Warnings
             if (shoulderLeft.TrackingState == TrackingState.Inferred ||
                 shoulderRight.TrackingState == TrackingState.Inferred)
             {
-                _message = "Upper torso not visible.";
+                _message = "Your upper torso is not visible.";
                 _display = true;
                 return;
             }
@@ -36,7 +36,7 @@ namespace LightBuzz.AvaSci.Warnings
             if (hipLeft.TrackingState == TrackingState.Inferred ||
                 hipRight.TrackingState == TrackingState.Inferred)
             {
-                _message = "Lower torso not visible.";
+                _message = "Your lower torso is not visible.";
                 _display = true;
                 return;
             }
@@ -49,7 +49,7 @@ namespace LightBuzz.AvaSci.Warnings
             float shoulderRotation = 90.0f - Calculations.Rotation(shoulderLeft3D, shoulderRight3D, BodyTracking.Plane.Sagittal);
             float hipRotation = 90.0f - Calculations.Rotation(hipLeft3D, hipRight3D, BodyTracking.Plane.Sagittal);
 
-            bool isValidRotation =
+            bool isValidRotation = 
                 shoulderRotation <= _maxRotation &&
                 hipRotation <= _maxRotation;
 

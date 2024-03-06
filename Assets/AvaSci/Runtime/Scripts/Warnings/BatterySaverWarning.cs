@@ -19,7 +19,7 @@ namespace LightBuzz.AvaSci.Warnings
         public BatterySaverWarning()
         {
             _date = DateTime.Now;
-            _message = "Low power mode is turned on.";
+            _message = "Low power mode is turned on. Performance might decrease.";
         }
 
         public override void Check(FrameData frame = null, Body body = null, Movement movement = null)
@@ -32,11 +32,11 @@ namespace LightBuzz.AvaSci.Warnings
 
                 if (Application.platform == RuntimePlatform.IPhonePlayer)
                 {
-#if UNITY_IPHONE
-
+                    #if UNITY_IPHONE
+                    
                     _display = UnityEngine.iOS.Device.lowPowerModeEnabled;
 
-#endif
+                    #endif
                 }
             }
         }

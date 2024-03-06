@@ -113,10 +113,6 @@ namespace LightBuzz.AvaSci.Measurements
                     return new ShoulderRightAbduction();
                 case MeasurementType.ShoulderRightRotation:
                     return new ShoulderRightRotation();
-                case MeasurementType.ShoulderLeftFlexion:
-                    return new ShoulderLeftFlexion();
-                case MeasurementType.ShoulderRightFlexion:
-                    return new ShoulderRightFlexion();
                 case MeasurementType.None:
                     return new Measurement();
                 default:

@@ -54,7 +54,7 @@ namespace LightBuzz.AvaSci.Warnings
                     }
                 }
 
-                _message = $"Joint Not Visible: {sb}";
+                _message = $"The following joints are not visible: {sb}";
             }
 
             _display = invisibleJoints.Count > 0;

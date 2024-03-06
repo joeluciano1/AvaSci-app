@@ -1,3 +1,4 @@
+using System;
 using LightBuzz.AvaSci.Csv;
 using LightBuzz.AvaSci.Measurements;
 using LightBuzz.AvaSci.UI;
@@ -17,7 +18,7 @@ namespace LightBuzz.AvaSci
         [SerializeField] private LightBuzzViewer _viewer;
         [SerializeField] private AngleManager _angles;
         [SerializeField] public VideoRecordingView _videoRecorderView;
-        [SerializeField] public VideoPlayerView _videoPlayerView;
+        [SerializeField] private VideoPlayerView _videoPlayerView;
         [SerializeField] private MeasurementSelector _measurementSelector;
 
         [SerializeField] private WarningCollection _warnings;
@@ -39,15 +40,11 @@ namespace LightBuzz.AvaSci
 
         private async void Start()
         {
-            //_version.text = $"v{Application.version}";
+            // _version.text = $"v{Application.version}";
 
             await _settingsView.Load();
 
-            _loading.text = string.Empty;
             _videoRecorderView.Show();
-
-
-
         }
 
         private void Update()
@@ -91,7 +88,6 @@ namespace LightBuzz.AvaSci
 
             _viewer.gameObject.SetActive(true);
             _loading.text = _isReady ? string.Empty : "Could not start the specified camera. Check your configuration settings.";
-
         }
 
         /// <summary>
@@ -150,7 +146,6 @@ namespace LightBuzz.AvaSci
         /// <param name="value">The new <see cref="SensorType"/> option.</param>
         public void OnSensorChange(int sensorType)
         {
-            _settingsView.Hide();
             _videoRecorderView?.SwitchSensor((SensorType)sensorType);
         }
 
@@ -160,7 +155,6 @@ namespace LightBuzz.AvaSci
         /// <param name="fps">The new frame rate (frames per second).</param>
         public void OnFrameRateChange(int fps)
         {
-            _settingsView.Hide();
             _videoRecorderView?.SwitchFrameRate(fps);
         }
 

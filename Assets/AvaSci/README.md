@@ -29,7 +29,7 @@ The AvaSci iOS app has the following package dependencies:
 
 | Author | Package | Location |
 | ------ | ------- | -------- |
-| _LightBuzz_ | Body Tracking SDK | [com.lightbuzz.bodytracking-6.0.0.tgz](https://drive.google.com/file/d/1jDm01up1gQdnDfYnMMNEwJqN1cjwmyVK/view?usp=drive_link) |
+| _LightBuzz_ | Body Tracking SDK | [com.lightbuzz.bodytracking-6.0.0.tgz](https://drive.google.com/file/d/1NjTGUuLPUn1mXxJ9fVMmOBLFsd95ZMFY/view?usp=drive_link) |
 | _LightBuzz_ | Auto Canvas Scaler | https://github.com/lightbuzz/unity-canvas-scaler.git |
 | _Epic Brain Games_ | Safe Area Utility | [com.ebg.safeareautility.unitypackage](https://drive.google.com/file/d/1Y4dn5ZyQsUK8stOYNTiR1o6J_tS2xKfu/view?usp=drive_link) |
 | _Yasirkula_ | Native Share | https://github.com/yasirkula/unitynativeshare.git |
@@ -39,7 +39,7 @@ The AvaSci iOS app has the following package dependencies:
 
 Provides the body tracking functionality for the AvaSci app. must be installed manually.
 
-- [Download the LightBuzz SDK package](https://drive.google.com/file/d/1jDm01up1gQdnDfYnMMNEwJqN1cjwmyVK/view?usp=drive_link).
+- [Download the LightBuzz SDK package](https://drive.google.com/file/d/1NjTGUuLPUn1mXxJ9fVMmOBLFsd95ZMFY/view?usp=drive_link).
 - Move the package under `<PROJECT_ROOT>/Packages`.
 - Launch Unity Package Manager.
 - Click the `+` button and select `Add package from tarball...`.

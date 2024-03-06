@@ -1,9 +1,6 @@
 using LightBuzz.BodyTracking;
 using LightBuzz.BodyTracking.Video;
 using System;
-using System.Collections;
-using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Android;
@@ -120,7 +117,7 @@ namespace LightBuzz.AvaSci.UI
         /// </summary>
         public UnityEvent OnRecordingCompleted = new UnityEvent();
 
-        private async void OnEnable()
+        private void OnEnable()
         {
             _recorder.OnRecordingStarted += Recorder_OnRecordingStarted;
             _recorder.OnRecordingStopped += Recorder_OnRecordingStopped;
@@ -130,14 +127,14 @@ namespace LightBuzz.AvaSci.UI
 
             if (Permission.HasUserAuthorizedPermission(Permission.Camera))
             {
-                await Open();
+                Open();
             }
             else
             {
                 PermissionCallbacks callbacks = new PermissionCallbacks();
-                callbacks.PermissionGranted += async (args) =>
+                callbacks.PermissionGranted += (args) =>
                 {
-                    await Open();
+                    Open();
                 };
                 callbacks.PermissionDenied += (args) =>
                 {
@@ -151,7 +148,7 @@ namespace LightBuzz.AvaSci.UI
             }
         }
 
-        private async void OnDisable()
+        private void OnDisable()
         {
             OnRecordingReady?.RemoveAllListeners();
             OnRecordingStarted?.RemoveAllListeners();
@@ -165,20 +162,20 @@ namespace LightBuzz.AvaSci.UI
             _recorder.OnProgressUpdated -= Recorder_OnProgressUpdated;
             _recorder.Dispose();
 
-            await Close();
+            Close();
         }
 
-        private async void OnDestroy()
+        private void OnDestroy()
         {
-            await Close();
+            Close();
         }
 
-        private async void OnApplicationFocus(bool focus)
+        private void OnApplicationFocus(bool focus)
         {
             if (!Application.isMobilePlatform) return;
 
-            if (focus) await Open();
-            else await Close();
+            if (focus) Open();
+            else Close();
         }
 
         private void Update()
@@ -268,10 +265,8 @@ namespace LightBuzz.AvaSci.UI
         private void Recorder_OnRecordingCompleted()
         {
             Debug.Log("Recording completed saving data.");
-            ReferenceManager.instance.recorderPath = _recorder.Settings.Path;
-            ReferenceManager.instance.videoRecorded = true;
-            _completed = true;
 
+            _completed = true;
         }
 
         private void Recorder_OnProgressUpdated(float percentage)
@@ -282,7 +277,7 @@ namespace LightBuzz.AvaSci.UI
         /// <summary>
         /// Opens the sensor asynchronously.
         /// </summary>
-        public async Task Open()
+        private async void Open()
         {
             _loading.SetActive(true);
 
@@ -312,9 +307,6 @@ namespace LightBuzz.AvaSci.UI
             if (!Sensor.IsOpen)
             {
                 Debug.LogError("Could not open sensor. Check the configuration settings.");
-
-                _settingsButton.interactable = true;
-
                 OnRecordingReady?.Invoke(false);
 
                 return;
@@ -334,22 +326,19 @@ namespace LightBuzz.AvaSci.UI
         /// <summary>
         /// Closes the sensor asynchronously.
         /// </summary>
-        private async Task Close()
+        private async void Close()
         {
             if (Sensor == null) return;
 
-            await Task.Run(() =>
-            {
-                Sensor.FrameDataArrived -= Sensor_OnFrameDataArrived;
-                Sensor.Close();
-                Sensor.Dispose();
-            });
+            Sensor.FrameDataArrived -= Sensor_OnFrameDataArrived;
+            Sensor.Close();
+            Sensor.Dispose();
         }
 
         /// <summary>
         /// Starts the recording.
         /// </summary>
-        public async void OnStart()
+        public void OnStart()
         {
             if (string.IsNullOrWhiteSpace(_videoPath))
             {
@@ -376,7 +365,6 @@ namespace LightBuzz.AvaSci.UI
             };
             _recorder.SmoothingType = Sensor.SmoothingType;
             _recorder.Start();
-
         }
 
         /// <summary>
@@ -398,11 +386,9 @@ namespace LightBuzz.AvaSci.UI
             if (!_recorder.IsRecording)
             {
                 OnStart();
-                ReferenceManager.instance.ClearAllGraphs();
             }
             else
             {
-                ReferenceManager.instance.StopAllGraphs();
                 OnStop();
             }
         }
@@ -419,7 +405,7 @@ namespace LightBuzz.AvaSci.UI
         /// Switches to the specified sensor type.
         /// </summary>
         /// <param name="type">The <see cref="SensorType"/> to switch to.</param>
-        public async void SwitchSensor(SensorType type)
+        public void SwitchSensor(SensorType type)
         {
             if (_isSwitching) return;
 
@@ -435,8 +421,8 @@ namespace LightBuzz.AvaSci.UI
                 _configuration.SensorType = type;
                 _configuration.DeviceIndex = 0;
 
-                await Close();
-                await Open();
+                Close();
+                Open();
 
                 _switchCameraButton.Stop();
                 _isSwitching = false;
@@ -447,7 +433,7 @@ namespace LightBuzz.AvaSci.UI
         /// Switches to the specified frame rate.
         /// </summary>
         /// <param name="fps">The new frame rate value.</param>
-        public async void SwitchFrameRate(int fps)
+        public void SwitchFrameRate(int fps)
         {
             if (_isSwitching) return;
 
@@ -458,8 +444,8 @@ namespace LightBuzz.AvaSci.UI
 
                 _configuration.RequestedFrameRate = fps;
 
-                await Close();
-                await Open();
+                Close();
+                Open();
 
                 _switchCameraButton.Stop();
                 _isSwitching = false;
@@ -469,7 +455,7 @@ namespace LightBuzz.AvaSci.UI
         /// <summary>
         /// Switch button handler.
         /// </summary>
-        public async void OnSwitch_Click()
+        public void OnSwitch_Click()
         {
             _isSwitching = true;
             _switchCameraButton.Play();
@@ -487,8 +473,8 @@ namespace LightBuzz.AvaSci.UI
                 {
                     _configuration.DeviceIndex = next;
 
-                    await Close();
-                    await Open();
+                    Close();
+                    Open();
                 }
             }
 
