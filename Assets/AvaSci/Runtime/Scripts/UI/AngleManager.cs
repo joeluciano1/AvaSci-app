@@ -87,7 +87,7 @@ namespace LightBuzz.AvaSci.UI
                 _angles[type].gameObject.SetActive(true);
             }
 
-            _angles[type].Load(measurement);
+            _angles[type].Load(measurement, body);
         }
     }
 }
