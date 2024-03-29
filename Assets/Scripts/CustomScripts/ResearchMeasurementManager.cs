@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using LightBuzz.BodyTracking;
 using TMPro;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class ResearchMeasurementManager : MonoBehaviour
@@ -18,19 +19,31 @@ public class ResearchMeasurementManager : MonoBehaviour
     public Transform SkeletonMangerTransform;
     public float selectedJoints;
     public float distance;
+    float stepLength;
+    float stepAngleR;
+    float stepAngleL;
+    public float? footOnGroundPosition;
+    public Vector3 lastFootPosition;
+    public Vector3 newFootPosition;
+    public int footCount;
+
+    Vector3 previousFootPostionR;
+    Vector3 previousFootPostionL;
 
     public TMP_Text DistanceNotifier;
+    public TMP_Text StepLengthNotifier;
+    public TMP_Text StepAngleRNotifier;
+    public TMP_Text StepAngleLNotifier;
+
+    public TMP_Text strideLengthNotifier;
+    public TMP_Text stepwidthLNotifier;
+    public TMP_Text stepwidthRNotifier;
 
     private void Awake()
     {
         instance = this;
     }
-    [ContextMenu("Test")]
-    public void Test()
-    {
-        GameObject go = GameObject.Find("Scripts/Managers");
-        Debug.Log(go.transform.Find("ResearchMeasurementManager").name);
-    }
+
     public void LateUpdate()
     {
         if (LightbuzzBody != null)
@@ -131,6 +144,111 @@ public class ResearchMeasurementManager : MonoBehaviour
         {
             DistanceNotifier.text = "";
         }
+
+        var ankleStepLengthJoints = researchProjectCompleteBodyDatas.Where(x => x.gameObject.name == JointType.AnkleLeft.ToString() || x.gameObject.name == JointType.AnkleRight.ToString()).ToList();
+        if (ankleStepLengthJoints.Count == 2)
+        {
+            stepLength = Vector3.Distance(ankleStepLengthJoints[0].Position3D, ankleStepLengthJoints[1].Position3D);
+            StepLengthNotifier.text = $"Step Length\n{stepLength}m";
+        }
+        else
+        {
+            StepLengthNotifier.text = $"Step Length\nNo Joint";
+        }
+        var jointsForStepAngleR = researchProjectCompleteBodyDatas.Where(x => x.gameObject.name == JointType.AnkleRight.ToString() || x.gameObject.name == JointType.Pelvis.ToString()).ToList();
+        if (jointsForStepAngleR.Count == 2)
+        {
+            Vector3 pointA = new Vector3(0, 0, 0);
+            Vector3 pointB = new Vector3(0, 0, 0);
+            var pelvis = jointsForStepAngleR.FirstOrDefault(x => x.gameObject.name == JointType.Pelvis.ToString());
+            var ankle = jointsForStepAngleR.FirstOrDefault(x => x.gameObject.name == JointType.AnkleRight.ToString());
+
+            pointA = new Vector3(pelvis.Position3D.x, ankle.Position3D.y, pelvis.Position3D.z);
+            pointB = ankle.Position3D;
+
+            stepAngleR = Vector3.Angle(pointA, pointB);
+            StepAngleRNotifier.text = $"Step AngleR\n{stepAngleR}°";
+        }
+        else
+        {
+            StepAngleRNotifier.text = $"Step Length\nNo Joint";
+        }
+
+        var jointsForStepAngleL = researchProjectCompleteBodyDatas.Where(x => x.gameObject.name == JointType.AnkleLeft.ToString() || x.gameObject.name == JointType.Pelvis.ToString()).ToList();
+        if (jointsForStepAngleR.Count == 2)
+        {
+            Vector3 pointA = new Vector3(0, 0, 0);
+            Vector3 pointB = new Vector3(0, 0, 0);
+            var pelvis = jointsForStepAngleL.FirstOrDefault(x => x.gameObject.name == JointType.Pelvis.ToString());
+            var ankle = jointsForStepAngleL.FirstOrDefault(x => x.gameObject.name == JointType.AnkleLeft.ToString());
+
+            pointA = new Vector3(pelvis.Position3D.x, ankle.Position3D.y, pelvis.Position3D.z);
+            pointB = ankle.Position3D;
+
+            stepAngleL = Vector3.Angle(pointA, pointB);
+            StepAngleLNotifier.text = $"Step AngleL\n{stepAngleL}°";
+        }
+        else
+        {
+            StepAngleLNotifier.text = $"Step Length\nNo Joint";
+        }
+        SetInitialFootPlace();
+    }
+    public void SetInitialFootPlace()
+    {
+        var jointForStrideLengthL = researchProjectCompleteBodyDatas.FirstOrDefault(x => x.gameObject.name == JointType.AnkleLeft.ToString());
+        if (jointForStrideLengthL == null)
+        {
+            return;
+        }
+        if (footOnGroundPosition == null)
+        {
+            footOnGroundPosition = jointForStrideLengthL.Position3D.y;
+        }
+        else
+        {
+            if (jointForStrideLengthL.Position3D.y < footOnGroundPosition)
+            {
+
+                footOnGroundPosition = jointForStrideLengthL.Position3D.y;
+                if (footCount == 0)
+                {
+                    lastFootPosition = jointForStrideLengthL.Position3D;
+                    footCount += 1;
+                }
+                if (footCount > 0)
+                {
+                    newFootPosition = jointForStrideLengthL.Position3D;
+                    float distance = Vector3.Distance(newFootPosition, lastFootPosition);
+                    distance = Mathf.Round(distance * 100.0f) * 0.01f;
+                    strideLengthNotifier.text = $"Stride Length\n{distance}";
+                    footCount = 0;
+                }
+            }
+        }
+
+    }
+    public void CalculateStepWidthL()
+    {
+        var ankleLeft = researchProjectCompleteBodyDatas.FirstOrDefault(x => x.gameObject.name == JointType.AnkleLeft.ToString());
+        var pelvis = researchProjectCompleteBodyDatas.FirstOrDefault(x => x.gameObject.name == JointType.Pelvis.ToString());
+        if (ankleLeft == null || pelvis == null)
+        {
+            return;
+        }
+        float stepWidth = Math.Abs(ankleLeft.Position3D.x - pelvis.Position3D.x);
+        stepwidthLNotifier.text = $"Step Width L:\n{stepWidth}";
+    }
+    public void CalculateStepWidthR()
+    {
+        var ankleRight = researchProjectCompleteBodyDatas.FirstOrDefault(x => x.gameObject.name == JointType.AnkleRight.ToString());
+        var pelvis = researchProjectCompleteBodyDatas.FirstOrDefault(x => x.gameObject.name == JointType.Pelvis.ToString());
+        if (ankleRight == null || pelvis == null)
+        {
+            return;
+        }
+        float stepWidth = Math.Abs(ankleRight.Position3D.x - pelvis.Position3D.x);
+        stepwidthRNotifier.text = $"Step Width L:\n{stepWidth}";
     }
 }
 

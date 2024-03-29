@@ -80,6 +80,10 @@ namespace LightBuzz.AvaSci.Measurements
         /// </summary>
         None,
         ShoulderRightFlexion,
-        ShoulderLeftFlexion
+        ShoulderLeftFlexion,
+        KneeLeftAbduction,
+        KneeRightAbduction,
+        AnkleLeftRotation,
+        AnkleRightRotation
     }
 }
