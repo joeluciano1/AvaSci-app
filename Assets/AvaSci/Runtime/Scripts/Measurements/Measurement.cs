@@ -115,6 +115,14 @@ namespace LightBuzz.AvaSci.Measurements
                     return new ShoulderRightRotation();
                 case MeasurementType.None:
                     return new Measurement();
+                case MeasurementType.AnkleLeftRotation:
+                    return new AnkleLeftRotation();
+                case MeasurementType.AnkleRightRotation:
+                    return new AnkleRightRotation();
+                case MeasurementType.KneeLeftAbduction:
+                    return new KneeLeftAbduction();
+                case MeasurementType.KneeRightAbduction:
+                    return new KneeRightAbduction();
                 default:
                     throw new NotImplementedException($"The {type} measurement is not implemented!");
             }

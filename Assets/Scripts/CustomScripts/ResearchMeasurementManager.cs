@@ -38,14 +38,22 @@ public class ResearchMeasurementManager : MonoBehaviour
     public TMP_Text strideLengthNotifier;
     public TMP_Text stepwidthLNotifier;
     public TMP_Text stepwidthRNotifier;
+    bool isStarted;
 
     private void Awake()
     {
         instance = this;
     }
-
+    public void StartReading()
+    {
+        isStarted = true;
+    }
     public void LateUpdate()
     {
+        if (!isStarted)
+        {
+            return;
+        }
         if (LightbuzzBody != null)
         {
             foreach (var item in LightbuzzBody.Joints)
@@ -171,7 +179,7 @@ public class ResearchMeasurementManager : MonoBehaviour
         }
         else
         {
-            StepAngleRNotifier.text = $"Step Length\nNo Joint";
+            StepAngleRNotifier.text = $"Step AngleR\nNo Joint";
         }
 
         var jointsForStepAngleL = researchProjectCompleteBodyDatas.Where(x => x.gameObject.name == JointType.AnkleLeft.ToString() || x.gameObject.name == JointType.Pelvis.ToString()).ToList();
@@ -181,16 +189,18 @@ public class ResearchMeasurementManager : MonoBehaviour
             Vector3 pointB = new Vector3(0, 0, 0);
             var pelvis = jointsForStepAngleL.FirstOrDefault(x => x.gameObject.name == JointType.Pelvis.ToString());
             var ankle = jointsForStepAngleL.FirstOrDefault(x => x.gameObject.name == JointType.AnkleLeft.ToString());
+            if (pelvis != null && ankle != null)
+            {
+                pointA = new Vector3(pelvis.Position3D.x, ankle.Position3D.y, pelvis.Position3D.z);
+                pointB = ankle.Position3D;
 
-            pointA = new Vector3(pelvis.Position3D.x, ankle.Position3D.y, pelvis.Position3D.z);
-            pointB = ankle.Position3D;
-
-            stepAngleL = Vector3.Angle(pointA, pointB);
-            StepAngleLNotifier.text = $"Step AngleL\n{stepAngleL}°";
+                stepAngleL = Vector3.Angle(pointA, pointB);
+                StepAngleLNotifier.text = $"Step AngleL\n{stepAngleL}°";
+            }
         }
         else
         {
-            StepAngleLNotifier.text = $"Step Length\nNo Joint";
+            StepAngleLNotifier.text = $"Step AngleL\nNo Joint";
         }
         SetInitialFootPlace();
     }
