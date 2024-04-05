@@ -199,6 +199,13 @@
       "dependencies": {},
       "hash": "70c1cc84230f4c60381a2955d4d64c85e4da3526"
     },
+    "nrjwolf.games.iosnativealerts": {
+      "version": "git+https://github.com/Nrjwolf/unity-ios-easy-native-alert",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {},
+      "hash": "7e6ba4c11fac99bbaaf7afe5549d8e543eb46659"
+    },
     "com.unity.modules.ai": {
       "version": "1.0.0",
       "depth": 0,

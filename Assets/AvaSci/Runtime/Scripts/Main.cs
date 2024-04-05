@@ -59,7 +59,8 @@ namespace LightBuzz.AvaSci
 
                 if (body != null)
                 {
-                    ResearchMeasurementManager.instance.LightbuzzBody = body;
+                    if (ResearchMeasurementManager.instance != null)
+                        ResearchMeasurementManager.instance.LightbuzzBody = body;
                     _movement.Update(body);
                     _debug.text = _movement.ToString();
                 }

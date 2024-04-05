@@ -123,6 +123,8 @@ namespace LightBuzz.AvaSci.Measurements
                     return new KneeLeftAbduction();
                 case MeasurementType.KneeRightAbduction:
                     return new KneeRightAbduction();
+                case MeasurementType.PelvisAngle:
+                    return new PelvisAngle();
                 default:
                     throw new NotImplementedException($"The {type} measurement is not implemented!");
             }

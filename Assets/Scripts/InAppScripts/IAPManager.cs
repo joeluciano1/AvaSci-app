@@ -15,7 +15,7 @@ public class IAPManager : MonoBehaviour, IDetailedStoreListener
     public string PRODUCT_ID_MONTHLY_SUB = "avascimonthlysub";
     public string PRODUCT_ID_YEARLY_SUB = "avasciyearlysub";
 
-    private static IStoreController m_StoreController;
+    public IStoreController m_StoreController;
     private static IExtensionProvider m_StoreExtensionProvider;
     public TMP_Text MonthlySubText;
     public TMP_Text YearlySubText;

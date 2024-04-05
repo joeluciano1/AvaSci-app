@@ -6,6 +6,7 @@ using System;
 using System.Collections;
 using UnityEngine.SceneManagement;
 using UnityEngine.Events;
+using Nrjwolf.Tools;
 
 public class LoginManager : MonoBehaviour
 {
@@ -100,7 +101,8 @@ public class LoginManager : MonoBehaviour
             },
             onError: (error) =>
             {
-                ReferenceManager.instance.PopupManager.Show("Getting Countries Failed!", $"Reasons are: {error}");
+                IOSNativeAlert.ShowAlertMessage("Getting Countries Failed!", $"Reasons are: {error}");
+
                 Debug.LogError($"Error: {error}");
             });
     }
@@ -131,13 +133,13 @@ public class LoginManager : MonoBehaviour
                     {
                         reasons += $"\n {item.code} {item.description}";
                     }
-                    ReferenceManager.instance.PopupManager.Show("Getting Reasons Failed!", $"Reasons are: {reasons}");
+                    IOSNativeAlert.ShowAlertMessage("Getting Reasons Failed!", $"Reasons are: {reasons}");
                     Debug.Log($"{reasonResponse.serviceErrors}");
                 }
             },
             onError: (error) =>
             {
-                ReferenceManager.instance.PopupManager.Show("Getting Reasons Failed!", $"Reasons are: {error}");
+                IOSNativeAlert.ShowAlertMessage("Getting Reasons Failed!", $"Reasons are: {error}");
                 Debug.LogError($"Error: {error}");
             });
     }
@@ -169,13 +171,13 @@ public class LoginManager : MonoBehaviour
                     {
                         reasons += $"\n {item.code} {item.description}";
                     }
-                    ReferenceManager.instance.PopupManager.Show("Getting Interests Questions Failed!", $"Reasons are: {reasons}");
+                    IOSNativeAlert.ShowAlertMessage("Getting Interests Questions Failed!", $"Reasons are: {reasons}");
                     Debug.Log($"{interestsResponse.serviceErrors}");
                 }
             },
             onError: (error) =>
             {
-                ReferenceManager.instance.PopupManager.Show("Getting Interests Questions Failed!", $"Reasons are: {error}");
+                IOSNativeAlert.ShowAlertMessage("Getting Interests Questions Failed!", $"Reasons are: {error}");
                 Debug.LogError($"Error: {error}");
             });
     }
@@ -198,7 +200,7 @@ public class LoginManager : MonoBehaviour
             }
             GeneralStaticManager.GlobalVar.Add(StringConstants.COUNTRYRESPONSE, response);
             Country_DropDown.AddOptions(optionDatas);
-            ReferenceManager.instance.PopupManager.Show("Success!", "Countries Fetched", okPressed: () => { Debug.Log("Chall Gya"); });
+            IOSNativeAlert.ShowAlertMessage("Success!", "Countries Fetched", new IOSNativeAlert.AlertButton("ok", () => { Debug.Log("Chall Gya"); }));
 
         }
         if (countryResponse.isError)
@@ -208,7 +210,7 @@ public class LoginManager : MonoBehaviour
             {
                 reasons += $"\n {item.code} {item.description}";
             }
-            ReferenceManager.instance.PopupManager.Show("Signup Failed!", $"Reasons are: {reasons}");
+            IOSNativeAlert.ShowAlertMessage("Signup Failed!", $"Reasons are: {reasons}");
             Debug.Log($"{countryResponse.serviceErrors}");
         }
         Debug.Log($"Success: {response}");
@@ -283,7 +285,7 @@ public class LoginManager : MonoBehaviour
                SignupResponse signupResponse = JsonConvert.DeserializeObject<SignupResponse>(response);
                if (signupResponse.isSuccess)
                {
-                   ReferenceManager.instance.PopupManager.Show("Success!", "You have successfully signedup");
+                   IOSNativeAlert.ShowAlertMessage("Success!", "You have successfully signedup");
                }
                if (signupResponse.isError)
                {
@@ -292,7 +294,7 @@ public class LoginManager : MonoBehaviour
                    {
                        reasons += $"\n {item.code} {item.description}";
                    }
-                   ReferenceManager.instance.PopupManager.Show("Signup Failed!", $"Reasons are: {reasons}");
+                   IOSNativeAlert.ShowAlertMessage("Signup Failed!", $"Reasons are: {reasons}");
                    Debug.Log($"{signupResponse.serviceErrors}");
                }
                ReferenceManager.instance.SignupPanel.SetActive(false);
@@ -303,7 +305,7 @@ public class LoginManager : MonoBehaviour
            },
            onError: (error) =>
            {
-               ReferenceManager.instance.PopupManager.Show("Signup Failed!", $"Reasons are: {error}");
+               IOSNativeAlert.ShowAlertMessage("Signup Failed!", $"Reasons are: {error}");
                Debug.LogError($"Error: {error}");
            });
 
@@ -328,15 +330,15 @@ public class LoginManager : MonoBehaviour
               SignInResponse signinResponse = JsonConvert.DeserializeObject<SignInResponse>(response);
               if (signinResponse.isSuccess)
               {
-                  if (signinResponse.result.IsSubscribed)
+                  if (signinResponse.result.IsSubscribed && ReferenceManager.instance.iAPManager.m_StoreController != null && ReferenceManager.instance.iAPManager.m_StoreController.products.all.Length != 0)
                   {
                       if (!ReferenceManager.instance.iAPManager.CheckSubscription("avascimonthlysub", signinResponse.result.Receipt) && !ReferenceManager.instance.iAPManager.CheckSubscription("avasciyearlysub", signinResponse.result.Receipt))
                       {
-                          ReferenceManager.instance.PopupManager.Show("Signin Failed!", $"Your Subscription has Ended and you need to subscribe", false, okPressed: () => { ReferenceManager.instance.IAPPAnel.SetActive(true); });
+                          IOSNativeAlert.ShowAlertMessage("Signin Failed!", $"Your Subscription has Ended and you need to subscribe", new IOSNativeAlert.AlertButton("ok", () => { ReferenceManager.instance.IAPPAnel.SetActive(true); }));
                           return;
                       }
                   }
-                  ReferenceManager.instance.PopupManager.Show("Success!", $"You have successfully signed in\n{signinResponse.result.SpecialMessage}", true);
+                  IOSNativeAlert.ShowAlertMessage("Success!", $"You have successfully signed in\n{signinResponse.result.SpecialMessage}");
                   StringConstants.TOKEN = signinResponse.result.token;
                   GeneralStaticManager.GlobalVar.Add("UserName", signinResponse.result.UserName);
                   GeneralStaticManager.GlobalVar.Add("UserRoles", string.Join(',', signinResponse.result.Roles));
@@ -373,11 +375,11 @@ public class LoginManager : MonoBehaviour
                   }
                   if (isSubscriptionEnded)
                   {
-                      ReferenceManager.instance.PopupManager.Show("Signin Failed!", $"Your Trial has Ended and you need to subscribe", false, okPressed: () => { ReferenceManager.instance.IAPPAnel.SetActive(true); });
+                      IOSNativeAlert.ShowAlertMessage("Signin Failed!", $"Your Trial has Ended and you need to subscribe", new IOSNativeAlert.AlertButton("ok", () => { ReferenceManager.instance.IAPPAnel.SetActive(true); }));
                   }
                   else
                   {
-                      ReferenceManager.instance.PopupManager.Show("Signin Failed!", $"Reasons are: {reasons}");
+                      IOSNativeAlert.ShowAlertMessage("Signin Failed!", $"Reasons are: {reasons}");
                   }
                   Debug.Log($"{signinResponse.serviceErrors}");
               }
@@ -390,7 +392,7 @@ public class LoginManager : MonoBehaviour
           },
           onError: (error) =>
           {
-              ReferenceManager.instance.PopupManager.Show("Signin Failed!", $"Reasons are: {error}");
+              IOSNativeAlert.ShowAlertMessage("Signin Failed!", $"Reasons are: {error}");
               Debug.LogError($"Error: {error}");
           });
 
@@ -430,14 +432,14 @@ public class LoginManager : MonoBehaviour
                 {
                     reasons += $"\n {item.code} {item.description}";
                 }
-                ReferenceManager.instance.PopupManager.Show("Signin Failed!", $"Reasons are: {reasons}");
+                IOSNativeAlert.ShowAlertMessage("Signin Failed!", $"Reasons are: {reasons}");
                 Debug.Log($"{sendEmailResponse.serviceErrors}");
             }
 
         },
         onError: (error) =>
         {
-            ReferenceManager.instance.PopupManager.Show("Email Sending Failed!", $"Reasons are: {error}");
+            IOSNativeAlert.ShowAlertMessage("Email Sending Failed!", $"Reasons are: {error}");
             Debug.LogError($"Error: {error}");
         }
         );
@@ -467,14 +469,14 @@ public class LoginManager : MonoBehaviour
                 {
                     reasons += $"\n {item.code} {item.description}";
                 }
-                ReferenceManager.instance.PopupManager.Show("Signin Failed!", $"Reasons are: {reasons}");
+                IOSNativeAlert.ShowAlertMessage("Signin Failed!", $"Reasons are: {reasons}");
                 Debug.Log($"{codeValidateReponse.serviceErrors}");
             }
 
         },
         onError: (error) =>
         {
-            ReferenceManager.instance.PopupManager.Show("Email Sending Failed!", $"Reasons are: {error}");
+            IOSNativeAlert.ShowAlertMessage("Email Sending Failed!", $"Reasons are: {error}");
             Debug.LogError($"Error: {error}");
         }
         );
@@ -486,7 +488,7 @@ public class LoginManager : MonoBehaviour
 
         if (!newPassword.Equals(confirmPassword) || string.IsNullOrEmpty(newPassword))
         {
-            ReferenceManager.instance.PopupManager.Show("Issue!", "Passwords DontMatch or cant be empty please try again");
+            IOSNativeAlert.ShowAlertMessage("Issue!", "Passwords DontMatch or cant be empty please try again");
             return;
         }
 
@@ -503,7 +505,7 @@ public class LoginManager : MonoBehaviour
             ResponseWithNoObject codeValidateReponse = JsonConvert.DeserializeObject<ResponseWithNoObject>(response);
             if (codeValidateReponse.isSuccess)
             {
-                ReferenceManager.instance.PopupManager.Show("Password is Reset!", "Your Password Is Reset Successfully", okPressed: () => { ReferenceManager.instance.forgetPasswordManager.gameObject.SetActive(false); });
+                IOSNativeAlert.ShowAlertMessage("Password is Reset!", "Your Password Is Reset Successfully", new IOSNativeAlert.AlertButton("Thank You", () => { ReferenceManager.instance.forgetPasswordManager.gameObject.SetActive(false); }));
             }
             if (codeValidateReponse.isError)
             {
@@ -512,14 +514,14 @@ public class LoginManager : MonoBehaviour
                 {
                     reasons += $"\n {item.code} {item.description}";
                 }
-                ReferenceManager.instance.PopupManager.Show("Signin Failed!", $"Reasons are: {reasons}");
+                IOSNativeAlert.ShowAlertMessage("Signin Failed!", $"Reasons are: {reasons}");
                 Debug.Log($"{codeValidateReponse.serviceErrors}");
             }
 
         },
         onError: (error) =>
         {
-            ReferenceManager.instance.PopupManager.Show("Email Sending Failed!", $"Reasons are: {error}");
+            IOSNativeAlert.ShowAlertMessage("Email Sending Failed!", $"Reasons are: {error}");
             Debug.LogError($"Error: {error}");
         }
         );
@@ -536,7 +538,7 @@ public class LoginManager : MonoBehaviour
             ResponseWithNoObject deleteAccountResponse = JsonConvert.DeserializeObject<ResponseWithNoObject>(response);
             if (deleteAccountResponse.isSuccess)
             {
-                ReferenceManager.instance.PopupManager.Show("Account Deleted!", "Your Account Is Deleted Successfully", okPressed: () => { Logout(); });
+                IOSNativeAlert.ShowAlertMessage("Account Deleted!", "Your Account Is Deleted Successfully", new IOSNativeAlert.AlertButton("Thank You", () => { Logout(); }));
             }
             if (deleteAccountResponse.isError)
             {
@@ -545,13 +547,13 @@ public class LoginManager : MonoBehaviour
                 {
                     reasons += $"\n {item.code} {item.description}";
                 }
-                ReferenceManager.instance.PopupManager.Show("Account Deletion Failed!", $"Reasons are: {reasons}");
+                IOSNativeAlert.ShowAlertMessage("Account Deletion Failed!", $"Reasons are: {reasons}");
                 Debug.Log($"{deleteAccountResponse.serviceErrors}");
             }
 
         }, onError: (error) =>
         {
-            ReferenceManager.instance.PopupManager.Show("Account Deletion Failed!", $"Reasons are: {error}");
+            IOSNativeAlert.ShowAlertMessage("Account Deletion Failed!", $"Reasons are: {error}");
         });
     }
 

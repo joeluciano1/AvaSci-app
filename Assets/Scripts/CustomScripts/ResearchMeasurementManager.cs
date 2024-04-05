@@ -48,6 +48,10 @@ public class ResearchMeasurementManager : MonoBehaviour
     {
         isStarted = true;
     }
+    public void StopReading()
+    {
+        isStarted = false;
+    }
     public void LateUpdate()
     {
         if (!isStarted)
@@ -146,7 +150,7 @@ public class ResearchMeasurementManager : MonoBehaviour
             distance = Vector3.Distance(SelectedBodyDatas[0].Position3D, SelectedBodyDatas[1].Position3D);
             distance = Mathf.Round(distance * 100.0f) * 0.01f;
             // DistanceNotifier.transform.parent.GetComponent<RectTransform>().anchoredPosition = (SelectedBodyDatas[0].GetComponent<RectTransform>().anchoredPosition + SelectedBodyDatas[1].GetComponent<RectTransform>().anchoredPosition) / 2;
-            DistanceNotifier.text = "Distance Between Selected Points: " + distance.ToString() + " meters";
+            DistanceNotifier.text = "Distance: " + distance.ToString() + " meters";
         }
         else
         {

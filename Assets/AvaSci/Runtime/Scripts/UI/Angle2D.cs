@@ -1,3 +1,4 @@
+using System;
 using LightBuzz.AvaSci.Measurements;
 using LightBuzz.BodyTracking;
 using UnityEngine;
@@ -157,6 +158,10 @@ namespace LightBuzz.AvaSci.UI
         /// Updates the angle arc visual components according to the specified measurement data.
         /// </summary>
         /// <param name="measurement">The measurement to display.</param>
+        /// 
+        public float initialDifference;
+        public float MinScale = 0.3f;
+        public float MaxScale = 1f;
         public void Load(Measurement measurement, Body body = null)
         {
             if (measurement == null) return;
@@ -164,7 +169,10 @@ namespace LightBuzz.AvaSci.UI
             _start = _imageView.GetPosition(measurement.AngleStart);
             _center = _imageView.GetPosition(measurement.AngleCenter);
             _end = _imageView.GetPosition(measurement.AngleEnd);
-
+            initialDifference = GetComponent<RectTransform>().sizeDelta.x;
+            float scale = MinScale + (MaxScale - MinScale) * (1 - (body.Joints[JointType.Neck].Position3D.Z - 1) / (3 - 1));
+            scale = Math.Clamp(scale, 0.5f, 1f);
+            transform.localScale = new Vector3(scale, scale, scale);
             _angle = measurement.Value;
             _displayMessage = $"{measurement.Value:N0}°";
 
