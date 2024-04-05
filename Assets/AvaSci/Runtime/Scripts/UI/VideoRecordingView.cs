@@ -265,7 +265,8 @@ namespace LightBuzz.AvaSci.UI
         private void Recorder_OnRecordingCompleted()
         {
             Debug.Log("Recording completed saving data.");
-
+            ReferenceManager.instance.recorderPath = _recorder.Settings.Path;
+            ReferenceManager.instance.videoRecorded = true;
             _completed = true;
         }
 
