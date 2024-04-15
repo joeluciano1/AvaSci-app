@@ -7,6 +7,7 @@ using UnityEngine.UI;
 using System.Threading.Tasks;
 using UnityEngine.Events;
 using System;
+using Nrjwolf.Tools;
 
 public class PopupManager : MonoBehaviour
 {
@@ -19,36 +20,15 @@ public class PopupManager : MonoBehaviour
     public GameObject NoButton;
     public async void Show(string heading, string content, bool fade = false, System.Action okPressed = null, bool isAsking = false)
     {
-        try
-        {
-            PopupManager popupManager = Instantiate(this, this.transform.parent);
-            popupManager.doFade = fade;
-            popupManager.MyImage = popupManager.GetComponent<Image>();
-            popupManager.gameObject.SetActive(true);
-            popupManager.MyImage.color = new Color(popupManager.MyImage.color.r, popupManager.MyImage.color.g, popupManager.MyImage.color.b, 0);
-            popupManager.MyImage.DOFade(1, 1f);
-            popupManager.HeadingText.DOFade(1, 1f);
-            popupManager.ContentText.DOFade(1, 1f);
-            popupManager.HeadingText.text = heading;
-            popupManager.ContentText.text = content;
-            popupManager.onSuccess.AddListener(() => { okPressed?.Invoke(); });
-            if (isAsking)
-            {
-                popupManager.NoButton.SetActive(true);
-            }
-            await System.Threading.Tasks.Task.Delay(3000);
-            if (popupManager.doFade && popupManager != null)
-            {
-                popupManager.transform.SetAsLastSibling();
-                popupManager.HeadingText.DOFade(0, 1f);
-                popupManager.ContentText.DOFade(0, 1f);
-                popupManager.MyImage.DOFade(0, 2f).OnComplete(() => Destroy(popupManager.gameObject));
 
-            }
-        }
-        catch (Exception ex)
+        if (okPressed != null)
         {
-            Debug.Log(ex.Message);
+            IOSNativeAlert.ShowAlertMessage(heading, content, new IOSNativeAlert.AlertButton("ok", () => { okPressed.Invoke(); }));
+
+        }
+        else
+        {
+            IOSNativeAlert.ShowAlertMessage(heading, content);
         }
 
     }
