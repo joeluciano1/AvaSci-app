@@ -175,29 +175,29 @@ public class ReferenceManager : MonoBehaviour
     public async void PlayAllGraphs()
     {
         graphManagers.ForEach(x => x.MySineWave.isReading = false);
-        // if (!VideoPlayerView.activeSelf)
-        // {
-        //     return;
-        // }
-        // while (!VideoPlayButton.activeSelf || graphManagers.Count == 0 || graphManagers.Any(x => x.MySineWave.graphChart.DataSource.GetMaxXValue() < TimeSpan.ParseExact(TotalVideoTime.text, "mm':'ss", CultureInfo.InvariantCulture).Duration().TotalSeconds))
-        // {
-        //     if (graphManagers.Count != 0)
-        //     {
-        //         Debug.Log(graphManagers[0].MySineWave.graphChart.DataSource.GetMaxXValue());
-        //         Debug.Log(TimeSpan.ParseExact(TotalVideoTime.text, "mm':'ss", CultureInfo.InvariantCulture).Duration().TotalSeconds);
-        //     }
-        //     // else
-        //     // {
-        //     //     Debug.Log("Count is zero");
-        //     // }
-        //     await Task.Delay(100);
-        // }
+        if (!VideoPlayerView.activeSelf)
+        {
+            return;
+        }
+        while (!VideoPlayButton.activeSelf || graphManagers.Count == 0 || graphManagers.Any(x => x.MySineWave.graphChart.DataSource.GetMaxXValue() < TimeSpan.ParseExact(TotalVideoTime.text, "mm':'ss", CultureInfo.InvariantCulture).Duration().TotalSeconds))
+        {
+            if (graphManagers.Count != 0)
+            {
+                Debug.Log(graphManagers[0].MySineWave.graphChart.DataSource.GetMaxXValue());
+                Debug.Log(TimeSpan.ParseExact(TotalVideoTime.text, "mm':'ss", CultureInfo.InvariantCulture).Duration().TotalSeconds);
+            }
+            // else
+            // {
+            //     Debug.Log("Count is zero");
+            // }
+            await Task.Delay(100);
+        }
 
-        // graphManagers.ForEach(x =>
-        // {
-        //     x.MySineWave.isReading = false;
-        //     x.MySineWave.graphChart.AutoScrollHorizontally = false;
-        // });
+        graphManagers.ForEach(x =>
+        {
+            x.MySineWave.isReading = false;
+            x.MySineWave.graphChart.AutoScrollHorizontally = false;
+        });
 
     }
 
