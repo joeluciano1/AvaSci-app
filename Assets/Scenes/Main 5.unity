@@ -17716,9 +17716,9 @@ MonoBehaviour:
   onValueChanged:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 894267035}
-        m_TargetAssemblyTypeName: UnityEngine.UI.Toggle, UnityEngine.UI
-        m_MethodName: set_isOn
+      - m_Target: {fileID: 894267032}
+        m_TargetAssemblyTypeName: JointToggleAnimations, Assembly-CSharp
+        m_MethodName: DoExpand
         m_Mode: 0
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -17728,9 +17728,9 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
-      - m_Target: {fileID: 1360597759}
-        m_TargetAssemblyTypeName: UnityEngine.UI.Toggle, UnityEngine.UI
-        m_MethodName: set_isOn
+      - m_Target: {fileID: 1360597756}
+        m_TargetAssemblyTypeName: JointToggleAnimations, Assembly-CSharp
+        m_MethodName: DoExpand
         m_Mode: 0
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -17740,9 +17740,9 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
-      - m_Target: {fileID: 639123982}
-        m_TargetAssemblyTypeName: UnityEngine.UI.Toggle, UnityEngine.UI
-        m_MethodName: set_isOn
+      - m_Target: {fileID: 639123979}
+        m_TargetAssemblyTypeName: JointToggleAnimations, Assembly-CSharp
+        m_MethodName: DoExpand
         m_Mode: 0
         m_Arguments:
           m_ObjectArgument: {fileID: 0}

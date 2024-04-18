@@ -91,6 +91,7 @@ public class ReferenceManager : MonoBehaviour
 #if !UNITY_EDITOR
         if (ReferenceManager.instance.sensorTypeDropDown.value != 1 && !isDone && !isShowingRecording)
         {
+
             ReferenceManager.instance.LoadingManager.Show("Setting Up Lidar Camera Please Wait...");
             await System.Threading.Tasks.Task.Delay(2000);
             if (LidarCount != 0)

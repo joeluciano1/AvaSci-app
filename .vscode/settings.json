@@ -56,5 +56,6 @@
         "temp/": true,
         "Temp/": true
     },
-    "dotnet.defaultSolution": "AvaSci-app.sln"
+    "dotnet.defaultSolution": "AvaSci-app.sln",
+    "dotnet.preferCSharpExtension": true
 }
