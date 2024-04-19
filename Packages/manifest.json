@@ -4,7 +4,6 @@
     "com.lightbuzz.bodytracking": "file:/Users/ehtisham/Downloads/com.lightbuzz.bodytracking-6.2.5.tgz",
     "com.unity.2d.sprite": "1.0.0",
     "com.unity.collab-proxy": "2.2.0",
-    "com.unity.device-simulator.devices": "1.0.0",
     "com.unity.feature.development": "1.0.2",
     "com.unity.nuget.newtonsoft-json": "3.2.1",
     "com.unity.purchasing": "4.10.0",
@@ -13,6 +12,7 @@
     "com.unity.ugui": "1.0.0",
     "com.unity.visualscripting": "1.9.1",
     "com.yasirkula.nativeshare": "https://github.com/yasirkula/unitynativeshare.git",
+    "nrjwolf.games.iosnativealerts": "git+https://github.com/Nrjwolf/unity-ios-easy-native-alert",
     "com.unity.modules.ai": "1.0.0",
     "com.unity.modules.androidjni": "1.0.0",
     "com.unity.modules.animation": "1.0.0",
@@ -43,7 +43,6 @@
     "com.unity.modules.video": "1.0.0",
     "com.unity.modules.vr": "1.0.0",
     "com.unity.modules.wind": "1.0.0",
-    "com.unity.modules.xr": "1.0.0",
-    "nrjwolf.games.iosnativealerts": "git+https://github.com/Nrjwolf/unity-ios-easy-native-alert"
+    "com.unity.modules.xr": "1.0.0"
   }
 }
