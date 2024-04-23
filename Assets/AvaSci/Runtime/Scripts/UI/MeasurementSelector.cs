@@ -157,6 +157,12 @@ namespace LightBuzz.AvaSci.UI
             else
             {
                 GeneralStaticManager.GraphsReadings.Remove(itemName);
+                if (GeneralStaticManager.GraphsReadings.Count == 0)
+                {
+                    ReferenceManager.instance.graphManagers.ForEach(x => Destroy(x.gameObject));
+                    ReferenceManager.instance.graphManagers.Clear();
+                    return;
+                }
                 GraphManager alreadyPresentJointGraph = ReferenceManager.instance.graphManagers.FirstOrDefault(x => (x.JointType == type || x.SecondJointType == type) && (x.JointType != MeasurementType.None || x.SecondJointType != MeasurementType.None));
                 if (alreadyPresentJointGraph == null)
                 {
@@ -209,7 +215,7 @@ namespace LightBuzz.AvaSci.UI
                     {
                         alreadyPresentJointGraph.MySineWave.graphChart.DataSource.GetCategoryLine(GeneralStaticManager.GetMeasurementTypeName(alreadyPresentJointGraph.JointType), out Material lineMat, out double value, out ChartAndGraph.MaterialTiling tiling);
                         alreadyPresentJointGraph.SecondJointType = MeasurementType.None;
-                        if (alreadyPresentJointGraph.JointType != MeasurementType.None)
+                        if (alreadyPresentJointGraph.JointType != MeasurementType.None && lineMat != null)
                         {
                             color = ColorUtility.ToHtmlStringRGBA(lineMat.color);
                         }
@@ -218,7 +224,7 @@ namespace LightBuzz.AvaSci.UI
                     {
                         alreadyPresentJointGraph.MySineWave.graphChart.DataSource.GetCategoryLine(GeneralStaticManager.GetMeasurementTypeName(alreadyPresentJointGraph.SecondJointType), out Material lineMat, out double value, out ChartAndGraph.MaterialTiling tiling);
                         alreadyPresentJointGraph.JointType = MeasurementType.None;
-                        if (alreadyPresentJointGraph.SecondJointType != MeasurementType.None)
+                        if (alreadyPresentJointGraph.SecondJointType != MeasurementType.None && lineMat != null)
                         {
                             color = ColorUtility.ToHtmlStringRGBA(lineMat.color);
                         }
