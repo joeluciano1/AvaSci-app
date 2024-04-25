@@ -36,7 +36,7 @@ public class ButtonHandler : MonoBehaviour
     public Vector2 RangeValueOnePosition;
     public Vector2 RangeValueTwoPosition;
     public Vector2 GraphImagePosition;
-    
+
     public Canvas MainCanvas;
     public ScrollRect scrollView;
 
@@ -66,13 +66,13 @@ public class ButtonHandler : MonoBehaviour
             double jointOneMaxValue = Math.Round(GeneralStaticManager.GraphsReadings[jointOne].Max(), 2);
             double jointOneMinValue = Math.Round(GeneralStaticManager.GraphsReadings[jointOne].Min(), 2);
             maxJointOne = jointOneMaxValue.ToString();
-            
+
             minJointOne = jointOneMinValue.ToString();
             rangeJointOne = Math.Abs(jointOneMaxValue - jointOneMinValue).ToString();
 
             //////////////// Second Joint /////////////////
 
-            if(MyGraphManager.SecondJointType != MeasurementType.None)
+            if (MyGraphManager.SecondJointType != MeasurementType.None)
             {
                 double jointTwoMaxValue = Math.Round(GeneralStaticManager.GraphsReadings[jointTwo].Max(), 2);
                 double jointTwoMinValue = Math.Round(GeneralStaticManager.GraphsReadings[jointTwo].Min(), 2);
@@ -101,23 +101,23 @@ public class ButtonHandler : MonoBehaviour
         TestButton(graphDatas);
     }
 
-    
 
-    [ContextMenu("TakeScreenShot")]    
-    
+
+    [ContextMenu("TakeScreenShot")]
+
     public void CaptureRectTransform()
     {
         if (ReferenceManager.instance.GraphMinimizer.GraphToResize.preferredHeight == 0)
         {
-            ReferenceManager.instance.PopupManager.Show("Not Allowed", "Please maximize the graph first",true);
+            ReferenceManager.instance.PopupManager.Show("Not Allowed", "Please maximize the graph first", true);
             return;
         }
-        
-       
+
+
 
         StartCoroutine(takeScreenShot());
     }
-    
+
     public IEnumerator takeScreenShot()
     {
         MainCanvas.renderMode = RenderMode.ScreenSpaceOverlay;
@@ -126,7 +126,7 @@ public class ButtonHandler : MonoBehaviour
         {
             //Code will throw error at runtime if this is removed
             ScrollViewFocusFunctions.FocusOnItem(scrollView, graphManager.GetComponent<RectTransform>());
-            
+
             yield return new WaitForEndOfFrame();
             yield return new WaitForEndOfFrame();
             //Get the corners of RectTransform rect and store it in a array vector
@@ -148,7 +148,7 @@ public class ButtonHandler : MonoBehaviour
 
             GraphImage = ss;
             graphManager.GraphImage = Resize(GraphImage, 446, 288);
-            
+
         }
         ReferenceManager.instance.LoadingManager.Show("Generating PDF Report for you");
         GeneratePDFTest();
@@ -169,7 +169,7 @@ public class ButtonHandler : MonoBehaviour
             Stream stream1 = new MemoryStream(bytesHeader);
             PdfBitmap pdfBitmapHeader = new PdfBitmap(stream1);
 
-            GraphImage = ReferenceManager.instance.graphManagers.FirstOrDefault(x => graphData.JointThatIsReported.Contains( Enum.GetName(typeof(MeasurementType), x.JointType))).GraphImage;
+            GraphImage = ReferenceManager.instance.graphManagers.FirstOrDefault(x => graphData.JointThatIsReported.Contains(Enum.GetName(typeof(MeasurementType), x.JointType))).GraphImage;
 
             byte[] graphImageBytes = GraphImage.EncodeToPNG();
             Stream graphImageStream = new MemoryStream(graphImageBytes);
@@ -185,7 +185,7 @@ public class ButtonHandler : MonoBehaviour
             graphics.DrawString($"{System.DateTime.Now.ToString("MM/dd/yyyy")}", new PdfStandardFont(PdfFontFamily.Helvetica, 12, PdfFontStyle.Regular), PdfBrushes.Black, DatePosition.ToPointF());
             graphics.DrawString(graphData.JointThatIsReported, new PdfStandardFont(PdfFontFamily.Helvetica, 12, PdfFontStyle.Bold | PdfFontStyle.Bold), PdfBrushes.Black, JointNamePosition.ToPointF());
 
-            
+
 
             if (!string.IsNullOrWhiteSpace(graphData.MinGraph1Value))
                 graphics.DrawString("Min", new PdfStandardFont(PdfFontFamily.Helvetica, 10, PdfFontStyle.Bold), PdfBrushes.Black, MinHeadingPosition.ToPointF());
@@ -205,7 +205,7 @@ public class ButtonHandler : MonoBehaviour
             }
             if (!string.IsNullOrWhiteSpace(graphData.MinGraph2Value))
             {
-                if(graphData.Graph2Name.Contains("Left"))
+                if (graphData.Graph2Name.Contains("Left"))
                     graphics.DrawString("Left", new PdfStandardFont(PdfFontFamily.Helvetica, 10, PdfFontStyle.Bold), PdfBrushes.Blue, HeadingGTwoPosition.ToPointF());
                 else if (graphData.Graph2Name.Contains("Right"))
                     graphics.DrawString("Right", new PdfStandardFont(PdfFontFamily.Helvetica, 10, PdfFontStyle.Bold), PdfBrushes.Blue, HeadingGTwoPosition.ToPointF());
@@ -232,14 +232,14 @@ public class ButtonHandler : MonoBehaviour
         }
         MemoryStream stream = new MemoryStream();
 
-        
+
 
         document.Save(stream);
 
-        
+
 
         stream.Position = 0;
-        string path = Path.Combine( Application.persistentDataPath , "Sample.pdf");
+        string path = Path.Combine(Application.persistentDataPath, "Sample.pdf");
 
 
         File.WriteAllBytes(path, stream.ToArray());
