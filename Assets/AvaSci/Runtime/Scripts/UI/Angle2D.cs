@@ -90,7 +90,16 @@ namespace LightBuzz.AvaSci.UI
         {
             //Load();
         }
-
+        private void AddToReferenceManager()
+        {
+            if (!ReferenceManager.instance.AnglesAdded.Contains(this))
+                ReferenceManager.instance.AnglesAdded.Add(this);
+        }
+        private void OnDestroy()
+        {
+            if (ReferenceManager.instance.AnglesAdded.Contains(this))
+                ReferenceManager.instance.AnglesAdded.Remove(this);
+        }
         /// <summary>
         /// Refreshes the angle arc data.
         /// </summary>
@@ -174,8 +183,32 @@ namespace LightBuzz.AvaSci.UI
             scale = Math.Clamp(scale, 0.5f, 1f);
             transform.localScale = new Vector3(scale, scale, scale);
             _angle = measurement.Value;
-            _displayMessage = $"{measurement.Value:N0}°";
 
+            _displayMessage = $"{measurement.Value:N0}°";
+            if (measurement.Type == MeasurementType.KneeLeftAbduction)
+            {
+                if (_angle >= 10)
+                {
+                    Vector3D positionOfKnee = body.Joints[JointType.KneeLeft].Position3D;
+                    Vector3D positionOfHip = body.Joints[JointType.HipLeft].Position3D;
+
+                    if (positionOfKnee.X > positionOfHip.X)
+                    {
+                        //valgus condition
+                        _displayMessage += "\nValgus Condition";
+                    }
+                    if (positionOfKnee.X < positionOfHip.X)
+                    {
+                        //varus condition
+                        _displayMessage += "\nVarus Condition";
+                    }
+                }
+
+            }
+            if (measurement.Type == MeasurementType.KneeRightAbduction)
+            {
+
+            }
             Refresh();
         }
     }

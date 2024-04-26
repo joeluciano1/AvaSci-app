@@ -47,10 +47,12 @@ public class ResearchMeasurementManager : MonoBehaviour
     public void StartReading()
     {
         isStarted = true;
+        researchProjectCompleteBodyDatas.ForEach(x => x.gameObject.SetActive(true));
     }
     public void StopReading()
     {
         isStarted = false;
+        researchProjectCompleteBodyDatas.ForEach(x => x.gameObject.SetActive(false));
     }
     public void LateUpdate()
     {

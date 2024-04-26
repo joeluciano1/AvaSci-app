@@ -90,6 +90,7 @@ namespace LightBuzz.AvaSci.UI
 
             Debug.Log($"Found {countWebcam} RGB cameras.");
             Debug.Log($"Found {countLiDAR} LiDAR sensors.");
+            ReferenceManager.instance.LidarCount = countLiDAR;
 
             _loading.SetActive(false);
             _scrollView.SetActive(true);
