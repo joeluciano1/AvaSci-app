@@ -175,6 +175,8 @@ namespace LightBuzz.AvaSci.UI
         {
             if (measurement == null) return;
 
+            gameObject.name = measurement.Type.ToString();
+
             _start = _imageView.GetPosition(measurement.AngleStart);
             _center = _imageView.GetPosition(measurement.AngleCenter);
             _end = _imageView.GetPosition(measurement.AngleEnd);
@@ -183,8 +185,14 @@ namespace LightBuzz.AvaSci.UI
             scale = Math.Clamp(scale, 0.5f, 1f);
             transform.localScale = new Vector3(scale, scale, scale);
             _angle = measurement.Value;
-
-            _displayMessage = $"{measurement.Value:N0}°";
+            if (!measurement.Type.ToString().Contains("Distance"))
+            {
+                _displayMessage = $"{measurement.Value:N0}°";
+            }
+            else
+            {
+                _displayMessage = measurement.Value.ToString("0.00");
+            }
             if (measurement.Type == MeasurementType.KneeLeftAbduction)
             {
                 if (_angle >= 10)
@@ -207,7 +215,23 @@ namespace LightBuzz.AvaSci.UI
             }
             if (measurement.Type == MeasurementType.KneeRightAbduction)
             {
+                Vector3D positionOfKnee = body.Joints[JointType.KneeRight].Position3D;
+                Vector3D positionOfHip = body.Joints[JointType.KneeRight].Position3D;
 
+                if (positionOfKnee.X > positionOfHip.X)
+                {
+                    //valgus condition
+                    _displayMessage += "\nValgus Condition";
+                }
+                if (positionOfKnee.X < positionOfHip.X)
+                {
+                    //varus condition
+                    _displayMessage += "\nVarus Condition";
+                }
+            }
+            if (measurement.Type == MeasurementType.AnkleHipLeftDistance || measurement.Type == MeasurementType.AnkleHipRightDistance)
+            {
+                _foregroundImage.color = UnityEngine.Color.green;
             }
             Refresh();
         }

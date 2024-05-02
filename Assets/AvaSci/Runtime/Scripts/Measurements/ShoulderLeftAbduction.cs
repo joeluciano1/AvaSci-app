@@ -13,7 +13,7 @@ namespace LightBuzz.AvaSci.Measurements
         public ShoulderLeftAbduction()
         {
             Type = MeasurementType.ShoulderLeftAbduction;
-            
+
             KeyJoint1 = JointType.ShoulderLeft;
             KeyJoint2 = JointType.ElbowLeft;
             KeyJoint3 = JointType.WristLeft;

@@ -29,6 +29,8 @@ public class UserReportController : MonoBehaviour
     public VideoPlayerView videoPlayerView;
     public VideoRecordingView videoRecorderView;
 
+    UserReportFromDB RecentlyPlayedButton;
+
     // Start is called before the first frame update
     public void Start()
     {
@@ -56,8 +58,19 @@ public class UserReportController : MonoBehaviour
                     userReportFromDB.UserName.text = item.UserName;
                     userReportFromDB.CreatedOn.text = item.CreatedOn;
                     userReportFromDB.WatchBtn.interactable = true;
-                    userReportFromDB.WatchBtn.onClick.AddListener(() => StartCoroutine(GetText(item.VideoURL, userReportFromDB.WatchBtn, userReportFromDB)));
-                    userReportFromDB.ButtonText.text = "Download Video";
+                    if (!PlayerPrefs.GetString("LastVidURL").Equals(item.VideoURL))
+                    {
+                        userReportFromDB.WatchBtn.onClick.AddListener(() => StartCoroutine(GetText(item.VideoURL, userReportFromDB.WatchBtn, userReportFromDB)));
+                        userReportFromDB.ButtonText.text = "Download Video";
+                    }
+                    else
+                    {
+                        userReportFromDB.WatchBtn.onClick.RemoveAllListeners();
+                        userReportFromDB.ButtonText.text = "Watch";
+                        RecentlyPlayedButton = userReportFromDB;
+                        userReportFromDB.WatchBtn.onClick.AddListener(() => CreateFileAndView());
+                    }
+
                     userReportFromDBs.Add(userReportFromDB);
                 }
             }
@@ -97,6 +110,12 @@ public class UserReportController : MonoBehaviour
     float progress;
     IEnumerator GetText(string url, Button btn, UserReportFromDB userReportFromDB)
     {
+        if (RecentlyPlayedButton != null)
+        {
+            RecentlyPlayedButton.WatchBtn.onClick.RemoveAllListeners();
+            RecentlyPlayedButton.WatchBtn.onClick.AddListener(() => StartCoroutine(GetText(PlayerPrefs.GetString("LastVidURL"), RecentlyPlayedButton.WatchBtn, RecentlyPlayedButton)));
+            RecentlyPlayedButton.ButtonText.text = "Download Video";
+        }
         btn.interactable = false;
         UnityWebRequest request = UnityWebRequest.Get(url);
         userReportFromDB.request = request;
@@ -121,10 +140,11 @@ public class UserReportController : MonoBehaviour
             List<VideoSaveBody> videoSaveBodies = JsonConvert.DeserializeObject<List<VideoSaveBody>>(request.downloadHandler.text);
 
             btn.onClick.RemoveAllListeners();
-            btn.onClick.AddListener(() => CreateFileAndView(videoSaveBodies));
+            btn.onClick.AddListener(() => CreateFileAndView(videoSaveBodies, url));
             btn.interactable = true;
             userReportFromDB.ProgressImage.gameObject.SetActive(false);
             userReportFromDB.ButtonText.text = $"Watch";
+
             if (userReportFromDB.request.downloadProgress == 0)
             {
                 userReportFromDB.ButtonText.text = "Retry? No Data Found";
@@ -185,32 +205,38 @@ public class UserReportController : MonoBehaviour
         }
     }
 
-    public async void CreateFileAndView(List<VideoSaveBody> videoSaveBodies)
+    public async void CreateFileAndView(List<VideoSaveBody> videoSaveBodies = null, string url = "")
     {
         string path1 = System.IO.Path.Combine(Application.persistentDataPath, "Video");
         ReferenceManager.instance.isShowingRecording = true;
-
-        if (Directory.Exists(path1))
+        if (!string.IsNullOrEmpty(url))
+        {
+            PlayerPrefs.SetString("LastVidURL", url);
+        }
+        if (Directory.Exists(path1) && videoSaveBodies != null)
         {
             Directory.Delete(path1, recursive: true);
         }
-
-        Directory.CreateDirectory(path1);
-        foreach (var item in videoSaveBodies)
+        if (videoSaveBodies != null)
         {
-            string fileName = item.FileName;
-            string fileData = item.FileData;
+            Directory.CreateDirectory(path1);
+            foreach (var item in videoSaveBodies)
+            {
+                string fileName = item.FileName;
+                string fileData = item.FileData;
 
-            string path = System.IO.Path.Combine(Application.persistentDataPath, "Video", fileName);
-            byte[] bytes = System.Convert.FromBase64String(fileData);
-            File.WriteAllBytes(path, bytes);
+                string path = System.IO.Path.Combine(Application.persistentDataPath, "Video", fileName);
+                byte[] bytes = System.Convert.FromBase64String(fileData);
+                File.WriteAllBytes(path, bytes);
 
 
-        }
-        var filePaths = Directory.GetFiles(path1);
-        while (filePaths.Length < videoSaveBodies.Count)
-        {
-            await Task.Delay(500);
+            }
+
+            var filePaths = Directory.GetFiles(path1);
+            while (filePaths.Length < videoSaveBodies.Count)
+            {
+                await Task.Delay(500);
+            }
         }
         ReportPanel.SetActive(false);
         GraphPanel.SetActive(true);
