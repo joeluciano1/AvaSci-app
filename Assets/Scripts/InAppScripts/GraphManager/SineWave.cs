@@ -30,7 +30,8 @@ public class SineWave : MonoBehaviour
     public bool isReading;
     public GraphManager myParentGraphManager;
     GraphManager myLinearGraph;
-
+    public bool isVideoDoneLoading;
+    public GameObject LoadingScreen;
 
     #region Duplicate graph if circular is added to add linear graph to it
     //public async void Start()
@@ -79,6 +80,8 @@ public class SineWave : MonoBehaviour
         var main = ReferenceManager.instance.LightBuzzMain;
         while (isReading)
         {
+            isVideoDoneLoading = true;
+            LoadingScreen.SetActive(false);
             if (customChartPointer == null)
             {
                 customChartPointer = graphChart.GetComponent<CustomChartPointer>();
@@ -121,11 +124,10 @@ public class SineWave : MonoBehaviour
                     else
                         myParentGraphManager.Title.text += $"\n<color=#{linecolor}>{itemName}</color>";
                     innerFill.color = UnityEngine.Random.ColorHSV();
-                    Material pointMat = new Material(pointMaterial);
+                    // Material pointMat = new Material(pointMaterial);
 
-                    //pointMat.SetColor("_Combine", Colors[UnityEngine.Random.Range(0, Colors.Count)]);
-                    pointMat.SetColor("_ColorFrom", Colors[UnityEngine.Random.Range(0, Colors.Count)]);
-                    pointMat.SetColor("_ColorTo", Colors[UnityEngine.Random.Range(0, Colors.Count)]);
+                    // pointMat.SetColor("_ColorFrom", Colors[UnityEngine.Random.Range(0, Colors.Count)]);
+                    // pointMat.SetColor("_ColorTo", Colors[UnityEngine.Random.Range(0, Colors.Count)]);
                     Material innFillMat = new Material(innerFill);
                     var color1 = Colors[UnityEngine.Random.Range(0, Colors.Count)];
                     color1.a = 0.5f;
@@ -134,7 +136,8 @@ public class SineWave : MonoBehaviour
                     color2.a = 0.1f;
                     innFillMat.SetColor("_ColorTo", color2);
                     PlayerPrefs.SetInt(itemName, 0);
-                    graphChart.DataSource.AddCategory(itemName, lineMaterial, lineThickness, lineTiling, null, true, pointMat, pointSize);
+
+                    graphChart.DataSource.AddCategory(itemName, lineMaterial, lineThickness, lineTiling, null, true, pointMaterial, pointSize);
                     PlayerPrefs.SetFloat(itemName, 0);
                     GeneralStaticManager.GraphsReadings.Remove(itemName);
                 }
@@ -144,7 +147,7 @@ public class SineWave : MonoBehaviour
 
                 //graphChart.DataSource.AddPointToCategory(System.Enum.GetName(typeof(MeasurementType), item.Key), changeInangleX, MathF.Round((float)angularSpeedY, 2));
                 float value = PlayerPrefs.GetFloat(itemName);
-                graphChart.DataSource.AddPointToCategoryRealtime(itemName, value, item.Value.Value, 1);
+                graphChart.DataSource.AddPointToCategoryRealtime(itemName, value, item.Value.Value, pointSize);
 
                 if (GeneralStaticManager.GraphsReadings.ContainsKey(itemName))
                 {
@@ -195,11 +198,10 @@ public class SineWave : MonoBehaviour
                 else
                     myParentGraphManager.Title.text += $"\n<color=#{linecolor}>{itemName}</color>";
                 innerFill.color = UnityEngine.Random.ColorHSV();
-                Material pointMat = new Material(pointMaterial);
+                // Material pointMat = new Material(pointMaterial);
 
-                //pointMat.SetColor("_Combine", Colors[UnityEngine.Random.Range(0, Colors.Count)]);
-                pointMat.SetColor("_ColorFrom", Colors[UnityEngine.Random.Range(0, Colors.Count)]);
-                pointMat.SetColor("_ColorTo", Colors[UnityEngine.Random.Range(0, Colors.Count)]);
+                // pointMat.SetColor("_ColorFrom", Colors[UnityEngine.Random.Range(0, Colors.Count)]);
+                // pointMat.SetColor("_ColorTo", Colors[UnityEngine.Random.Range(0, Colors.Count)]);
                 Material innFillMat = new Material(innerFill);
                 var color1 = Colors[UnityEngine.Random.Range(0, Colors.Count)];
                 color1.a = 0.5f;
@@ -208,7 +210,7 @@ public class SineWave : MonoBehaviour
                 color2.a = 0.1f;
                 innFillMat.SetColor("_ColorTo", color2);
                 PlayerPrefs.SetInt(itemName, 0);
-                graphChart.DataSource.AddCategory(itemName, lineMaterial, lineThickness, lineTiling, null, true, pointMat, pointSize);
+                graphChart.DataSource.AddCategory(itemName, lineMaterial, lineThickness, lineTiling, null, true, pointMaterial, pointSize);
                 PlayerPrefs.SetFloat(itemName, 0);
                 GeneralStaticManager.GraphsReadings.Remove(itemName);
             }
@@ -218,7 +220,7 @@ public class SineWave : MonoBehaviour
 
             //graphChart.DataSource.AddPointToCategory(System.Enum.GetName(typeof(MeasurementType), item.Key), changeInangleX, MathF.Round((float)angularSpeedY, 2));
 
-            graphChart.DataSource.AddPointToCategory(itemName, time, item.Value.Value, 1);
+            graphChart.DataSource.AddPointToCategory(itemName, time, item.Value.Value, pointSize);
 
             if (GeneralStaticManager.GraphsReadings.ContainsKey(itemName))
             {

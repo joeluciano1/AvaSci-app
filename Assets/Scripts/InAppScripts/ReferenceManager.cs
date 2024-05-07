@@ -67,6 +67,8 @@ public class ReferenceManager : MonoBehaviour
     public Image UploadingImage;
     public Transform UploaderAnimation;
 
+    public Slider videoSlider;
+
     private void Awake()
     {
         instance = this;
@@ -183,8 +185,8 @@ public class ReferenceManager : MonoBehaviour
         {
             if (graphManagers.Count != 0)
             {
-                Debug.Log(graphManagers[0].MySineWave.graphChart.DataSource.GetMaxXValue());
-                Debug.Log(TimeSpan.ParseExact(TotalVideoTime.text, "mm':'ss", CultureInfo.InvariantCulture).Duration().TotalSeconds);
+                // Debug.Log(graphManagers[0].MySineWave.graphChart.DataSource.GetMaxXValue());
+                // Debug.Log(TimeSpan.ParseExact(TotalVideoTime.text, "mm':'ss", CultureInfo.InvariantCulture).Duration().TotalSeconds);
             }
             // else
             // {
@@ -211,9 +213,15 @@ public class ReferenceManager : MonoBehaviour
         // if (graphManagers.Any(x => !x.MySineWave.isReading))
         // {
 
-        Debug.Log(videoPlayerView.VideoPlayer.TimeElapsed.TotalSeconds);
+        // Debug.Log(videoPlayerView.VideoPlayer.TimeElapsed.TotalSeconds + "/" + videoPlayerView.VideoPlayer.Duration.TotalSeconds);
         graphManagers.ForEach(x =>
         {
+            if ((videoPlayerView.VideoPlayer.Duration.TotalSeconds - videoPlayerView.VideoPlayer.TimeElapsed.TotalSeconds) < 0.2f && !x.MySineWave.isVideoDoneLoading)
+            {
+                x.MySineWave.isVideoDoneLoading = true;
+                x.MySineWave.LoadingScreen.SetActive(false);
+            }
+
             x.MySineWave.isReading = false;
             x.MySineWave.graphChart.AutoScrollHorizontally = false;
             x.MySineWave.SetReadingValue((float)videoPlayerView.VideoPlayer.TimeElapsed.TotalSeconds);

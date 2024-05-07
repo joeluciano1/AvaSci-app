@@ -48,7 +48,7 @@ namespace LightBuzz.AvaSci.UI
 
             if (movement.Measurements.Count != _angles.Count)
             {
-                Clear();
+                // Clear();
             }
 
             foreach (Measurement measurement in movement.MeasurementValues)

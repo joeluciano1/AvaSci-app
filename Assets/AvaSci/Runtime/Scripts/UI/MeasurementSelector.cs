@@ -49,7 +49,7 @@ namespace LightBuzz.AvaSci.UI
         {
             string itemName = Enum.GetName(typeof(MeasurementType), type);
             string jointName = itemName.Replace("Left", ",").Replace("Right", ",");
-            Debug.Log("---------------------------" + jointName);
+            // Debug.Log("---------------------------" + jointName);
 
 
             if (isOn)
@@ -95,15 +95,15 @@ namespace LightBuzz.AvaSci.UI
 
                     if (pointMaterial != null)
                     {
-                        var colorPM = pointMaterial.GetColor("_ColorFrom");
-                        colorPM = new Color(colorPM.r, colorPM.g, colorPM.b, 1f);
+                        // var colorPM = pointMaterial.GetColor("_ColorFrom");
+                        // colorPM = new Color(colorPM.r, colorPM.g, colorPM.b, 0f);
 
-                        pointMaterial.SetColor("_ColorFrom", colorPM);
+                        // pointMaterial.SetColor("_ColorFrom", colorPM);
 
-                        var colorPMTo = pointMaterial.GetColor("_ColorTo");
-                        colorPMTo = new Color(colorPMTo.r, colorPMTo.g, colorPMTo.b, 1f);
-
-                        pointMaterial.SetColor("_ColorTo", colorPMTo);
+                        // var colorPMTo = pointMaterial.GetColor("_ColorTo");
+                        // colorPMTo = new Color(colorPMTo.r, colorPMTo.g, colorPMTo.b, 0f);
+                        // // pointsize = 0;
+                        // pointMaterial.SetColor("_ColorTo", colorPMTo);
                     }
                 }
                 else
@@ -113,7 +113,7 @@ namespace LightBuzz.AvaSci.UI
                     //await System.Threading.Tasks.Task.Delay(5000);
                     //alreadyPresentJointGraph.Title.text += ", "+Enum.GetName(typeof(MeasurementType), type);
 
-                    alreadyPresentJointGraph.MySineWave.graphChart.DataSource.GetCategoryFill(Enum.GetName(typeof(MeasurementType), type), out Material fillMat, out bool stretch);
+                    // alreadyPresentJointGraph.MySineWave.graphChart.DataSource.GetCategoryFill(Enum.GetName(typeof(MeasurementType), type), out Material fillMat, out bool stretch);
                     alreadyPresentJointGraph.MySineWave.graphChart.DataSource.GetCategoryLine(Enum.GetName(typeof(MeasurementType), type), out Material lineMaterial, out double LineThickness, out ChartAndGraph.MaterialTiling lineTiling);
                     alreadyPresentJointGraph.MySineWave.graphChart.DataSource.GetCategoryPoint(Enum.GetName(typeof(MeasurementType), type), out Material pointMaterial, out double pointsize);
 
@@ -142,15 +142,16 @@ namespace LightBuzz.AvaSci.UI
 
                     if (pointMaterial != null)
                     {
-                        var colorPM = pointMaterial.GetColor("_ColorFrom");
-                        colorPM = new Color(colorPM.r, colorPM.g, colorPM.b, 1f);
+                        // pointsize = 0;
+                        // var colorPM = pointMaterial.GetColor("_ColorFrom");
+                        // colorPM = new Color(colorPM.r, colorPM.g, colorPM.b, 0f);
 
-                        pointMaterial.SetColor("_ColorFrom", colorPM);
+                        // pointMaterial.SetColor("_ColorFrom", colorPM);
 
-                        var colorPMTo = pointMaterial.GetColor("_ColorTo");
-                        colorPMTo = new Color(colorPMTo.r, colorPMTo.g, colorPMTo.b, 1f);
+                        // var colorPMTo = pointMaterial.GetColor("_ColorTo");
+                        // colorPMTo = new Color(colorPMTo.r, colorPMTo.g, colorPMTo.b, 0);
 
-                        pointMaterial.SetColor("_ColorTo", colorPMTo);
+                        // pointMaterial.SetColor("_ColorTo", colorPMTo);
                     }
                 }
             }

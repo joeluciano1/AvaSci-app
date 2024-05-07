@@ -1,4 +1,7 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text.RegularExpressions;
 using LightBuzz.AvaSci.Measurements;
 using LightBuzz.BodyTracking;
 using UnityEngine;
@@ -28,6 +31,7 @@ namespace LightBuzz.AvaSci.UI
 
         [Header("Arc properties")]
         [SerializeField] private string _displayMessage;
+        Dictionary<string, string> Abbriviations = new Dictionary<string, string>();
 
         private RectTransform _rect;
 
@@ -97,8 +101,45 @@ namespace LightBuzz.AvaSci.UI
         }
         private void OnDestroy()
         {
+            Debug.Log("destroyed " + gameObject.name);
             if (ReferenceManager.instance.AnglesAdded.Contains(this))
                 ReferenceManager.instance.AnglesAdded.Remove(this);
+        }
+        private void Awake()
+        {
+
+            foreach (var item in Enum.GetNames(typeof(MeasurementType)))
+            {
+                string splitted = SplitAccordingToCapital(item);
+                string[] values = splitted.Split(" ");
+                string direction = "";
+                string jName = "";
+                string jType = "";
+
+                for (int i = 0; i < values.Length; i++)
+                {
+                    if (values[i] == "Left" || values[i] == "Right")
+                    {
+                        direction = values[i][0].ToString();
+                    }
+
+
+                }
+                jName = values[0].Substring(0, 3);
+                jType = values.Last().Substring(0, 3);
+                string abbs = $"{direction} {jName} {jType}";
+                Abbriviations.Add(item, abbs);
+            }
+
+        }
+        private static string SplitAccordingToCapital(string item)
+        {
+            var r = new Regex(@"
+                (?<=[A-Z])(?=[A-Z][a-z]) |
+                 (?<=[^A-Z])(?=[A-Z]) |
+                 (?<=[A-Za-z])(?=[^A-Za-z])", RegexOptions.IgnorePatternWhitespace);
+            string splitted = r.Replace(item, " ");
+            return splitted;
         }
         /// <summary>
         /// Refreshes the angle arc data.
@@ -185,13 +226,17 @@ namespace LightBuzz.AvaSci.UI
             scale = Math.Clamp(scale, 0.5f, 1f);
             transform.localScale = new Vector3(scale, scale, scale);
             _angle = measurement.Value;
+
+            string name = Abbriviations[Enum.GetName(typeof(MeasurementType), measurement.Type)];
+
             if (!measurement.Type.ToString().Contains("Distance"))
             {
-                _displayMessage = $"{measurement.Value:N0}°";
+                _displayMessage = $"{measurement.Value:N0}° \n<size=15>{name}</size>";
             }
             else
             {
-                _displayMessage = measurement.Value.ToString("0.00");
+                _displayMessage = measurement.Value.ToString("0.00") + $"\n<size=15>{name}</size>";
+                _foregroundImage.color = UnityEngine.Color.red;
             }
             if (measurement.Type == MeasurementType.KneeLeftAbduction)
             {
@@ -229,11 +274,9 @@ namespace LightBuzz.AvaSci.UI
                     _displayMessage += "\nVarus Condition";
                 }
             }
-            if (measurement.Type == MeasurementType.AnkleHipLeftDistance || measurement.Type == MeasurementType.AnkleHipRightDistance)
-            {
-                _foregroundImage.color = UnityEngine.Color.green;
-            }
+
             Refresh();
         }
+
     }
 }

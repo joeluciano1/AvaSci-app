@@ -214,19 +214,19 @@ public class ButtonHandler : MonoBehaviour
             }
 
             if (!string.IsNullOrWhiteSpace(graphData.MinGraph1Value))
-                graphics.DrawString(graphData.MinGraph1Value + "º", new PdfStandardFont(PdfFontFamily.Helvetica, 10, PdfFontStyle.Bold), PdfBrushes.Red, MinValueOnePosition.ToPointF(), format);
+                graphics.DrawString(graphData.MinGraph1Value + (graphData.Graph1Name.Contains("Distance") ? "m" : "º"), new PdfStandardFont(PdfFontFamily.Helvetica, 10, PdfFontStyle.Bold), PdfBrushes.Red, MinValueOnePosition.ToPointF(), format);
             if (!string.IsNullOrWhiteSpace(graphData.MinGraph2Value))
-                graphics.DrawString(graphData.MinGraph2Value + "º", new PdfStandardFont(PdfFontFamily.Helvetica, 10, PdfFontStyle.Bold), PdfBrushes.BlueViolet, MinValueTwoPosition.ToPointF(), format);
+                graphics.DrawString(graphData.MinGraph2Value + (graphData.Graph2Name.Contains("Distance") ? "m" : "º"), new PdfStandardFont(PdfFontFamily.Helvetica, 10, PdfFontStyle.Bold), PdfBrushes.BlueViolet, MinValueTwoPosition.ToPointF(), format);
 
             if (!string.IsNullOrWhiteSpace(graphData.MaxGraph1Value))
-                graphics.DrawString(graphData.MaxGraph1Value + "º", new PdfStandardFont(PdfFontFamily.Helvetica, 10, PdfFontStyle.Bold), PdfBrushes.Red, MaxValueOnePosition.ToPointF(), format);
+                graphics.DrawString(graphData.MaxGraph1Value + (graphData.Graph1Name.Contains("Distance") ? "m" : "º"), new PdfStandardFont(PdfFontFamily.Helvetica, 10, PdfFontStyle.Bold), PdfBrushes.Red, MaxValueOnePosition.ToPointF(), format);
             if (!string.IsNullOrWhiteSpace(graphData.MaxGraph2Value))
-                graphics.DrawString(graphData.MaxGraph2Value + "º", new PdfStandardFont(PdfFontFamily.Helvetica, 10, PdfFontStyle.Bold), PdfBrushes.BlueViolet, MaxValueTwoPosition.ToPointF(), format);
+                graphics.DrawString(graphData.MaxGraph2Value + (graphData.Graph2Name.Contains("Distance") ? "m" : "º"), new PdfStandardFont(PdfFontFamily.Helvetica, 10, PdfFontStyle.Bold), PdfBrushes.BlueViolet, MaxValueTwoPosition.ToPointF(), format);
 
             if (!string.IsNullOrWhiteSpace(graphData.RangeGraph1Value))
-                graphics.DrawString(graphData.RangeGraph1Value + "º", new PdfStandardFont(PdfFontFamily.Helvetica, 10, PdfFontStyle.Bold), PdfBrushes.Red, RangeValueOnePosition.ToPointF(), format);
+                graphics.DrawString(graphData.RangeGraph1Value + (graphData.Graph1Name.Contains("Distance") ? "m" : "º"), new PdfStandardFont(PdfFontFamily.Helvetica, 10, PdfFontStyle.Bold), PdfBrushes.Red, RangeValueOnePosition.ToPointF(), format);
             if (!string.IsNullOrWhiteSpace(graphData.RangeGraph2Value))
-                graphics.DrawString(graphData.RangeGraph2Value + "º", new PdfStandardFont(PdfFontFamily.Helvetica, 10, PdfFontStyle.Bold), PdfBrushes.BlueViolet, RangeValueTwoPosition.ToPointF(), format);
+                graphics.DrawString(graphData.RangeGraph2Value + (graphData.Graph2Name.Contains("Distance") ? "m" : "º"), new PdfStandardFont(PdfFontFamily.Helvetica, 10, PdfFontStyle.Bold), PdfBrushes.BlueViolet, RangeValueTwoPosition.ToPointF(), format);
 
             graphics.DrawImage(graphImageBitMap, GraphImagePosition.ToPointF());
         }

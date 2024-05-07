@@ -88,5 +88,7 @@ namespace LightBuzz.AvaSci.Measurements
         PelvisAngle,
         AnkleHipLeftDistance,
         AnkleHipRightDistance,
+        HipKneeLeftDistance,
+        HipKneeRightDistance
     }
 }
