@@ -11,7 +11,7 @@ using UnityEngine.UI;
 public class SineWave : MonoBehaviour
 {
 
-    public GraphChart graphChart;
+    public GraphChart graphChart, zoomableGraph;
     public bool drawGraph;
     public CustomChartPointer customChartPointer;
 
@@ -32,6 +32,7 @@ public class SineWave : MonoBehaviour
     GraphManager myLinearGraph;
     public bool isVideoDoneLoading;
     public GameObject LoadingScreen;
+    public GraphChart BiggeerChart;
 
     #region Duplicate graph if circular is added to add linear graph to it
     //public async void Start()
@@ -108,7 +109,7 @@ public class SineWave : MonoBehaviour
                 }
                 float previousAngle;
                 DateTime previousTime;
-                string itemName = System.Enum.GetName(typeof(MeasurementType), item.Key);
+                itemName = System.Enum.GetName(typeof(MeasurementType), item.Key);
                 previousTime = string.IsNullOrWhiteSpace(PlayerPrefs.GetString(itemName + " previousTime")) ? DateTime.Now : DateTime.Parse(PlayerPrefs.GetString(System.Enum.GetName(typeof(MeasurementType), item.Key) + " previousTime"));
                 TimeSpan timeSpan = DateTime.Now - previousTime;
 
@@ -168,6 +169,72 @@ public class SineWave : MonoBehaviour
         }
 
     }
+
+    string itemName;
+
+    public void CopyPastePoints()
+    {
+        float valueOnX = 0;
+        BiggeerChart.DataSource.Clear();
+
+        Material lineMaterial = new Material(this.lineMaterial);
+        lineMaterial.SetColor("_Color", Colors[UnityEngine.Random.Range(0, Colors.Count)]);
+        string linecolor = ColorUtility.ToHtmlStringRGBA(lineMaterial.color);
+
+        innerFill.color = UnityEngine.Random.ColorHSV();
+        // Material pointMat = new Material(pointMaterial);
+
+        // pointMat.SetColor("_ColorFrom", Colors[UnityEngine.Random.Range(0, Colors.Count)]);
+        // pointMat.SetColor("_ColorTo", Colors[UnityEngine.Random.Range(0, Colors.Count)]);
+        Material innFillMat = new Material(innerFill);
+        var color1 = Colors[UnityEngine.Random.Range(0, Colors.Count)];
+        color1.a = 0.5f;
+        innFillMat.SetColor("_ColorFrom", color1);
+        var color2 = Colors[UnityEngine.Random.Range(0, Colors.Count)];
+        color2.a = 0.1f;
+        innFillMat.SetColor("_ColorTo", color2);
+
+
+        string joint1 = System.Enum.GetName(typeof(MeasurementType), myParentGraphManager.JointType);
+        string joint2 = System.Enum.GetName(typeof(MeasurementType), myParentGraphManager.SecondJointType);
+
+        if (GeneralStaticManager.GraphsReadings.ContainsKey(joint1))
+        {
+            BiggeerChart.DataSource.AddCategory(joint1, lineMaterial, lineThickness, lineTiling, null, true, pointMaterial, pointSize);
+            foreach (var item in GeneralStaticManager.GraphsReadings[joint1])
+            {
+                BiggeerChart.DataSource.AddPointToCategoryRealtime(joint1, valueOnX, item, pointSize);
+                valueOnX += 0.1f;
+            }
+        }
+        valueOnX = 0;
+        Material lineMaterial2 = new Material(this.lineMaterial);
+        lineMaterial2.SetColor("_Color", Colors[UnityEngine.Random.Range(0, Colors.Count)]);
+        string linecolor2 = ColorUtility.ToHtmlStringRGBA(lineMaterial2.color);
+
+        innerFill.color = UnityEngine.Random.ColorHSV();
+        // Material pointMat = new Material(pointMaterial);
+
+        // pointMat.SetColor("_ColorFrom", Colors[UnityEngine.Random.Range(0, Colors.Count)]);
+        // pointMat.SetColor("_ColorTo", Colors[UnityEngine.Random.Range(0, Colors.Count)]);
+        Material innFillMat2 = new Material(innerFill);
+        var color12 = Colors[UnityEngine.Random.Range(0, Colors.Count)];
+        color12.a = 0.5f;
+        innFillMat2.SetColor("_ColorFrom", color12);
+        var color22 = Colors[UnityEngine.Random.Range(0, Colors.Count)];
+        color22.a = 0.1f;
+        innFillMat2.SetColor("_ColorTo", color22);
+        if (GeneralStaticManager.GraphsReadings.ContainsKey(joint2))
+        {
+            BiggeerChart.DataSource.AddCategory(joint2, lineMaterial2, lineThickness, lineTiling, null, true, pointMaterial, pointSize);
+            foreach (var item in GeneralStaticManager.GraphsReadings[joint2])
+            {
+                BiggeerChart.DataSource.AddPointToCategoryRealtime(joint2, valueOnX, item, pointSize);
+                valueOnX += 0.1f;
+            }
+        }
+    }
+
     public void SetReadingValue(float time)
     {
         var main = ReferenceManager.instance.LightBuzzMain;
@@ -182,7 +249,7 @@ public class SineWave : MonoBehaviour
             }
             float previousAngle;
             DateTime previousTime;
-            string itemName = System.Enum.GetName(typeof(MeasurementType), item.Key);
+            itemName = System.Enum.GetName(typeof(MeasurementType), item.Key);
             previousTime = string.IsNullOrWhiteSpace(PlayerPrefs.GetString(itemName + " previousTime")) ? DateTime.Now : DateTime.Parse(PlayerPrefs.GetString(System.Enum.GetName(typeof(MeasurementType), item.Key) + " previousTime"));
             TimeSpan timeSpan = DateTime.Now - previousTime;
 

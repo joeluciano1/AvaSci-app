@@ -89,6 +89,8 @@ namespace LightBuzz.AvaSci.Measurements
         AnkleHipLeftDistance,
         AnkleHipRightDistance,
         HipKneeLeftDistance,
-        HipKneeRightDistance
+        HipKneeRightDistance,
+        AnkleLeftAbduction,
+        AnkleRightAbduction
     }
 }

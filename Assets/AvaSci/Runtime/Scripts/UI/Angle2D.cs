@@ -201,7 +201,7 @@ namespace LightBuzz.AvaSci.UI
 
             _text.text = _displayMessage;
 
-            _rect.anchoredPosition = new Vector2(_center.x, _center.y);
+            //_rect.anchoredPosition = new Vector2(_center.x, _center.y);
         }
 
         /// <summary>

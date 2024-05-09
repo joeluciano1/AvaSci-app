@@ -24,19 +24,22 @@ public class AnkleHipLeftDistance : Measurement
 
         float angleHipABD = Calculations.Rotation(hip3D, knee3D, Plane.Sagittal);
 
-        Joint shoulder = body.Joints[JointType.KneeLeft];
-        Joint elbow = body.Joints[JointType.AnkleLeft];
-        Joint hipp = body.Joints[JointType.FootLeft];
-
-        Vector3D shoulder3D = shoulder.Position2D;
-        Vector3D elbow3D = elbow.Position2D;
-        Vector3D hipp3D = hip.Position2D;
-
-        float angleKneeABD = Calculations.Angle(hip3D, shoulder3D, elbow3D);
-
         if (knee3D.Y < hip3D.Y)
         {
             angleHipABD = 180.0f - angleHipABD;
+        }
+
+        Joint ankle = body.Joints[JointType.AnkleLeft];
+        Joint foot = body.Joints[JointType.FootLeft];
+
+        Vector3D ankle3D = ankle.Position3D;
+        Vector3D foot3D = foot.Position3D;
+
+        float angleAnkleABD = Calculations.Rotation(ankle3D, foot3D, Plane.Sagittal);
+
+        if (foot3D.Y < ankle3D.Y)
+        {
+            angleAnkleABD = 180.0f - angleAnkleABD;
         }
 
         Joint hipLeft = body.Joints[KeyJoint1];
@@ -47,7 +50,7 @@ public class AnkleHipLeftDistance : Measurement
         Vector3D ankleLeft3D = ankleLeft.Position3D;
         // Vector3D hip3D = hip.Position2D;
 
-        float difference = Math.Abs(angleHipABD - angleKneeABD);
+        float difference = Math.Abs(angleHipABD - angleAnkleABD);
 
         _value = difference;
         _angleStart = hipLeft.Position2D;

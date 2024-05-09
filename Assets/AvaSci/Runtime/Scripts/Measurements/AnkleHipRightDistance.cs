@@ -26,34 +26,37 @@ public class AnkleHipRightDistance : AnkleHipLeftDistance
 
         float angleHipABD = Calculations.Rotation(hip3D, knee3D, Plane.Sagittal);
 
-        Joint shoulder = body.Joints[JointType.KneeRight];
-        Joint elbow = body.Joints[JointType.AnkleRight];
-        Joint hipp = body.Joints[JointType.FootRight];
-
-        Vector3D shoulder3D = shoulder.Position2D;
-        Vector3D elbow3D = elbow.Position2D;
-        Vector3D hipp3D = hip.Position2D;
-
-        float angleKneeABD = Calculations.Angle(hip3D, shoulder3D, elbow3D);
-
         if (knee3D.Y < hip3D.Y)
         {
             angleHipABD = 180.0f - angleHipABD;
         }
-        // base.Update(body);
-        Joint hipLeft = body.Joints[KeyJoint1];
-        Joint ankleLeft = body.Joints[KeyJoint2];
-        Joint AnkleLeft = body.Joints[KeyJoint3];
 
-        Vector3D hipLeft3D = hipLeft.Position3D;
-        Vector3D ankleLeft3D = ankleLeft.Position3D;
+        Joint ankle = body.Joints[JointType.AnkleRight];
+        Joint foot = body.Joints[JointType.FootRight];
+
+        Vector3D ankle3D = ankle.Position3D;
+        Vector3D foot3D = foot.Position3D;
+
+        float angleAnkleABD = Calculations.Rotation(ankle3D, foot3D, Plane.Sagittal);
+
+        if (foot3D.Y < ankle3D.Y)
+        {
+            angleAnkleABD = 180.0f - angleAnkleABD;
+        }
+
+        Joint hipRight = body.Joints[KeyJoint1];
+        Joint ankleRight = body.Joints[KeyJoint2];
+        Joint AnkleRight = body.Joints[KeyJoint3];
+
+        Vector3D hipRight3D = hipRight.Position3D;
+        Vector3D ankleRight3D = ankleRight.Position3D;
         // Vector3D hip3D = hip.Position2D;
 
-        float difference = Math.Abs(angleHipABD - angleKneeABD);
+        float difference = Math.Abs(angleHipABD - angleAnkleABD);
 
         _value = difference;
-        _angleStart = hipLeft.Position2D;
-        _angleCenter = (ankleLeft.Position2D + hipLeft.Position2D) / 2;
-        _angleEnd = ankleLeft.Position2D;
+        _angleStart = hipRight.Position2D;
+        _angleCenter = (ankleRight.Position2D + hipRight.Position2D) / 2;
+        _angleEnd = ankleRight.Position2D;
     }
 }
