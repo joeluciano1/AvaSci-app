@@ -1,7 +1,7 @@
-using LightBuzz.AvaSci.Measurements;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using LightBuzz.AvaSci.Measurements;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
@@ -13,19 +13,28 @@ namespace LightBuzz.AvaSci.UI
     /// </summary>
     public class MeasurementSelector : MonoBehaviour
     {
-        [SerializeField] private GameObject _list;
-        [SerializeField] public Toggle[] _toggles;
-        [SerializeField] private TMPro.TMP_Text _label;
-        [SerializeField] private Image _arrow;
+        [SerializeField]
+        private GameObject _list;
 
-        private readonly HashSet<MeasurementType> _selectedMeasurements = new HashSet<MeasurementType>();
+        [SerializeField]
+        public Toggle[] _toggles;
+
+        [SerializeField]
+        private TMPro.TMP_Text _label;
+
+        [SerializeField]
+        private Image _arrow;
+
+        private readonly HashSet<MeasurementType> _selectedMeasurements =
+            new HashSet<MeasurementType>();
 
         private bool _listExpanded = false;
 
         /// <summary>
         /// Raised when the selection of measurements changes.
         /// </summary>
-        public UnityEvent<MeasurementType[]> onMeasurementsChanged = new UnityEvent<MeasurementType[]>();
+        public UnityEvent<MeasurementType[]> onMeasurementsChanged =
+            new UnityEvent<MeasurementType[]>();
 
         private void Awake()
         {
@@ -54,21 +63,71 @@ namespace LightBuzz.AvaSci.UI
 
             if (isOn)
             {
-
-                GraphManager alreadyPresentJointGraph = ReferenceManager.instance.graphManagers.FirstOrDefault(x => Enum.GetName(typeof(MeasurementType), x.JointType).Contains(jointName.Split(',')[0]) && Enum.GetName(typeof(MeasurementType), x.JointType).Contains(jointName.Split(',')[1]));
+                GraphManager alreadyPresentJointGraph;
+                if (!itemName.Contains("Difference"))
+                {
+                    alreadyPresentJointGraph =
+                        ReferenceManager.instance.graphManagers.FirstOrDefault(x =>
+                            Enum.GetName(typeof(MeasurementType), x.JointType)
+                                .Contains(jointName.Split(',')[0])
+                            && Enum.GetName(typeof(MeasurementType), x.JointType)
+                                .Contains(jointName.Split(',')[1])
+                        );
+                }
+                else
+                {
+                    if (itemName == MeasurementType.AnkleHipLeftDifference.ToString())
+                        alreadyPresentJointGraph =
+                            ReferenceManager.instance.graphManagers.FirstOrDefault(x =>
+                                x.JointType == MeasurementType.HipKneeLeftDifference
+                            );
+                    else if (itemName == MeasurementType.HipKneeLeftDifference.ToString())
+                        alreadyPresentJointGraph =
+                            ReferenceManager.instance.graphManagers.FirstOrDefault(x =>
+                                x.JointType == MeasurementType.AnkleHipLeftDifference
+                            );
+                    else if (itemName == MeasurementType.AnkleHipRightDifference.ToString())
+                        alreadyPresentJointGraph =
+                            ReferenceManager.instance.graphManagers.FirstOrDefault(x =>
+                                x.JointType == MeasurementType.HipKneeRightDifference
+                            );
+                    else if (itemName == MeasurementType.HipKneeRightDifference.ToString())
+                        alreadyPresentJointGraph =
+                            ReferenceManager.instance.graphManagers.FirstOrDefault(x =>
+                                x.JointType == MeasurementType.AnkleHipRightDifference
+                            );
+                    else
+                        alreadyPresentJointGraph = null;
+                }
 
                 if (alreadyPresentJointGraph == null)
                 {
-                    GraphManager graphManager = Instantiate(ReferenceManager.instance.GraphmanagerPrefab, ReferenceManager.instance.GraphmanagerPrefab.transform.parent);
+                    GraphManager graphManager = Instantiate(
+                        ReferenceManager.instance.GraphmanagerPrefab,
+                        ReferenceManager.instance.GraphmanagerPrefab.transform.parent
+                    );
                     graphManager.gameObject.SetActive(true);
                     graphManager.JointType = type;
                     //await System.Threading.Tasks.Task.Delay(5000);
 
                     // graphManager.Title.text = Enum.GetName(typeof(MeasurementType), type);
                     ReferenceManager.instance.graphManagers.Add(graphManager);
-                    graphManager.MySineWave.graphChart.DataSource.GetCategoryFill(Enum.GetName(typeof(MeasurementType), type), out Material fillMat, out bool stretch);
-                    graphManager.MySineWave.graphChart.DataSource.GetCategoryLine(Enum.GetName(typeof(MeasurementType), type), out Material lineMaterial, out double LineThickness, out ChartAndGraph.MaterialTiling lineTiling);
-                    graphManager.MySineWave.graphChart.DataSource.GetCategoryPoint(Enum.GetName(typeof(MeasurementType), type), out Material pointMaterial, out double pointsize);
+                    graphManager.MySineWave.graphChart.DataSource.GetCategoryFill(
+                        Enum.GetName(typeof(MeasurementType), type),
+                        out Material fillMat,
+                        out bool stretch
+                    );
+                    graphManager.MySineWave.graphChart.DataSource.GetCategoryLine(
+                        Enum.GetName(typeof(MeasurementType), type),
+                        out Material lineMaterial,
+                        out double LineThickness,
+                        out ChartAndGraph.MaterialTiling lineTiling
+                    );
+                    graphManager.MySineWave.graphChart.DataSource.GetCategoryPoint(
+                        Enum.GetName(typeof(MeasurementType), type),
+                        out Material pointMaterial,
+                        out double pointsize
+                    );
 
                     _selectedMeasurements.Add(type);
 
@@ -108,14 +167,22 @@ namespace LightBuzz.AvaSci.UI
                 }
                 else
                 {
-
                     alreadyPresentJointGraph.SecondJointType = type;
                     //await System.Threading.Tasks.Task.Delay(5000);
                     //alreadyPresentJointGraph.Title.text += ", "+Enum.GetName(typeof(MeasurementType), type);
 
                     // alreadyPresentJointGraph.MySineWave.graphChart.DataSource.GetCategoryFill(Enum.GetName(typeof(MeasurementType), type), out Material fillMat, out bool stretch);
-                    alreadyPresentJointGraph.MySineWave.graphChart.DataSource.GetCategoryLine(Enum.GetName(typeof(MeasurementType), type), out Material lineMaterial, out double LineThickness, out ChartAndGraph.MaterialTiling lineTiling);
-                    alreadyPresentJointGraph.MySineWave.graphChart.DataSource.GetCategoryPoint(Enum.GetName(typeof(MeasurementType), type), out Material pointMaterial, out double pointsize);
+                    alreadyPresentJointGraph.MySineWave.graphChart.DataSource.GetCategoryLine(
+                        Enum.GetName(typeof(MeasurementType), type),
+                        out Material lineMaterial,
+                        out double LineThickness,
+                        out ChartAndGraph.MaterialTiling lineTiling
+                    );
+                    alreadyPresentJointGraph.MySineWave.graphChart.DataSource.GetCategoryPoint(
+                        Enum.GetName(typeof(MeasurementType), type),
+                        out Material pointMaterial,
+                        out double pointsize
+                    );
 
                     _selectedMeasurements.Add(type);
 
@@ -158,10 +225,20 @@ namespace LightBuzz.AvaSci.UI
             else
             {
                 GeneralStaticManager.GraphsReadings.Remove(itemName);
-                GraphManager alreadyPresentJointGraph = ReferenceManager.instance.graphManagers.FirstOrDefault(x => (x.JointType == type || x.SecondJointType == type) && (x.JointType != MeasurementType.None || x.SecondJointType != MeasurementType.None));
+                GraphManager alreadyPresentJointGraph =
+                    ReferenceManager.instance.graphManagers.FirstOrDefault(x =>
+                        (x.JointType == type || x.SecondJointType == type)
+                        && (
+                            x.JointType != MeasurementType.None
+                            || x.SecondJointType != MeasurementType.None
+                        )
+                    );
                 if (alreadyPresentJointGraph == null)
                 {
-                    GraphManager graphManager = ReferenceManager.instance.graphManagers.FirstOrDefault(x => x.JointType == type || x.SecondJointType == type);
+                    GraphManager graphManager =
+                        ReferenceManager.instance.graphManagers.FirstOrDefault(x =>
+                            x.JointType == type || x.SecondJointType == type
+                        );
                     if (graphManager == null)
                     {
                         return;
@@ -204,11 +281,17 @@ namespace LightBuzz.AvaSci.UI
                 }
                 else
                 {
-
                     string color = "";
                     if (alreadyPresentJointGraph.SecondJointType == type)
                     {
-                        alreadyPresentJointGraph.MySineWave.graphChart.DataSource.GetCategoryLine(GeneralStaticManager.GetMeasurementTypeName(alreadyPresentJointGraph.JointType), out Material lineMat, out double value, out ChartAndGraph.MaterialTiling tiling);
+                        alreadyPresentJointGraph.MySineWave.graphChart.DataSource.GetCategoryLine(
+                            GeneralStaticManager.GetMeasurementTypeName(
+                                alreadyPresentJointGraph.JointType
+                            ),
+                            out Material lineMat,
+                            out double value,
+                            out ChartAndGraph.MaterialTiling tiling
+                        );
                         alreadyPresentJointGraph.SecondJointType = MeasurementType.None;
                         if (alreadyPresentJointGraph.JointType != MeasurementType.None)
                         {
@@ -217,7 +300,14 @@ namespace LightBuzz.AvaSci.UI
                     }
                     else if (alreadyPresentJointGraph.JointType == type)
                     {
-                        alreadyPresentJointGraph.MySineWave.graphChart.DataSource.GetCategoryLine(GeneralStaticManager.GetMeasurementTypeName(alreadyPresentJointGraph.SecondJointType), out Material lineMat, out double value, out ChartAndGraph.MaterialTiling tiling);
+                        alreadyPresentJointGraph.MySineWave.graphChart.DataSource.GetCategoryLine(
+                            GeneralStaticManager.GetMeasurementTypeName(
+                                alreadyPresentJointGraph.SecondJointType
+                            ),
+                            out Material lineMat,
+                            out double value,
+                            out ChartAndGraph.MaterialTiling tiling
+                        );
                         alreadyPresentJointGraph.JointType = MeasurementType.None;
                         if (alreadyPresentJointGraph.SecondJointType != MeasurementType.None)
                         {
@@ -227,20 +317,26 @@ namespace LightBuzz.AvaSci.UI
 
                     if (color != "")
                     {
-                        alreadyPresentJointGraph.Title.text = $"<color=#{color}>{Enum.GetName(typeof(MeasurementType), alreadyPresentJointGraph.JointType == MeasurementType.None ? alreadyPresentJointGraph.SecondJointType : alreadyPresentJointGraph.JointType)}</color>";
+                        alreadyPresentJointGraph.Title.text =
+                            $"<color=#{color}>{Enum.GetName(typeof(MeasurementType), alreadyPresentJointGraph.JointType == MeasurementType.None ? alreadyPresentJointGraph.SecondJointType : alreadyPresentJointGraph.JointType)}</color>";
                     }
-                    alreadyPresentJointGraph.MySineWave.graphChart.DataSource.ClearCategory(itemName);
-                    alreadyPresentJointGraph.MySineWave.graphChart.DataSource.RemoveCategory(itemName);
-                    if (alreadyPresentJointGraph.JointType == MeasurementType.None && alreadyPresentJointGraph.SecondJointType == MeasurementType.None)
+                    alreadyPresentJointGraph.MySineWave.graphChart.DataSource.ClearCategory(
+                        itemName
+                    );
+                    alreadyPresentJointGraph.MySineWave.graphChart.DataSource.RemoveCategory(
+                        itemName
+                    );
+                    if (
+                        alreadyPresentJointGraph.JointType == MeasurementType.None
+                        && alreadyPresentJointGraph.SecondJointType == MeasurementType.None
+                    )
                     {
                         ReferenceManager.instance.graphManagers.Remove(alreadyPresentJointGraph);
                         Destroy(alreadyPresentJointGraph.gameObject);
                     }
-
                 }
                 _selectedMeasurements.Remove(type);
             }
-
 
             RaiseEvent();
         }

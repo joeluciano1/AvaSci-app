@@ -9,274 +9,300 @@ using UnityEngine.UI;
 
 namespace LightBuzz.AvaSci.UI
 {
-    /// <summary>
-    /// Represents a 2D angle arc visual component.
-    /// </summary>
-    public class Angle2D : MonoBehaviour
-    {
-        [Header("UI")]
-        [SerializeField] private ImageView _imageView;
-        [SerializeField] private Image _backgroundImage;
-        [SerializeField] private Image _foregroundImage;
-        [SerializeField] private Text _text;
+	/// <summary>
+	/// Represents a 2D angle arc visual component.
+	/// </summary>
+	public class Angle2D : MonoBehaviour
+	{
+		[Header("UI")]
+		[SerializeField]
+		private ImageView _imageView;
 
-        [Header("Arc components")]
-        [SerializeField]
-        [Range(0f, 360f)]
-        private float _angle;
+		[SerializeField]
+		private Image _backgroundImage;
 
-        [SerializeField] private Vector2 _start;
-        [SerializeField] private Vector2 _center;
-        [SerializeField] private Vector2 _end;
+		[SerializeField]
+		private Image _foregroundImage;
 
-        [Header("Arc properties")]
-        [SerializeField] private string _displayMessage;
-        Dictionary<string, string> Abbriviations = new Dictionary<string, string>();
+		[SerializeField]
+		private Text _text;
 
-        private RectTransform _rect;
+		[Header("Arc components")]
+		[SerializeField]
+		[Range(0f, 360f)]
+		private float _angle;
 
-        /// <summary>
-        /// The scaled image view.
-        /// This member is used for scaling the angle arc according to the image view's scale.
-        /// </summary>
-        public ImageView ImageView
-        {
-            get => _imageView;
-            set => _imageView = value;
-        }
+		[SerializeField]
+		private Vector2 _start;
 
-        /// <summary>
-        /// The angle value.
-        /// </summary>
-        public float Angle
-        {
-            get => _angle;
-            set => _angle = value;
-        }
+		[SerializeField]
+		private Vector2 _center;
 
-        /// <summary>
-        /// The starting point of the arc.
-        /// </summary>
-        public Vector3 Start
-        {
-            get => _start;
-            set => _start = value;
-        }
+		[SerializeField]
+		private Vector2 _end;
 
-        /// <summary>
-        /// The middle (center) point of the arc.
-        /// </summary>
-        public Vector3 Center
-        {
-            get => _center;
-            set => _center = value;
-        }
+		[Header("Arc properties")]
+		[SerializeField]
+		private string _displayMessage;
+		Dictionary<string, string> Abbriviations = new Dictionary<string, string>();
 
-        /// <summary>
-        /// The end point of the arc.
-        /// </summary>
-        public Vector3 End
-        {
-            get => _end;
-            set => _end = value;
-        }
+		private RectTransform _rect;
 
-        /// <summary>
-        /// The text to display.
-        /// </summary>
-        public string DisplayMessage
-        {
-            get => _displayMessage;
-            set => _displayMessage = value;
-        }
+		/// <summary>
+		/// The scaled image view.
+		/// This member is used for scaling the angle arc according to the image view's scale.
+		/// </summary>
+		public ImageView ImageView
+		{
+			get => _imageView;
+			set => _imageView = value;
+		}
 
-        private void OnValidate()
-        {
-            //Load();
-        }
-        private void AddToReferenceManager()
-        {
-            if (!ReferenceManager.instance.AnglesAdded.Contains(this))
-                ReferenceManager.instance.AnglesAdded.Add(this);
-        }
-        private void OnDestroy()
-        {
-            Debug.Log("destroyed " + gameObject.name);
-            if (ReferenceManager.instance.AnglesAdded.Contains(this))
-                ReferenceManager.instance.AnglesAdded.Remove(this);
-        }
-        private void Awake()
-        {
+		/// <summary>
+		/// The angle value.
+		/// </summary>
+		public float Angle
+		{
+			get => _angle;
+			set => _angle = value;
+		}
 
-            foreach (var item in Enum.GetNames(typeof(MeasurementType)))
-            {
-                string splitted = SplitAccordingToCapital(item);
-                string[] values = splitted.Split(" ");
-                string direction = "";
-                string jName = "";
-                string jType = "";
+		/// <summary>
+		/// The starting point of the arc.
+		/// </summary>
+		public Vector3 Start
+		{
+			get => _start;
+			set => _start = value;
+		}
 
-                for (int i = 0; i < values.Length; i++)
-                {
-                    if (values[i] == "Left" || values[i] == "Right")
-                    {
-                        direction = values[i][0].ToString();
-                    }
+		/// <summary>
+		/// The middle (center) point of the arc.
+		/// </summary>
+		public Vector3 Center
+		{
+			get => _center;
+			set => _center = value;
+		}
 
+		/// <summary>
+		/// The end point of the arc.
+		/// </summary>
+		public Vector3 End
+		{
+			get => _end;
+			set => _end = value;
+		}
 
-                }
-                jName = values[0].Substring(0, 3);
-                jType = values.Last().Substring(0, 3);
-                string abbs = $"{direction} {jName} {jType}";
-                Abbriviations.Add(item, abbs);
-            }
+		/// <summary>
+		/// The text to display.
+		/// </summary>
+		public string DisplayMessage
+		{
+			get => _displayMessage;
+			set => _displayMessage = value;
+		}
 
-        }
-        private static string SplitAccordingToCapital(string item)
-        {
-            var r = new Regex(@"
-                (?<=[A-Z])(?=[A-Z][a-z]) |
-                 (?<=[^A-Z])(?=[A-Z]) |
-                 (?<=[A-Za-z])(?=[^A-Za-z])", RegexOptions.IgnorePatternWhitespace);
-            string splitted = r.Replace(item, " ");
-            return splitted;
-        }
-        /// <summary>
-        /// Refreshes the angle arc data.
-        /// </summary>
-        public void Refresh()
-        {
-            if (_rect == null) _rect = gameObject.transform as RectTransform;
+		private void OnValidate()
+		{
+			//Load();
+		}
 
-            float uiAngle = Vector2.Angle(_center - _start, _center - _end);
+		private void AddToReferenceManager()
+		{
+			if (!ReferenceManager.instance.AnglesAdded.Contains(this))
+				ReferenceManager.instance.AnglesAdded.Add(this);
+		}
 
-            Vector2 direction = _center - _start;
-            float directionAngle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
+		private void OnDestroy()
+		{
+			Debug.Log("destroyed " + gameObject.name);
+			if (ReferenceManager.instance.AnglesAdded.Contains(this))
+				ReferenceManager.instance.AnglesAdded.Remove(this);
+		}
 
-            float startingRot = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
+		private void Awake()
+		{
+			foreach (var item in Enum.GetNames(typeof(MeasurementType)))
+			{
+				string splitted = SplitAccordingToCapital(item);
+				string[] values = splitted.Split(" ");
+				string direction = "";
+				string jName = "";
+				string jType = "";
 
-            var stickmanStartCenter = _start - _center;
-            var stickmanEndCenter = _end - _center;
-            float stickmanAngle = Vector3.Angle(stickmanStartCenter, stickmanEndCenter);
-            float sign = Mathf.Sign(stickmanStartCenter.x * stickmanEndCenter.y - stickmanStartCenter.y * stickmanEndCenter.x);
+				for (int i = 0; i < values.Length; i++)
+				{
+					if (values[i] == "Left" || values[i] == "Right")
+					{
+						direction = values[i][0].ToString();
+					}
+				}
+				jName = values[0].Substring(0, 3);
+				if (item.Contains("Difference"))
+				{
+					jName = values[0] + "/" + values[1] + " Abd";
+				}
+				jType = values.Last().Substring(0, 3);
+				string abbs = $"{direction} {jName} {jType}";
+				Abbriviations.Add(item, abbs);
+			}
+		}
 
-            //if (CanBeReflexAngle)
-            //{
-            //    if (_isInternalAngle)
-            //    {
-            //        startingRot -= 90f;
-            //        if (sign > 0)
-            //            stickmanAngle = (180f - stickmanAngle) + 180f;
-            //    }
-            //    else if (!_isInternalAngle)
-            //    {
-            //        if (sign < 0)
-            //            stickmanAngle = (180f - stickmanAngle) + 180f;
+		private static string SplitAccordingToCapital(string item)
+		{
+			var r = new Regex(
+				@"
+				(?<=[A-Z])(?=[A-Z][a-z]) |
+				 (?<=[^A-Z])(?=[A-Z]) |
+				 (?<=[A-Za-z])(?=[^A-Za-z])",
+				RegexOptions.IgnorePatternWhitespace
+			);
+			string splitted = r.Replace(item, " ");
+			return splitted;
+		}
 
-            //        startingRot += stickmanAngle - 90f;
-            //    }
-            //}
-            //else
-            //{
-            //    if (sign < 0f)
-            //        startingRot -= 90f;
-            //    else
-            //        startingRot += stickmanAngle - 90f;
-            //}
+		/// <summary>
+		/// Refreshes the angle arc data.
+		/// </summary>
+		public void Refresh()
+		{
+			if (_rect == null)
+				_rect = gameObject.transform as RectTransform;
 
-            if (sign < 0f)
-                startingRot -= 90f;
-            else
-                startingRot += stickmanAngle - 90f;
+			float uiAngle = Vector2.Angle(_center - _start, _center - _end);
 
-            if (!_foregroundImage.fillClockwise)
-            {
-                startingRot -= stickmanAngle;
-            }
+			Vector2 direction = _center - _start;
+			float directionAngle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
 
-            var newRotation = UnityEngine.Quaternion.Euler(0f, 0f, startingRot);
+			float startingRot = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
 
-            _foregroundImage.transform.localRotation = newRotation;
-            _foregroundImage.fillAmount = uiAngle / 360.0f;
+			var stickmanStartCenter = _start - _center;
+			var stickmanEndCenter = _end - _center;
+			float stickmanAngle = Vector3.Angle(stickmanStartCenter, stickmanEndCenter);
+			float sign = Mathf.Sign(
+				stickmanStartCenter.x * stickmanEndCenter.y
+					- stickmanStartCenter.y * stickmanEndCenter.x
+			);
 
-            _text.text = _displayMessage;
+			//if (CanBeReflexAngle)
+			//{
+			//    if (_isInternalAngle)
+			//    {
+			//        startingRot -= 90f;
+			//        if (sign > 0)
+			//            stickmanAngle = (180f - stickmanAngle) + 180f;
+			//    }
+			//    else if (!_isInternalAngle)
+			//    {
+			//        if (sign < 0)
+			//            stickmanAngle = (180f - stickmanAngle) + 180f;
 
-            //_rect.anchoredPosition = new Vector2(_center.x, _center.y);
-        }
+			//        startingRot += stickmanAngle - 90f;
+			//    }
+			//}
+			//else
+			//{
+			//    if (sign < 0f)
+			//        startingRot -= 90f;
+			//    else
+			//        startingRot += stickmanAngle - 90f;
+			//}
 
-        /// <summary>
-        /// Updates the angle arc visual components according to the specified measurement data.
-        /// </summary>
-        /// <param name="measurement">The measurement to display.</param>
-        /// 
-        public float initialDifference;
-        public float MinScale = 0.3f;
-        public float MaxScale = 1f;
-        public void Load(Measurement measurement, Body body = null)
-        {
-            if (measurement == null) return;
+			if (sign < 0f)
+				startingRot -= 90f;
+			else
+				startingRot += stickmanAngle - 90f;
 
-            gameObject.name = measurement.Type.ToString();
+			if (!_foregroundImage.fillClockwise)
+			{
+				startingRot -= stickmanAngle;
+			}
 
-            _start = _imageView.GetPosition(measurement.AngleStart);
-            _center = _imageView.GetPosition(measurement.AngleCenter);
-            _end = _imageView.GetPosition(measurement.AngleEnd);
-            initialDifference = GetComponent<RectTransform>().sizeDelta.x;
-            float scale = MinScale + (MaxScale - MinScale) * (1 - (body.Joints[JointType.Neck].Position3D.Z - 1) / (3 - 1));
-            scale = Math.Clamp(scale, 0.5f, 1f);
-            transform.localScale = new Vector3(scale, scale, scale);
-            _angle = measurement.Value;
+			var newRotation = UnityEngine.Quaternion.Euler(0f, 0f, startingRot);
 
-            string name = Abbriviations[Enum.GetName(typeof(MeasurementType), measurement.Type)];
+			_foregroundImage.transform.localRotation = newRotation;
+			_foregroundImage.fillAmount = uiAngle / 360.0f;
 
-            if (!measurement.Type.ToString().Contains("Distance"))
-            {
-                _displayMessage = $"{measurement.Value:N0}° \n<size=15>{name}</size>";
-            }
-            else
-            {
-                _displayMessage = measurement.Value.ToString("0.00") + $"\n<size=15>{name}</size>";
-                _foregroundImage.color = UnityEngine.Color.red;
-            }
-            if (measurement.Type == MeasurementType.KneeLeftAbduction)
-            {
-                if (_angle >= 10)
-                {
-                    Vector3D positionOfKnee = body.Joints[JointType.KneeLeft].Position3D;
-                    Vector3D positionOfHip = body.Joints[JointType.HipLeft].Position3D;
+			_text.text = _displayMessage;
 
-                    if (positionOfKnee.X > positionOfHip.X)
-                    {
-                        //valgus condition
-                        _displayMessage += "\nValgus Condition";
-                    }
-                    if (positionOfKnee.X < positionOfHip.X)
-                    {
-                        //varus condition
-                        _displayMessage += "\nVarus Condition";
-                    }
-                }
+			_rect.anchoredPosition = new Vector2(_center.x, _center.y);
+		}
 
-            }
-            if (measurement.Type == MeasurementType.KneeRightAbduction)
-            {
-                Vector3D positionOfKnee = body.Joints[JointType.KneeRight].Position3D;
-                Vector3D positionOfHip = body.Joints[JointType.KneeRight].Position3D;
+		/// <summary>
+		/// Updates the angle arc visual components according to the specified measurement data.
+		/// </summary>
+		/// <param name="measurement">The measurement to display.</param>
+		///
+		public float initialDifference;
+		public float MinScale = 0.3f;
+		public float MaxScale = 1f;
 
-                if (positionOfKnee.X > positionOfHip.X)
-                {
-                    //valgus condition
-                    _displayMessage += "\nValgus Condition";
-                }
-                if (positionOfKnee.X < positionOfHip.X)
-                {
-                    //varus condition
-                    _displayMessage += "\nVarus Condition";
-                }
-            }
+		public void Load(Measurement measurement, Body body = null)
+		{
+			if (measurement == null)
+				return;
 
-            Refresh();
-        }
+			gameObject.name = measurement.Type.ToString();
 
-    }
+			_start = _imageView.GetPosition(measurement.AngleStart);
+			_center = _imageView.GetPosition(measurement.AngleCenter);
+			_end = _imageView.GetPosition(measurement.AngleEnd);
+			initialDifference = GetComponent<RectTransform>().sizeDelta.x;
+			float scale =
+				MinScale
+				+ (MaxScale - MinScale)
+					* (1 - (body.Joints[JointType.Neck].Position3D.Z - 1) / (3 - 1));
+			scale = Math.Clamp(scale, 0.5f, 1f);
+			transform.localScale = new Vector3(scale, scale, scale);
+			_angle = measurement.Value;
+
+			string name = Abbriviations[Enum.GetName(typeof(MeasurementType), measurement.Type)];
+
+			_displayMessage = $"{measurement.Value:N0}° \n<size=15>{name}</size>";
+			if (measurement.Type.ToString().Contains("Difference"))
+			{
+				_foregroundImage.color = UnityEngine.Color.red;
+			}
+
+			if (measurement.Type == MeasurementType.KneeLeftAbduction)
+			{
+				if (_angle >= 10)
+				{
+					Vector3D positionOfKnee = body.Joints[JointType.KneeLeft].Position3D;
+					Vector3D positionOfHip = body.Joints[JointType.HipLeft].Position3D;
+
+					if (positionOfKnee.X > positionOfHip.X)
+					{
+						//valgus condition
+						_displayMessage += "\nValgus Condition";
+					}
+					if (positionOfKnee.X < positionOfHip.X)
+					{
+						//varus condition
+						_displayMessage += "\nVarus Condition";
+					}
+				}
+			}
+			if (measurement.Type == MeasurementType.KneeRightAbduction)
+			{
+				Vector3D positionOfKnee = body.Joints[JointType.KneeRight].Position3D;
+				Vector3D positionOfHip = body.Joints[JointType.KneeRight].Position3D;
+
+				if (positionOfKnee.X > positionOfHip.X)
+				{
+					//valgus condition
+					_displayMessage += "\nValgus Condition";
+				}
+				if (positionOfKnee.X < positionOfHip.X)
+				{
+					//varus condition
+					_displayMessage += "\nVarus Condition";
+				}
+			}
+			
+			Refresh();
+		}
+		
+	}
 }

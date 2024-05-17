@@ -8,7 +8,7 @@ public class HipKneeLeftDistance : Measurement
 {
     public HipKneeLeftDistance()
     {
-        Type = MeasurementType.HipKneeLeftDistance;
+        Type = MeasurementType.HipKneeLeftDifference;
 
         KeyJoint1 = JointType.HipLeft;
         KeyJoint2 = JointType.KneeLeft;

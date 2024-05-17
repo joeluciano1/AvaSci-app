@@ -129,13 +129,13 @@ namespace LightBuzz.AvaSci.Measurements
                     return new ShoulderLeftFlexion();
                 case MeasurementType.ShoulderRightFlexion:
                     return new ShoulderRightFlexion();
-                case MeasurementType.AnkleHipLeftDistance:
+                case MeasurementType.AnkleHipLeftDifference:
                     return new AnkleHipLeftDistance();
-                case MeasurementType.AnkleHipRightDistance:
+                case MeasurementType.AnkleHipRightDifference:
                     return new AnkleHipRightDistance();
-                case MeasurementType.HipKneeLeftDistance:
+                case MeasurementType.HipKneeLeftDifference:
                     return new HipKneeLeftDistance();
-                case MeasurementType.HipKneeRightDistance:
+                case MeasurementType.HipKneeRightDifference:
                     return new HipKneeRightDistance();
                 case MeasurementType.AnkleLeftAbduction:
                     return new AnkleLeftAbduction();

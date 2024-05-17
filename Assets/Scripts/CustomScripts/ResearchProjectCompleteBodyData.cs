@@ -5,16 +5,40 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-public class ResearchProjectCompleteBodyData : MonoBehaviour, IDragHandler, IPointerDownHandler, IBeginDragHandler, IEndDragHandler
+public class ResearchProjectCompleteBodyData
+    : MonoBehaviour,
+        IDragHandler,
+        IPointerDownHandler,
+        IBeginDragHandler,
+        IEndDragHandler
 {
     public TMP_Text PositionShowCase;
+    public Image BGImage;
     public Vector3 Position3D;
     public Vector3 offset;
     bool isDragging;
 
+    private void Start()
+    {
+        HideMyChilds();
+    }
+
     public void OnBeginDrag(PointerEventData eventData)
     {
         isDragging = true;
+        ShowMyChilds();
+    }
+
+    public void HideMyChilds()
+    {
+        BGImage.color = new Color(BGImage.color.r, BGImage.color.g, BGImage.color.b, 0);
+        PositionShowCase.color = new Color(PositionShowCase.color.r, PositionShowCase.color.g, PositionShowCase.color.b, 0);
+    }
+
+    public void ShowMyChilds()
+    {
+        BGImage.color = new Color(BGImage.color.r, BGImage.color.g, BGImage.color.b, 1);
+        PositionShowCase.color = new Color(PositionShowCase.color.r, PositionShowCase.color.g, PositionShowCase.color.b, 1);
     }
 
     public void OnDrag(PointerEventData eventData)
@@ -26,6 +50,7 @@ public class ResearchProjectCompleteBodyData : MonoBehaviour, IDragHandler, IPoi
     public void OnEndDrag(PointerEventData eventData)
     {
         isDragging = false;
+        HideMyChilds();
     }
 
     public void OnPointerDown(PointerEventData eventData)
@@ -43,9 +68,21 @@ public class ResearchProjectCompleteBodyData : MonoBehaviour, IDragHandler, IPoi
                 else
                 {
                     ResearchMeasurementManager.instance.selectedJoints = 0;
-                    ResearchMeasurementManager.instance.SelectedBodyDatas.ForEach(x => x.transform.GetChild(0).GetComponent<Image>().color = new Color(0.2830189f, 0.2830189f, 0.2830189f, 0.8f));
+                    ResearchMeasurementManager.instance.SelectedBodyDatas.ForEach(x =>
+                        x.transform.GetChild(0).GetComponent<Image>().color = new Color(
+                            0.2830189f,
+                            0.2830189f,
+                            0.2830189f,
+                            0.8f
+                        )
+                    );
                     ResearchMeasurementManager.instance.SelectedBodyDatas.Clear();
-                    transform.GetChild(0).GetComponent<Image>().color = new Color(0.2830189f, 0.2830189f, 0.2830189f, 0.8f);
+                    transform.GetChild(0).GetComponent<Image>().color = new Color(
+                        0.2830189f,
+                        0.2830189f,
+                        0.2830189f,
+                        0.8f
+                    );
 
                     ResearchMeasurementManager.instance.selectedJoints += 1;
                     ResearchMeasurementManager.instance.SelectedBodyDatas.Add(this);
@@ -56,7 +93,12 @@ public class ResearchProjectCompleteBodyData : MonoBehaviour, IDragHandler, IPoi
             {
                 ResearchMeasurementManager.instance.selectedJoints -= 1;
                 ResearchMeasurementManager.instance.SelectedBodyDatas.Remove(this);
-                transform.GetChild(0).GetComponent<Image>().color = new Color(0.2830189f, 0.2830189f, 0.2830189f, 0.8f);
+                transform.GetChild(0).GetComponent<Image>().color = new Color(
+                    0.2830189f,
+                    0.2830189f,
+                    0.2830189f,
+                    0.8f
+                );
             }
         }
     }

@@ -86,10 +86,10 @@ namespace LightBuzz.AvaSci.Measurements
         AnkleLeftRotation,
         AnkleRightRotation,
         PelvisAngle,
-        AnkleHipLeftDistance,
-        AnkleHipRightDistance,
-        HipKneeLeftDistance,
-        HipKneeRightDistance,
+        AnkleHipLeftDifference,
+        AnkleHipRightDifference,
+        HipKneeLeftDifference,
+        HipKneeRightDifference,
         AnkleLeftAbduction,
         AnkleRightAbduction
     }

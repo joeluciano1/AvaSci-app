@@ -6,7 +6,7 @@ public class AnkleHipLeftDistance : Measurement
 {
     public AnkleHipLeftDistance()
     {
-        Type = MeasurementType.AnkleHipLeftDistance;
+        Type = MeasurementType.AnkleHipLeftDifference;
 
         KeyJoint1 = JointType.HipLeft;
         KeyJoint2 = JointType.AnkleLeft;
