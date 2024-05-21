@@ -72,9 +72,7 @@ namespace LightBuzz.AvaSci.Measurements
         /// Updates the current movement with the specified skeleton data.
         /// </summary>
         /// <param name="body">The body to check.</param>
-        public virtual void Update(Body body)
-        {
-        }
+        public virtual void Update(Body body) { }
 
         /// <summary>
         /// Creates a new instance of the specified measurement.
@@ -130,19 +128,21 @@ namespace LightBuzz.AvaSci.Measurements
                 case MeasurementType.ShoulderRightFlexion:
                     return new ShoulderRightFlexion();
                 case MeasurementType.AnkleHipLeftDifference:
-                    return new AnkleHipLeftDistance();
+                    return new AnkleHipLeftDifference();
                 case MeasurementType.AnkleHipRightDifference:
-                    return new AnkleHipRightDistance();
+                    return new AnkleHipRightDifference();
                 case MeasurementType.HipKneeLeftDifference:
-                    return new HipKneeLeftDistance();
+                    return new HipKneeLeftDifference();
                 case MeasurementType.HipKneeRightDifference:
-                    return new HipKneeRightDistance();
+                    return new HipKneeRightDifference();
                 case MeasurementType.AnkleLeftAbduction:
                     return new AnkleLeftAbduction();
                 case MeasurementType.AnkleRightAbduction:
                     return new AnkleRightAbduction();
                 default:
-                    throw new NotImplementedException($"The {type} measurement is not implemented!");
+                    throw new NotImplementedException(
+                        $"The {type} measurement is not implemented!"
+                    );
             }
         }
     }

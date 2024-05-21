@@ -230,7 +230,8 @@ public class SineWave : MonoBehaviour
                     item,
                     pointSize
                 );
-                BiggeerChart.VerticalScrolling = item;
+                if (GeneralStaticManager.GraphsReadings[joint1].IndexOf(item) == 0)
+                    BiggeerChart.VerticalScrolling = item;
                 valueOnX += 0.1f;
             }
         }

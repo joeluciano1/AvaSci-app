@@ -46,18 +46,18 @@ public class PinchDetector : MonoBehaviour
                 transform.localScale = initialScale * scaleFactor;
 
                 // Determine if the gesture is pinch in or pinch out
-               if (scaleFactor > 1)
+                if (scaleFactor > 1)
                 {
                     Debug.Log("Pinch Out");
 
-                    graphChart.DataSource.HorizontalViewSize -= 0.1f;
-                    graphChart.DataSource.VerticalViewSize -= 0.1f;
+                    graphChart.DataSource.HorizontalViewSize -= 0.25f;
+                    graphChart.DataSource.VerticalViewSize -= 0.25f;
                 }
                 else if (scaleFactor < 1)
                 {
                     Debug.Log("Pinch In");
-                    graphChart.DataSource.HorizontalViewSize += 0.1f;
-                    graphChart.DataSource.VerticalViewSize += 0.1f;
+                    graphChart.DataSource.HorizontalViewSize += 0.25f;
+                    graphChart.DataSource.VerticalViewSize += 0.25f;
                 }
             }
         }
@@ -98,14 +98,14 @@ public class PinchDetector : MonoBehaviour
                 {
                     Debug.Log("Pinch Out");
 
-                    graphChart.DataSource.HorizontalViewSize -= 0.1f;
-                    graphChart.DataSource.VerticalViewSize -= 0.1f;
+                    graphChart.DataSource.HorizontalViewSize -= 0.25f;
+                    graphChart.DataSource.VerticalViewSize -= 0.25f;
                 }
                 else if (scaleFactor < 1)
                 {
                     Debug.Log("Pinch In");
-                    graphChart.DataSource.HorizontalViewSize += 0.1f;
-                    graphChart.DataSource.VerticalViewSize += 0.1f;
+                    graphChart.DataSource.HorizontalViewSize += 0.25f;
+                    graphChart.DataSource.VerticalViewSize += 0.25f;
                 }
             }
         }
