@@ -7,6 +7,7 @@ using LightBuzz.AvaSci.Measurements;
 using UnityEngine;
 using UnityEngine.UI;
 
+
 public class SineWave : MonoBehaviour
 {
     public GraphChart graphChart,
@@ -294,7 +295,6 @@ public class SineWave : MonoBehaviour
                 );
             TimeSpan timeSpan = DateTime.Now - previousTime;
 
-            //previousAngle = PlayerPrefs.GetFloat(System.Enum.GetName(typeof(MeasurementType), item.Key) + " PreviousAngle");
             if (!graphChart.DataSource.HasCategory(itemName))
             {
                 Material lineMaterial = new Material(this.lineMaterial);
@@ -331,10 +331,6 @@ public class SineWave : MonoBehaviour
                 GeneralStaticManager.GraphsReadings.Remove(itemName);
             }
 
-            //double angularSpeedY = (GeneralStaticManager.DegreesToRadians(item.Value.Value) - GeneralStaticManager.DegreesToRadians(previousAngle)) / (timeSpan.TotalSeconds);
-            //double changeInangleX = (GeneralStaticManager.DegreesToRadians(item.Value.Value) - GeneralStaticManager.DegreesToRadians(previousAngle));
-
-            //graphChart.DataSource.AddPointToCategory(System.Enum.GetName(typeof(MeasurementType), item.Key), changeInangleX, MathF.Round((float)angularSpeedY, 2));
 
             graphChart.DataSource.AddPointToCategory(itemName, time, item.Value.Value, pointSize);
 
@@ -350,12 +346,58 @@ public class SineWave : MonoBehaviour
                 );
             }
 
-            //PlayerPrefs.SetFloat(System.Enum.GetName(typeof(MeasurementType), item.Key) + " PreviousAngle", item.Value.Value);
-
-            // PlayerPrefs.SetFloat(itemName, PlayerPrefs.GetFloat(itemName) + (float)timeSpan.TotalSeconds);
         }
     }
+    public void SetReadingWithoutLightbuzzData(float time, float value,string nameOfReading)
+    {
+        if (!graphChart.DataSource.HasCategory(nameOfReading))
+        {
+            Material lineMaterial = new Material(this.lineMaterial);
+            lineMaterial.SetColor("_Color", Colors[UnityEngine.Random.Range(0, Colors.Count)]);
+            string linecolor = ColorUtility.ToHtmlStringRGBA(lineMaterial.color);
+            if (nameOfReading == myParentGraphManager.JointType.ToString())
+                myParentGraphManager.Title.text = $"<color=#{linecolor}>{nameOfReading}</color>";
+            else
+                myParentGraphManager.Title.text += $"\n<color=#{linecolor}>{nameOfReading}</color>";
+            innerFill.color = UnityEngine.Random.ColorHSV();
+            
+            Material innFillMat = new Material(innerFill);
+            var color1 = Colors[UnityEngine.Random.Range(0, Colors.Count)];
+            color1.a = 0.5f;
+            innFillMat.SetColor("_ColorFrom", color1);
+            var color2 = Colors[UnityEngine.Random.Range(0, Colors.Count)];
+            color2.a = 0.1f;
+            innFillMat.SetColor("_ColorTo", color2);
+            PlayerPrefs.SetInt(nameOfReading, 0);
+            graphChart.DataSource.AddCategory(
+                nameOfReading,
+                lineMaterial,
+                lineThickness,
+                lineTiling,
+                null,
+                true,
+                pointMaterial,
+                pointSize
+            );
+            PlayerPrefs.SetFloat(nameOfReading, 0);
+            GeneralStaticManager.GraphsReadings.Remove(nameOfReading);
+        }
 
+
+        graphChart.DataSource.AddPointToCategory(nameOfReading, time, value, pointSize);
+
+        if (GeneralStaticManager.GraphsReadings.ContainsKey(nameOfReading))
+        {
+            GeneralStaticManager.GraphsReadings[nameOfReading].Add(value);
+        }
+        else
+        {
+            GeneralStaticManager.GraphsReadings.Add(
+            nameOfReading,
+                new List<float> { value }
+            );
+        }
+    }
     public void SetGraphsAutoScroll(bool value)
     {
         //graphChart.AutoScrollHorizontally = value;

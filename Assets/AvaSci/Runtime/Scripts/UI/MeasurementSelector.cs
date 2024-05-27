@@ -76,25 +76,25 @@ namespace LightBuzz.AvaSci.UI
                 }
                 else
                 {
-                    if (itemName == MeasurementType.AnkleHipLeftDifference.ToString())
+                    if (itemName == MeasurementType.HipAnkleHipKneeLeftAbductionDifference.ToString())
                         alreadyPresentJointGraph =
                             ReferenceManager.instance.graphManagers.FirstOrDefault(x =>
-                                x.JointType == MeasurementType.HipKneeLeftDifference
+                                x.JointType == MeasurementType.HipAnkleHipKneeRightAbductionDifference
                             );
                     else if (itemName == MeasurementType.HipKneeLeftDifference.ToString())
                         alreadyPresentJointGraph =
                             ReferenceManager.instance.graphManagers.FirstOrDefault(x =>
-                                x.JointType == MeasurementType.AnkleHipLeftDifference
+                                x.JointType == MeasurementType.HipAnkleHipKneeLeftAbductionDifference
                             );
-                    else if (itemName == MeasurementType.AnkleHipRightDifference.ToString())
+                    else if (itemName == MeasurementType.HipAnkleHipKneeRightAbductionDifference.ToString())
                         alreadyPresentJointGraph =
                             ReferenceManager.instance.graphManagers.FirstOrDefault(x =>
-                                x.JointType == MeasurementType.HipKneeRightDifference
+                                x.JointType == MeasurementType.HipAnkleHipKneeLeftAbductionDifference
                             );
                     else if (itemName == MeasurementType.HipKneeRightDifference.ToString())
                         alreadyPresentJointGraph =
                             ReferenceManager.instance.graphManagers.FirstOrDefault(x =>
-                                x.JointType == MeasurementType.AnkleHipRightDifference
+                                x.JointType == MeasurementType.HipAnkleHipKneeRightAbductionDifference
                             );
                     else
                         alreadyPresentJointGraph = null;

@@ -8,7 +8,7 @@ public class AnkleHipRightDifference : AnkleHipLeftDifference
 {
     public AnkleHipRightDifference()
     {
-        Type = MeasurementType.AnkleHipRightDifference;
+        Type = MeasurementType.HipAnkleHipKneeRightAbductionDifference;
 
         KeyJoint1 = JointType.HipRight;
         KeyJoint2 = JointType.AnkleRight;
@@ -36,7 +36,7 @@ public class AnkleHipRightDifference : AnkleHipLeftDifference
         Vector3D ankle3D = ankle.Position3D;
         Vector3D foot3D = foot.Position3D;
 
-        float angleAnkleABD = Calculations.Rotation(ankle3D, foot3D, Plane.Sagittal);
+        float angleAnkleABD = Calculations.Rotation(hip3D, ankle3D, Plane.Sagittal);
 
         // if (foot3D.Y < ankle3D.Y)
         // {
@@ -51,7 +51,7 @@ public class AnkleHipRightDifference : AnkleHipLeftDifference
         Vector3D ankleRight3D = ankleRight.Position3D;
         // Vector3D hip3D = hip.Position2D;
 
-        float difference = Math.Abs(angleHipABD - angleAnkleABD);
+        float difference = angleHipABD - angleAnkleABD;
 
         _value = difference;
         _angleStart = hipRight.Position2D;

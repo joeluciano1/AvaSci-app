@@ -9,6 +9,7 @@ public class UIDragger : MonoBehaviour, IDragHandler
     public bool isDragging;
     public RectTransform _rect;
     private static bool isMoving = false;
+    public float offset = 100;
 
     void Start()
     {
@@ -18,6 +19,10 @@ public class UIDragger : MonoBehaviour, IDragHandler
     // Update is called once per frame
     void Update()
     {
+        if (transform.parent.name.Contains("Distance"))
+        {
+            return;
+        }
         if (Input.GetMouseButton(0))
         {
             UpdateMousePosition();
@@ -32,6 +37,41 @@ public class UIDragger : MonoBehaviour, IDragHandler
             if (isDragging)
                 isDragging = false;
         }
+    }
+
+    public LineRenderer lineRenderer;
+
+    public void DrawLineWithJoint(RectTransform startPoint, RectTransform endPoint)
+    {
+        Vector3 startWorldPosition = GetWorldPosition(startPoint);
+        Vector3 endWorldPosition = GetWorldPosition(endPoint);
+        if (startPoint.name.Contains("Right"))
+        {
+            startWorldPosition.x += offset;
+        }
+        if (startPoint.name.Contains("Left"))
+        {
+            startWorldPosition.x -= offset;
+        }
+        // Set the positions of the line renderer
+        lineRenderer.SetPosition(0, startWorldPosition);
+        lineRenderer.SetPosition(1, endWorldPosition);
+    }
+
+    private Vector3 GetWorldPosition(RectTransform rectTransform)
+    {
+        Vector3 screenPoint = RectTransformUtility.WorldToScreenPoint(
+            Camera.main,
+            rectTransform.position
+        );
+        Vector3 worldPosition;
+        RectTransformUtility.ScreenPointToWorldPointInRectangle(
+            ReferenceManager.instance.canvas.transform as RectTransform,
+            screenPoint,
+            ReferenceManager.instance.canvas.worldCamera,
+            out worldPosition
+        );
+        return worldPosition;
     }
 
     Vector2 mousePosition = new Vector2();
@@ -72,36 +112,54 @@ public class UIDragger : MonoBehaviour, IDragHandler
     {
         isDragging = false;
     }
-private void OnTriggerEnter2D(Collider2D other) {
-    Debug.Log("Got You");
-    if(!isMoving){
-    var uiElement1 = GetComponent<RectTransform>();
-    var otherElement = other.GetComponent<RectTransform>();
-      // Calculate the differences in positions
-        float deltaX = otherElement.localPosition.x - transform.localPosition.x;
-        float deltaY = otherElement.localPosition.y - transform.localPosition.y;
 
-        // Determine if the collision is more horizontal or vertical
-        bool horizontalCollision = Mathf.Abs(deltaX) > Mathf.Abs(deltaY);
+    private void OnTriggerEnter2D(Collider2D other)
+    {
 
-        if (horizontalCollision)
+        if (!isMoving)
         {
-            // Move elements along the x-axis
-            float midpointX = (transform.localPosition.x + otherElement.localPosition.x) / 2f;
-            transform.localPosition = new Vector3(midpointX - 20 / 2f, transform.localPosition.y, transform.localPosition.z);
-            otherElement.localPosition = new Vector3(midpointX + 20 / 2f, otherElement.localPosition.y, otherElement.localPosition.z);
-        }
-        else
-        {
-            // Move elements along the y-axis
-            float midpointY = (transform.localPosition.y + otherElement.localPosition.y) / 2f;
-            transform.localPosition = new Vector3(transform.localPosition.x, midpointY - 20 / 2f, transform.localPosition.z);
-            otherElement.localPosition = new Vector3(otherElement.localPosition.x, midpointY + 20 / 2f, otherElement.localPosition.z);
-        }
+            var uiElement1 = GetComponent<RectTransform>();
+            var otherElement = other.GetComponent<RectTransform>();
+            // Calculate the differences in positions
+            float deltaX = otherElement.localPosition.x - transform.localPosition.x;
+            float deltaY = otherElement.localPosition.y - transform.localPosition.y;
 
-        // Reset the flag after moving
-        isMoving = false;
+            // Determine if the collision is more horizontal or vertical
+            bool horizontalCollision = Mathf.Abs(deltaX) > Mathf.Abs(deltaY);
+
+            if (horizontalCollision)
+            {
+                // Move elements along the x-axis
+                float midpointX = (transform.localPosition.x + otherElement.localPosition.x) / 2f;
+                transform.localPosition = new Vector3(
+                    midpointX - 20 / 2f,
+                    transform.localPosition.y,
+                    transform.localPosition.z
+                );
+                otherElement.localPosition = new Vector3(
+                    midpointX + 20 / 2f,
+                    otherElement.localPosition.y,
+                    otherElement.localPosition.z
+                );
+            }
+            else
+            {
+                // Move elements along the y-axis
+                float midpointY = (transform.localPosition.y + otherElement.localPosition.y) / 2f;
+                transform.localPosition = new Vector3(
+                    transform.localPosition.x,
+                    midpointY - 20 / 2f,
+                    transform.localPosition.z
+                );
+                otherElement.localPosition = new Vector3(
+                    otherElement.localPosition.x,
+                    midpointY + 20 / 2f,
+                    otherElement.localPosition.z
+                );
+            }
+
+            // Reset the flag after moving
+            isMoving = false;
+        }
     }
-}
-    
 }

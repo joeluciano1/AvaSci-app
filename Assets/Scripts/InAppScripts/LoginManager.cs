@@ -15,6 +15,7 @@ public class LoginManager : MonoBehaviour
     /// </summary>
     public TMP_Dropdown Country_DropDown;
     public TMP_InputField Email_InputField;
+    public TMP_InputField UserName_InputField;
     public TMP_InputField Password_InputField;
     public TMP_Dropdown Gender_DropDown;
     public TMP_InputField BirthDate_InputField;
@@ -271,6 +272,7 @@ public class LoginManager : MonoBehaviour
         {
             countryId = selectedCountryId,
             email = Email_InputField.text,
+            userName = UserName_InputField.text,
             password = Password_InputField.text,
             genderId = Gender_DropDown.value,
             birthDate = DateTime.Parse(BirthDate_InputField.text + "-01-01"),

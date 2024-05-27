@@ -127,9 +127,9 @@ namespace LightBuzz.AvaSci.Measurements
                     return new ShoulderLeftFlexion();
                 case MeasurementType.ShoulderRightFlexion:
                     return new ShoulderRightFlexion();
-                case MeasurementType.AnkleHipLeftDifference:
+                case MeasurementType.HipAnkleHipKneeLeftAbductionDifference:
                     return new AnkleHipLeftDifference();
-                case MeasurementType.AnkleHipRightDifference:
+                case MeasurementType.HipAnkleHipKneeRightAbductionDifference:
                     return new AnkleHipRightDifference();
                 case MeasurementType.HipKneeLeftDifference:
                     return new HipKneeLeftDifference();
@@ -139,6 +139,10 @@ namespace LightBuzz.AvaSci.Measurements
                     return new AnkleLeftAbduction();
                 case MeasurementType.AnkleRightAbduction:
                     return new AnkleRightAbduction();
+                case MeasurementType.HipKneeRightDistance:
+                    return new HipKneeRightDistance();
+                case MeasurementType.HipKneeLeftDistance:
+                    return new HipKneeLeftDistance();
                 default:
                     throw new NotImplementedException(
                         $"The {type} measurement is not implemented!"

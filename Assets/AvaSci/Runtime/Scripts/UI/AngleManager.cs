@@ -13,13 +13,14 @@ namespace LightBuzz.AvaSci.UI
     /// </summary>
     public class AngleManager : MonoBehaviour
     {
-        [SerializeField] private ImageView _imageView;
-        [SerializeField] private Angle2D _anglePrefab;
-        
-        private readonly Dictionary<MeasurementType, Angle2D> _angles = new Dictionary<MeasurementType, Angle2D>();
-        
+        [SerializeField]
+        private ImageView _imageView;
 
-       
+        [SerializeField]
+        private Angle2D _anglePrefab;
+
+        private readonly Dictionary<MeasurementType, Angle2D> _angles =
+            new Dictionary<MeasurementType, Angle2D>();
 
         private void OnDestroy()
         {
@@ -71,19 +72,20 @@ namespace LightBuzz.AvaSci.UI
         public void Load(Body body, Measurement measurement)
         {
             MeasurementType type = measurement.Type;
-            
 
             if (!_angles.ContainsKey(type))
             {
-                Angle2D go = Instantiate(_anglePrefab,transform);
+                Angle2D go = Instantiate(_anglePrefab, transform);
                 go.ImageView = _imageView;
 
                 _angles.Add(type, go);
             }
 
-            if (body.Joints[measurement.KeyJoint1].TrackingState == TrackingState.Inferred ||
-                    body.Joints[measurement.KeyJoint2].TrackingState == TrackingState.Inferred ||
-                    body.Joints[measurement.KeyJoint3].TrackingState == TrackingState.Inferred)
+            if (
+                body.Joints[measurement.KeyJoint1].TrackingState == TrackingState.Inferred
+                || body.Joints[measurement.KeyJoint2].TrackingState == TrackingState.Inferred
+                || body.Joints[measurement.KeyJoint3].TrackingState == TrackingState.Inferred
+            )
             {
                 _angles[type].gameObject.SetActive(false);
                 return;
@@ -95,10 +97,6 @@ namespace LightBuzz.AvaSci.UI
             }
 
             _angles[type].Load(measurement, body);
-            
         }
-        
-
     }
-    
 }

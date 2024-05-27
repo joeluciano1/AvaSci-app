@@ -15,8 +15,16 @@ public class ResearchProjectCompleteBodyData
     public TMP_Text PositionShowCase;
     public Image BGImage;
     public Vector3 Position3D;
+    public Vector2 Position2D;
     public Vector3 offset;
     bool isDragging;
+    public RectTransform MyTransform;
+
+    private void Awake()
+    {
+        if (MyTransform == null)
+            MyTransform = GetComponent<RectTransform>();
+    }
 
     private void Start()
     {
@@ -32,13 +40,23 @@ public class ResearchProjectCompleteBodyData
     public void HideMyChilds()
     {
         BGImage.color = new Color(BGImage.color.r, BGImage.color.g, BGImage.color.b, 0);
-        PositionShowCase.color = new Color(PositionShowCase.color.r, PositionShowCase.color.g, PositionShowCase.color.b, 0);
+        PositionShowCase.color = new Color(
+            PositionShowCase.color.r,
+            PositionShowCase.color.g,
+            PositionShowCase.color.b,
+            0
+        );
     }
 
     public void ShowMyChilds()
     {
         BGImage.color = new Color(BGImage.color.r, BGImage.color.g, BGImage.color.b, 1);
-        PositionShowCase.color = new Color(PositionShowCase.color.r, PositionShowCase.color.g, PositionShowCase.color.b, 1);
+        PositionShowCase.color = new Color(
+            PositionShowCase.color.r,
+            PositionShowCase.color.g,
+            PositionShowCase.color.b,
+            1
+        );
     }
 
     public void OnDrag(PointerEventData eventData)
