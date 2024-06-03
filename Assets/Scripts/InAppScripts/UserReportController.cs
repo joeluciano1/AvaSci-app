@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using DG.Tweening.Plugins.Core.PathCore;
 using LightBuzz.AvaSci;
 using LightBuzz.AvaSci.UI;
 using LightBuzz.BodyTracking;
@@ -30,7 +31,7 @@ public class UserReportController : MonoBehaviour
     public VideoRecordingView videoRecorderView;
 
     UserReportFromDB RecentlyPlayedButton;
-
+    
     // Start is called before the first frame update
     public void Start()
     {
@@ -49,6 +50,12 @@ public class UserReportController : MonoBehaviour
                     var user = userReportFromDBs.FirstOrDefault(x => x.VideoURL == item.VideoURL);
                     if (user != null)
                     {
+                        if (!PlayerPrefs.GetString("LastVidURL").Equals(user.VideoURL))
+                        {
+                            user.WatchBtn.onClick.RemoveAllListeners();
+                            user.WatchBtn.onClick.AddListener(() => StartCoroutine(GetText(user.VideoURL, user.WatchBtn, user)));
+                            user.ButtonText.text = "Download Video";
+                        }
                         continue;
                     }
                     UserReportFromDB userReportFromDB = Instantiate(userReportFromDBPrefab, userReportFromDBPrefab.transform.parent);
@@ -56,7 +63,21 @@ public class UserReportController : MonoBehaviour
                     userReportFromDB.VideoURL = item.VideoURL;
                     userReportFromDB.gameObject.SetActive(true);
                     userReportFromDB.UserName.text = item.UserName;
-                    userReportFromDB.CreatedOn.text = item.CreatedOn;
+                    userReportFromDB.ReportDescription.text = item.ReportDescription;
+                    DateTime serverTime;
+                    if (DateTime.TryParseExact(item.CreatedOn, "M/dd/yyyy h:mm:ss tt",
+                                   System.Globalization.CultureInfo.InvariantCulture,
+                                   System.Globalization.DateTimeStyles.None,
+                                   out serverTime))
+                    {
+                        DateTime localTime = ConvertToLocalTime(serverTime);
+                        userReportFromDB.CreatedOn.text = localTime.ToString("MM/dd/yyyy h:mm:ss tt");
+                    }
+                    else
+                    {
+                    userReportFromDB.CreatedOn.text=item.CreatedOn;
+                    }
+                    
                     userReportFromDB.WatchBtn.interactable = true;
                     if (!PlayerPrefs.GetString("LastVidURL").Equals(item.VideoURL))
                     {
@@ -69,6 +90,13 @@ public class UserReportController : MonoBehaviour
                         userReportFromDB.ButtonText.text = "Watch";
                         RecentlyPlayedButton = userReportFromDB;
                         userReportFromDB.WatchBtn.onClick.AddListener(() => CreateFileAndView());
+                        if (!string.IsNullOrEmpty(item.ReportURL))
+                        {
+                            userReportFromDB.PreviewButton.interactable = true;
+                            userReportFromDB.PreviewButton.gameObject.SetActive(true);
+                            userReportFromDB.PreviewButton.transform.GetChild(0).GetComponent<TMP_Text>().text = "View Report";
+                            userReportFromDB.PreviewButton.onClick.AddListener(() => CreateReportAndView());
+                        }
                     }
 
                     userReportFromDBs.Add(userReportFromDB);
@@ -115,6 +143,7 @@ public class UserReportController : MonoBehaviour
             RecentlyPlayedButton.WatchBtn.onClick.RemoveAllListeners();
             RecentlyPlayedButton.WatchBtn.onClick.AddListener(() => StartCoroutine(GetText(PlayerPrefs.GetString("LastVidURL"), RecentlyPlayedButton.WatchBtn, RecentlyPlayedButton)));
             RecentlyPlayedButton.ButtonText.text = "Download Video";
+            RecentlyPlayedButton.PreviewButton.gameObject.SetActive(false);
         }
         btn.interactable = false;
         UnityWebRequest request = UnityWebRequest.Get(url);
@@ -138,13 +167,19 @@ public class UserReportController : MonoBehaviour
         else
         {
             List<VideoSaveBody> videoSaveBodies = JsonConvert.DeserializeObject<List<VideoSaveBody>>(request.downloadHandler.text);
-
+            var reportFile = videoSaveBodies.FirstOrDefault(x => x.FileName.Equals("Sample.pdf"));
             btn.onClick.RemoveAllListeners();
             btn.onClick.AddListener(() => CreateFileAndView(videoSaveBodies, url));
             btn.interactable = true;
             userReportFromDB.ProgressImage.gameObject.SetActive(false);
             userReportFromDB.ButtonText.text = $"Watch";
-
+            if (reportFile != null) {
+                userReportFromDB.PreviewButton.onClick.RemoveAllListeners();
+                userReportFromDB.PreviewButton.interactable = true;
+                userReportFromDB.PreviewButton.gameObject.SetActive(true);
+                userReportFromDB.PreviewButton.transform.GetChild(0).GetComponent<TMP_Text>().text = "View Report";
+                userReportFromDB.PreviewButton.onClick.AddListener(() => CreateReportAndView(reportFile));
+            }
             if (userReportFromDB.request.downloadProgress == 0)
             {
                 userReportFromDB.ButtonText.text = "Retry? No Data Found";
@@ -204,7 +239,32 @@ public class UserReportController : MonoBehaviour
 
         }
     }
+    public async void CreateReportAndView(VideoSaveBody videoSaveBody = null) {
+        string path1 = Application.persistentDataPath;
+        string path = System.IO.Path.Combine(Application.persistentDataPath, "Sample.pdf");
+        ReferenceManager.instance.isShowingRecording = true;
+        if (videoSaveBody != null)
+        {
+            string filename = videoSaveBody.FileName;
+            string fileData = videoSaveBody.FileData;
 
+            path = System.IO.Path.Combine(Application.persistentDataPath, filename);
+            byte[] bytes = System.Convert.FromBase64String(fileData);
+            File.WriteAllBytes(path, bytes);
+        }
+        await Task.Delay(3000);
+#if UNITY_EDITOR
+        System.Diagnostics.Process.Start(path);
+        Debug.Log("Is Editor");
+
+#else
+
+        string url = "file://" + path.Replace(" ", "%20");
+        Debug.Log("URL = "+ url);
+        Debug.Log("Persistance = " + path);
+        GeneralStaticManager.OpenFile(path);
+#endif
+    }
     public async void CreateFileAndView(List<VideoSaveBody> videoSaveBodies = null, string url = "")
     {
         string path1 = System.IO.Path.Combine(Application.persistentDataPath, "Video");
@@ -222,6 +282,10 @@ public class UserReportController : MonoBehaviour
             Directory.CreateDirectory(path1);
             foreach (var item in videoSaveBodies)
             {
+                if (item.FileName.Equals("Sample.pdf"))
+                {
+                    continue;
+                }
                 string fileName = item.FileName;
                 string fileData = item.FileData;
 
@@ -233,7 +297,7 @@ public class UserReportController : MonoBehaviour
             }
 
             var filePaths = Directory.GetFiles(path1);
-            while (filePaths.Length < videoSaveBodies.Count)
+            while (filePaths.Length < videoSaveBodies.Count-1)
             {
                 await Task.Delay(500);
             }
@@ -267,6 +331,22 @@ public class UserReportController : MonoBehaviour
             return ms.ToArray();
         }
     }
-    // Update is called once per frame
+    DateTime ParseServerTime(string serverTimeString)
+    {
+        Debug.Log(serverTimeString);
+        // Define the expected format of the server time
+        string format = "MM/dd/yyyy h:mm:ss tt";
+        // Parse the server time string into a DateTime object
+        DateTime serverTime = DateTime.ParseExact(serverTimeString, format, System.Globalization.CultureInfo.InvariantCulture);
+        return serverTime;
+    }
+
+    DateTime ConvertToLocalTime(DateTime serverTime)
+    {
+        // Assuming the server time is in UTC, convert it to local time
+        TimeZoneInfo localZone = TimeZoneInfo.Local;
+        DateTime localTime = TimeZoneInfo.ConvertTimeFromUtc(serverTime, localZone);
+        return localTime;
+    }
 
 }

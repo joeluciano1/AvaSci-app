@@ -11,27 +11,31 @@ namespace LightBuzz.AvaSci.Measurements
         {
             Type = MeasurementType.KneeLeftAbduction;
 
-            KeyJoint1 = JointType.KneeLeft;
-            KeyJoint2 = JointType.AnkleLeft;
-            KeyJoint3 = JointType.FootLeft;
+            KeyJoint1 = JointType.HipLeft;
+            KeyJoint2 = JointType.KneeLeft;
+            KeyJoint3 = JointType.AnkleLeft;
         }
 
         public override void Update(Body body)
         {
-            Joint shoulder = body.Joints[KeyJoint1];
-            Joint elbow = body.Joints[KeyJoint2];
-            Joint hip = body.Joints[KeyJoint3];
+            Joint hip = body.Joints[KeyJoint1];
+            Joint knee = body.Joints[KeyJoint2];
+            Joint ankle = body.Joints[KeyJoint3];
 
-            Vector3D shoulder3D = shoulder.Position2D;
-            Vector3D elbow3D = elbow.Position2D;
-            Vector3D hip3D = hip.Position2D;
+            Vector3D ankle3D = ankle.Position3D;
+            Vector3D knee3D = knee.Position3D;
+            Vector3D hip3D = hip.Position3D;
 
-            float angle = Calculations.Angle(hip3D, shoulder3D, elbow3D);
+            float angle = Calculations.Rotation(hip3D, knee3D, Plane.Sagittal);
+            if(knee3D.Y < hip3D.Y)
+            {
+                angle = 180.0f - angle;
+            }
 
             _value = angle;
-            _angleStart = elbow.Position2D;
-            _angleCenter = shoulder.Position2D;
-            _angleEnd = hip.Position2D;
+            _angleStart = hip.Position2D;
+            _angleCenter = knee.Position2D;
+            _angleEnd = ankle.Position2D;
         }
     }
 }

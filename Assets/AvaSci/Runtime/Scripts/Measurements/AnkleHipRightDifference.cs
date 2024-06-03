@@ -25,10 +25,10 @@ public class AnkleHipRightDifference : AnkleHipLeftDifference
 
         float angleHipABD = Calculations.Rotation(hip3D, knee3D, Plane.Sagittal);
 
-        // if (knee3D.Y < hip3D.Y)
-        // {
-        //     angleHipABD = 180.0f - angleHipABD;
-        // }
+        if (knee3D.Y < hip3D.Y)
+        {
+            angleHipABD = 180.0f - angleHipABD;
+        }
 
         Joint ankle = body.Joints[JointType.AnkleRight];
         Joint foot = body.Joints[JointType.FootRight];
@@ -38,10 +38,10 @@ public class AnkleHipRightDifference : AnkleHipLeftDifference
 
         float angleAnkleABD = Calculations.Rotation(hip3D, ankle3D, Plane.Sagittal);
 
-        // if (foot3D.Y < ankle3D.Y)
-        // {
-        //     angleAnkleABD = 180.0f - angleAnkleABD;
-        // }
+        if (ankle3D.Y < hip3D.Y)
+        {
+            angleAnkleABD = 180.0f - angleAnkleABD;
+        }
 
         Joint hipRight = body.Joints[KeyJoint1];
         Joint ankleRight = body.Joints[KeyJoint2];
@@ -55,7 +55,7 @@ public class AnkleHipRightDifference : AnkleHipLeftDifference
 
         _value = difference;
         _angleStart = hipRight.Position2D;
-        _angleCenter = (ankleRight.Position2D + hipRight.Position2D) / 2;
+        _angleCenter = (knee.Position2D + hipRight.Position2D) / 2;
         _angleEnd = ankleRight.Position2D;
     }
 }

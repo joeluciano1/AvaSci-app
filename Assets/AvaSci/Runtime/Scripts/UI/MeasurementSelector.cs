@@ -66,13 +66,7 @@ namespace LightBuzz.AvaSci.UI
                 GraphManager alreadyPresentJointGraph;
                 if (!itemName.Contains("Difference"))
                 {
-                    alreadyPresentJointGraph =
-                        ReferenceManager.instance.graphManagers.FirstOrDefault(x =>
-                            Enum.GetName(typeof(MeasurementType), x.JointType)
-                                .Contains(jointName.Split(',')[0])
-                            && Enum.GetName(typeof(MeasurementType), x.JointType)
-                                .Contains(jointName.Split(',')[1])
-                        );
+                    alreadyPresentJointGraph = ReferenceManager.instance.graphManagers.FirstOrDefault(x => Enum.GetName(typeof(MeasurementType), x.JointType) .Contains(jointName.Split(',')[0]) && Enum.GetName(typeof(MeasurementType), x.JointType) .Contains(jointName.Split(',')[1]) &&!x.JointType.ToString().Contains("Difference") );
                 }
                 else
                 {
@@ -84,7 +78,7 @@ namespace LightBuzz.AvaSci.UI
                     else if (itemName == MeasurementType.HipKneeLeftDifference.ToString())
                         alreadyPresentJointGraph =
                             ReferenceManager.instance.graphManagers.FirstOrDefault(x =>
-                                x.JointType == MeasurementType.HipAnkleHipKneeLeftAbductionDifference
+                                x.JointType == MeasurementType.HipKneeRightDifference
                             );
                     else if (itemName == MeasurementType.HipAnkleHipKneeRightAbductionDifference.ToString())
                         alreadyPresentJointGraph =
@@ -94,7 +88,7 @@ namespace LightBuzz.AvaSci.UI
                     else if (itemName == MeasurementType.HipKneeRightDifference.ToString())
                         alreadyPresentJointGraph =
                             ReferenceManager.instance.graphManagers.FirstOrDefault(x =>
-                                x.JointType == MeasurementType.HipAnkleHipKneeRightAbductionDifference
+                                x.JointType == MeasurementType.HipKneeLeftDifference
                             );
                     else
                         alreadyPresentJointGraph = null;
@@ -225,14 +219,7 @@ namespace LightBuzz.AvaSci.UI
             else
             {
                 GeneralStaticManager.GraphsReadings.Remove(itemName);
-                GraphManager alreadyPresentJointGraph =
-                    ReferenceManager.instance.graphManagers.FirstOrDefault(x =>
-                        (x.JointType == type || x.SecondJointType == type)
-                        && (
-                            x.JointType != MeasurementType.None
-                            || x.SecondJointType != MeasurementType.None
-                        )
-                    );
+                GraphManager alreadyPresentJointGraph = ReferenceManager.instance.graphManagers.FirstOrDefault(x => (x.JointType == type || x.SecondJointType == type) && ( x.JointType != MeasurementType.None || x.SecondJointType != MeasurementType.None ) );
                 if (alreadyPresentJointGraph == null)
                 {
                     GraphManager graphManager =

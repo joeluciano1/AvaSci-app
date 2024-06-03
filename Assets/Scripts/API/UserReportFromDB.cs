@@ -7,13 +7,16 @@ using UnityEngine.UI;
 using FastForward.CAS;
 using System;
 using Newtonsoft.Json;
+using DG.Tweening;
 
 public class UserReportFromDB : MonoBehaviour
 {
     public TMP_Text UserName;
     public TMP_Text CreatedOn;
+    public TMP_Text ReportDescription;
 
     public Button WatchBtn;
+    public Button PreviewButton;
 
     public Image ProgressImage;
     public UnityWebRequest request;
@@ -22,9 +25,13 @@ public class UserReportFromDB : MonoBehaviour
     public string VideoURL;
     public string UserId;
     public GameObject DeleteButton;
-
+    public Transform DropperToggle;
+    public Transform DropDownItems;
+    public RectTransform Content;
+    ContentSizeFitter ContentSizeFitter;
     private void Start()
     {
+        ContentSizeFitter = Content.GetComponent<ContentSizeFitter>();
         if (GeneralStaticManager.GlobalVar["UserRoles"].Contains("SuperUser"))
         {
             DeleteButton.SetActive(true);
@@ -80,5 +87,31 @@ public class UserReportFromDB : MonoBehaviour
         {
             ReferenceManager.instance.PopupManager.Show("Report Delete Failed!", $"Reasons are: {error}");
         });
+    }
+
+    public void ToggleDropDown(bool value)
+    {
+        RectTransform myRect = GetComponent<RectTransform>();
+        
+        ContentSizeFitter.enabled = false;
+        ContentSizeFitter.SetLayoutVertical(); // can use SetLayoutHorizontal as well
+        LayoutRebuilder.ForceRebuildLayoutImmediate(Content);
+        ContentSizeFitter.enabled = true;
+        if (value)
+        {
+            LayoutRebuilder.ForceRebuildLayoutImmediate(Content);
+            DropperToggle.DORotate(new Vector3(0, 0, 180), 1f);
+            myRect.DOSizeDelta(new Vector2(myRect.sizeDelta.x, 170), 1f);
+            DropDownItems.DOScale(new Vector3(1, 1, 1), 1);
+           
+        }
+        else
+        {
+            LayoutRebuilder.ForceRebuildLayoutImmediate(Content);
+            DropperToggle.DORotate(new Vector3(0, 0, 0), 1f);
+            myRect.DOSizeDelta(new Vector2(myRect.sizeDelta.x, 60), 1f);
+            DropDownItems.DOScale(new Vector3(1, 0, 1), 1);
+            
+        }
     }
 }

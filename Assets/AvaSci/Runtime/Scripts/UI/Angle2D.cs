@@ -278,11 +278,11 @@ namespace LightBuzz.AvaSci.UI
             string name = Abbriviations[Enum.GetName(typeof(MeasurementType), measurement.Type)];
             if (!gameObject.name.Contains("Distance"))
             {
-                _displayMessage = $"{measurement.Value:N0}° \n<size=15>{name}</size>";
+                _displayMessage = $"{measurement.Value:N0}° \n{name}";
             }
             else
             {
-                _displayMessage = $"{measurement.Value:N0}mm \n<size=15>{name}</size>";
+                _displayMessage = $"{measurement.Value:N0}mm \n{name}";
                 if (_rect == null)
                     _rect = gameObject.transform as RectTransform;
                 ReferencePosition.transform.parent = ReferenceManager.instance.LightBuzzPanel;

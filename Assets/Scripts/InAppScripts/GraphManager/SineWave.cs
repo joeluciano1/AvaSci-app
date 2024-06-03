@@ -271,6 +271,10 @@ public class SineWave : MonoBehaviour
 
     public void SetReadingValue(float time)
     {
+        if (isVideoDoneLoading)
+        {
+            return;
+        }
         var main = ReferenceManager.instance.LightBuzzMain;
         foreach (var item in main._movement.Measurements)
         {

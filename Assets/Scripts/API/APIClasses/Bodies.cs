@@ -71,6 +71,7 @@ public class ReportRecordBody
     public string UserName { get; set; }
     public string VideoURL { get; set; }
     public string? ReportURL { get; set; }
+    public string ReportDescription { get; set; }
 }
 
 public class SubscriptionBody

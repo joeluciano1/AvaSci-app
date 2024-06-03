@@ -14,6 +14,7 @@ public class AzureStorageManager : MonoBehaviour
     public string accountKey;
     public string container;
     public float delayBetweenCalls;
+    public string reportURL;
     // Start is called before the first frame update
     void Start()
     {
@@ -46,10 +47,28 @@ public class AzureStorageManager : MonoBehaviour
         if (success)
         {
             Debug.Log($"Video uploaded this is the url {uri}");
+            string ReportDesc = "<b>Video Recorded For:</b>\n";
+            if(ReferenceManager.instance.graphManagers.Count == 0) {
+                ReportDesc = "No Description";
+            }
+            foreach(var item in ReferenceManager.instance.graphManagers)
+            {
+                ReportDesc += item.JointType;
+                if(item.SecondJointType != LightBuzz.AvaSci.Measurements.MeasurementType.None)
+                {
+                    ReportDesc += ", "+item.SecondJointType;
+                }
+                if(ReferenceManager.instance.graphManagers.IndexOf(item) != ReferenceManager.instance.graphManagers.Count - 1)
+                {
+                    ReportDesc += ", ";
+                }
+            }
             ReportRecordBody reportRecordBody = new ReportRecordBody()
             {
                 UserName = GeneralStaticManager.GlobalVar["UserName"],
-                VideoURL = uri
+                VideoURL = uri,
+                ReportURL = reportURL,
+                ReportDescription = ReportDesc
             };
             string json = JsonConvert.SerializeObject(reportRecordBody);
             APIHandler.instance.Post("UserReport/PostReport", json, onSuccess: (response) =>
@@ -64,6 +83,7 @@ public class AzureStorageManager : MonoBehaviour
                         ReferenceManager.instance.UploadingImage.gameObject.SetActive(false);
                     }
                     ReferenceManager.instance.UploadingImage.transform.GetChild(1).GetComponent<TMP_Text>().text = AzureConnector.Instance.NumberOfVideosUploading.ToString();
+                    PlayerPrefs.SetString("LastVidURL", uri);
                 }
                 if (responseWithNoObject.isError)
                 {
@@ -90,6 +110,7 @@ public class AzureStorageManager : MonoBehaviour
                 }
                 ReferenceManager.instance.UploadingImage.transform.GetChild(1).GetComponent<TMP_Text>().text = AzureConnector.Instance.NumberOfVideosUploading.ToString();
             });
+            
         }
         else
         {
@@ -100,6 +121,7 @@ public class AzureStorageManager : MonoBehaviour
             }
             ReferenceManager.instance.UploadingImage.transform.GetChild(1).GetComponent<TMP_Text>().text = AzureConnector.Instance.NumberOfVideosUploading.ToString();
         }
+        reportURL = "";
     }
 
     private void ListBlobsCallback(bool success, string error, string text)

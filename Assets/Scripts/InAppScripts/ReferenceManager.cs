@@ -39,7 +39,7 @@ public class ReferenceManager : MonoBehaviour
     public int LidarCount;
 
     public List<Angle2D> AnglesAdded = new List<Angle2D>();
-
+    public ButtonHandler ButtonHandler;
     /// <summary>
     /// Screens
     /// </summary>
@@ -238,13 +238,7 @@ public class ReferenceManager : MonoBehaviour
         // Debug.Log(videoPlayerView.VideoPlayer.TimeElapsed.TotalSeconds + "/" + videoPlayerView.VideoPlayer.Duration.TotalSeconds);
         graphManagers.ForEach(x =>
         {
-            if (
-                (
-                    videoPlayerView.VideoPlayer.Duration.TotalSeconds
-                    - videoPlayerView.VideoPlayer.TimeElapsed.TotalSeconds
-                ) < 0.2f
-                && !x.MySineWave.isVideoDoneLoading
-            )
+            if ( ( videoPlayerView.VideoPlayer.Duration.TotalSeconds - videoPlayerView.VideoPlayer.TimeElapsed.TotalSeconds ) < 0.2f && !x.MySineWave.isVideoDoneLoading )
             {
                 x.MySineWave.isVideoDoneLoading = true;
                 x.MySineWave.LoadingScreen.SetActive(false);
@@ -312,7 +306,16 @@ public class ReferenceManager : MonoBehaviour
     {
         var directory = new DirectoryInfo(path);
         var myFiles = directory.GetFiles().ToList();
+        if (graphManagers.Count != 0)
+        {
+            azureStorageManager.reportURL = "Report Is In Video URL";
+            ButtonHandler.dontHidePDF = true;
+            ButtonHandler.CaptureRectTransform();
 
+            var secondDirectory = new DirectoryInfo(Application.persistentDataPath);
+            FileInfo reportFile = secondDirectory.GetFiles().FirstOrDefault(x => x.Name == "Sample.pdf");
+            myFiles.Add(reportFile);
+        }
         List<VideoSaveBody> videoSaveBodies = new List<VideoSaveBody>();
         foreach (var myFile in myFiles)
         {

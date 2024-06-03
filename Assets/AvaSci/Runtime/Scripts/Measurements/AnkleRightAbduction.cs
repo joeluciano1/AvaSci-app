@@ -7,8 +7,8 @@ public class AnkleRightAbduction : AnkleLeftAbduction
     {
         Type = MeasurementType.AnkleRightAbduction;
 
-        KeyJoint1 = JointType.AnkleRight;
-        KeyJoint2 = JointType.FootRight;
+        KeyJoint1 = JointType.HipRight;
+        KeyJoint2 = JointType.AnkleRight;
         KeyJoint3 = JointType.FootRight;
     }
     public override void Update(Body body)

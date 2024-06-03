@@ -39,7 +39,8 @@ public class ButtonHandler : MonoBehaviour
 
     public Canvas MainCanvas;
     public ScrollRect scrollView;
-
+    public bool dontHidePDF;
+    public Toggle GraphPanelButton;
     private void Start()
     {
         ScrollViewFocusFunctions.FocusOnItem(scrollView, ReferenceManager.instance.graphManagers[0].GetComponent<RectTransform>());
@@ -109,8 +110,10 @@ public class ButtonHandler : MonoBehaviour
     {
         if (ReferenceManager.instance.GraphMinimizer.GraphToResize.preferredHeight == 0)
         {
-            ReferenceManager.instance.PopupManager.Show("Not Allowed", "Please maximize the graph first", true);
-            return;
+            GraphPanelButton.onValueChanged.Invoke(true);
+
+            //ReferenceManager.instance.PopupManager.Show("Not Allowed", "Please maximize the graph first", true);
+            //return;
         }
 
 
@@ -244,9 +247,11 @@ public class ButtonHandler : MonoBehaviour
 
         File.WriteAllBytes(path, stream.ToArray());
         await Task.Delay(1000);
+        if (!dontHidePDF)
+        {
 #if UNITY_EDITOR
-        System.Diagnostics.Process.Start(path);
-        Debug.Log("Is Editor");
+            System.Diagnostics.Process.Start(path);
+            Debug.Log("Is Editor");
 
 #else
 
@@ -255,6 +260,8 @@ public class ButtonHandler : MonoBehaviour
         Debug.Log("Persistance = " + path);
         GeneralStaticManager.OpenFile(path);
 #endif
+        }
+        dontHidePDF = false;
         ReferenceManager.instance.LoadingManager.Hide();
     }
     Texture2D Resize(Texture2D texture2D, int targetX, int targetY)
