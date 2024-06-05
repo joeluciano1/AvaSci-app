@@ -4,17 +4,15 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using DG.Tweening.Plugins.Core.PathCore;
 using LightBuzz.AvaSci;
 using LightBuzz.AvaSci.UI;
 using LightBuzz.BodyTracking;
 using Newtonsoft.Json;
 using TMPro;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Networking;
 using UnityEngine.UI;
-
+using DG.Tweening;
 public class UserReportController : MonoBehaviour
 {
     public UserReportFromDB userReportFromDBPrefab;
@@ -40,6 +38,7 @@ public class UserReportController : MonoBehaviour
             UserID = GeneralStaticManager.GlobalVar["UserID"]
         };
         string json = JsonConvert.SerializeObject(getReportsBody);
+        Transform itemToSnapTo = null;
         APIHandler.instance.Post("UserReport/GetReports", json, onSuccess: (response) =>
         {
             UserReportResponse userReportResponse = JsonConvert.DeserializeObject<UserReportResponse>(response);
@@ -54,7 +53,7 @@ public class UserReportController : MonoBehaviour
                         {
                             user.WatchBtn.onClick.RemoveAllListeners();
                             user.WatchBtn.onClick.AddListener(() => StartCoroutine(GetText(user.VideoURL, user.WatchBtn, user)));
-                            user.ButtonText.text = "Download Video";
+                            user.ButtonText.text = "Download";
                         }
                         continue;
                     }
@@ -63,8 +62,10 @@ public class UserReportController : MonoBehaviour
                     userReportFromDB.VideoURL = item.VideoURL;
                     userReportFromDB.gameObject.SetActive(true);
                     userReportFromDB.UserName.text = item.UserName;
-                    userReportFromDB.ReportDescription.text = item.ReportDescription;
+                    if (!string.IsNullOrEmpty(item.ReportDescription))
+                        userReportFromDB.ReportDescription.text = item.ReportDescription;
                     DateTime serverTime;
+                    
                     if (DateTime.TryParseExact(item.CreatedOn, "M/dd/yyyy h:mm:ss tt",
                                    System.Globalization.CultureInfo.InvariantCulture,
                                    System.Globalization.DateTimeStyles.None,
@@ -72,22 +73,34 @@ public class UserReportController : MonoBehaviour
                     {
                         DateTime localTime = ConvertToLocalTime(serverTime);
                         userReportFromDB.CreatedOn.text = localTime.ToString("MM/dd/yyyy h:mm:ss tt");
+                        Debug.Log($"Yes: {item.CreatedOn}");
+                    }
+                    else if(DateTime.TryParseExact(item.CreatedOn, "M/d/yyyy hh:mm:ss tt",
+                                   System.Globalization.CultureInfo.InvariantCulture,
+                                   System.Globalization.DateTimeStyles.None,
+                                   out serverTime))
+                    {
+                        DateTime localTime = ConvertToLocalTime(serverTime);
+                        userReportFromDB.CreatedOn.text = localTime.ToString("MM/dd/yyyy h:mm:ss tt");
+                        Debug.Log($"Yes2: {item.CreatedOn}");
                     }
                     else
                     {
-                    userReportFromDB.CreatedOn.text=item.CreatedOn;
+                        Debug.Log($"No: {item.CreatedOn}");
+                        userReportFromDB.CreatedOn.text = item.CreatedOn;
                     }
-                    
+
                     userReportFromDB.WatchBtn.interactable = true;
                     if (!PlayerPrefs.GetString("LastVidURL").Equals(item.VideoURL))
                     {
                         userReportFromDB.WatchBtn.onClick.AddListener(() => StartCoroutine(GetText(item.VideoURL, userReportFromDB.WatchBtn, userReportFromDB)));
-                        userReportFromDB.ButtonText.text = "Download Video";
+                        userReportFromDB.ButtonText.text = "Download";
                     }
                     else
                     {
                         userReportFromDB.WatchBtn.onClick.RemoveAllListeners();
                         userReportFromDB.ButtonText.text = "Watch";
+                        itemToSnapTo = userReportFromDB.transform;
                         RecentlyPlayedButton = userReportFromDB;
                         userReportFromDB.WatchBtn.onClick.AddListener(() => CreateFileAndView());
                         if (!string.IsNullOrEmpty(item.ReportURL))
@@ -101,6 +114,8 @@ public class UserReportController : MonoBehaviour
 
                     userReportFromDBs.Add(userReportFromDB);
                 }
+                if(itemToSnapTo!=null)
+                SnapToChild(itemToSnapTo);
             }
             if (userReportResponse.isError)
             {
@@ -142,7 +157,7 @@ public class UserReportController : MonoBehaviour
         {
             RecentlyPlayedButton.WatchBtn.onClick.RemoveAllListeners();
             RecentlyPlayedButton.WatchBtn.onClick.AddListener(() => StartCoroutine(GetText(PlayerPrefs.GetString("LastVidURL"), RecentlyPlayedButton.WatchBtn, RecentlyPlayedButton)));
-            RecentlyPlayedButton.ButtonText.text = "Download Video";
+            RecentlyPlayedButton.ButtonText.text = "Download";
             RecentlyPlayedButton.PreviewButton.gameObject.SetActive(false);
         }
         btn.interactable = false;
@@ -345,8 +360,25 @@ public class UserReportController : MonoBehaviour
     {
         // Assuming the server time is in UTC, convert it to local time
         TimeZoneInfo localZone = TimeZoneInfo.Local;
+        
         DateTime localTime = TimeZoneInfo.ConvertTimeFromUtc(serverTime, localZone);
         return localTime;
     }
+    public RectTransform _contentPanel;
+    public ScrollRect _scrollRect;
+    public float offset;
+    private async void SnapToChild(Transform stage)
+    {
+        await Task.Delay(500);
+        Canvas.ForceUpdateCanvases();
+        
+        Vector2 endValue =
+            (Vector2)_scrollRect.transform.InverseTransformPoint(_contentPanel.position) -
+            (Vector2)_scrollRect.transform.InverseTransformPoint(stage.position);
 
+        endValue.x = 0;
+        endValue.y -= offset;
+
+        _contentPanel.DOAnchorPos(endValue,1f);
+    }
 }

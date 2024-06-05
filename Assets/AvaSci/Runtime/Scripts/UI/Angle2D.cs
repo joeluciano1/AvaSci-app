@@ -273,12 +273,18 @@ namespace LightBuzz.AvaSci.UI
                     gameObject.transform.parent = ReferenceManager.instance.LeftSideContents;
                 }
             }
+            if (gameObject.name.Contains("Difference"))
+                Debug.Log("Angle Value " + measurement.Value);
+
             _angle = measurement.Value;
 
             string name = Abbriviations[Enum.GetName(typeof(MeasurementType), measurement.Type)];
             if (!gameObject.name.Contains("Distance"))
             {
-                _displayMessage = $"{measurement.Value:N0}° \n{name}";
+                if (!gameObject.name.Contains("Difference"))
+                    _displayMessage = $"{measurement.Value:N0}° \n{name}";
+                else
+                    _displayMessage = $"{measurement.Value:N1}° \n{name}";
             }
             else
             {

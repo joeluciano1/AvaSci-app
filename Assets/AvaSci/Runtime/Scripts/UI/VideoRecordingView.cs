@@ -15,7 +15,7 @@ namespace LightBuzz.AvaSci.UI
     {
         [Header("Sensor configuration")]
 
-        [SerializeField] private DeviceConfiguration _configuration;
+        [SerializeField] public DeviceConfiguration _configuration;
 
         [Header("Video recording options")]
 
@@ -302,7 +302,12 @@ namespace LightBuzz.AvaSci.UI
             {
                 Sensor.Open();
             });
-
+            if (!string.IsNullOrEmpty(PlayerPrefs.GetString("OptimizationMode")))
+            {
+                int previousOptimizationMode = int.Parse(PlayerPrefs.GetString("OptimizationMode"));
+                Sensor.OptimizationMode = (OptimizationMode)previousOptimizationMode;
+                ReferenceManager.instance.OptimizationModeDropDown.SetValueWithoutNotify(previousOptimizationMode);
+            }
             _loading.SetActive(false);
 
             if (!Sensor.IsOpen)

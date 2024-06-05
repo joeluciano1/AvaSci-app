@@ -40,6 +40,7 @@ public class ReferenceManager : MonoBehaviour
 
     public List<Angle2D> AnglesAdded = new List<Angle2D>();
     public ButtonHandler ButtonHandler;
+    public CommentQuestionnaire commentQuestionnaire;
     /// <summary>
     /// Screens
     /// </summary>
@@ -66,6 +67,7 @@ public class ReferenceManager : MonoBehaviour
     public GameObject IAPPAnel;
     public IAPManager iAPManager;
     public VideoPlayerView videoPlayerView;
+    public VideoRecordingView videoRecordingView;
 
     public Image UploadingImage;
     public Transform UploaderAnimation;
@@ -75,6 +77,7 @@ public class ReferenceManager : MonoBehaviour
     public Transform LeftSideContents;
     public Canvas canvas;
     public Transform LightBuzzPanel;
+    public Dropdown OptimizationModeDropDown;
 
 
     private void Awake()
@@ -263,7 +266,7 @@ public class ReferenceManager : MonoBehaviour
         });
         // }
     }
-
+    
     public void ClearAllGraphs() // we clear the graphs when a new recording is started
     {
         graphManagers.ForEach(x =>
@@ -278,15 +281,7 @@ public class ReferenceManager : MonoBehaviour
     {
         if (videoRecorded)
         {
-            if (!isProduction)
-            {
-                AskToUploadVideo(recorderPath);
-            }
-            else
-            {
-                UploadVideo(recorderPath);
-                videoRecorded = false;
-            }
+            commentQuestionnaire.AskToUpload(recorderPath);
             videoRecorded = false;
         }
     }
@@ -302,7 +297,7 @@ public class ReferenceManager : MonoBehaviour
         );
     }
 
-    public void UploadVideo(string path)
+    public async void UploadVideo(string path)
     {
         var directory = new DirectoryInfo(path);
         var myFiles = directory.GetFiles().ToList();
@@ -311,7 +306,7 @@ public class ReferenceManager : MonoBehaviour
             azureStorageManager.reportURL = "Report Is In Video URL";
             ButtonHandler.dontHidePDF = true;
             ButtonHandler.CaptureRectTransform();
-
+            await Task.Delay(1000);
             var secondDirectory = new DirectoryInfo(Application.persistentDataPath);
             FileInfo reportFile = secondDirectory.GetFiles().FirstOrDefault(x => x.Name == "Sample.pdf");
             myFiles.Add(reportFile);
@@ -339,5 +334,20 @@ public class ReferenceManager : MonoBehaviour
         }
         string json = JsonConvert.SerializeObject(videoSaveBodies);
         azureStorageManager.UploadVideo(json, $"{GeneralStaticManager.GlobalVar["UserName"]}_");
+    }
+
+    public void SetSensor(int value)
+    {
+        if (videoRecordingView.Sensor != null)
+        {
+            videoRecordingView.Sensor.OptimizationMode = (OptimizationMode)value;
+            PlayerPrefs.SetString("OptimizationMode", value.ToString());
+        }
+        else
+        {
+            Debug.Log("Sensor Yet Not Detected");
+            PopupManager.Show("Sensor Not Detected", "In order to change the type of recording kindly go to the recording view of the app");
+        }
+
     }
 }

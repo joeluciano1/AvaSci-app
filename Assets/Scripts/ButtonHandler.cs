@@ -104,14 +104,13 @@ public class ButtonHandler : MonoBehaviour
 
 
 
-    [ContextMenu("TakeScreenShot")]
-
-    public void CaptureRectTransform()
+    
+    public async void CaptureRectTransform()
     {
         if (ReferenceManager.instance.GraphMinimizer.GraphToResize.preferredHeight == 0)
         {
             GraphPanelButton.onValueChanged.Invoke(true);
-
+            await Task.Delay(1000);
             //ReferenceManager.instance.PopupManager.Show("Not Allowed", "Please maximize the graph first", true);
             //return;
         }

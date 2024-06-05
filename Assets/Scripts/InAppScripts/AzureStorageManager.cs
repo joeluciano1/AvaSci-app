@@ -47,21 +47,13 @@ public class AzureStorageManager : MonoBehaviour
         if (success)
         {
             Debug.Log($"Video uploaded this is the url {uri}");
-            string ReportDesc = "<b>Video Recorded For:</b>\n";
-            if(ReferenceManager.instance.graphManagers.Count == 0) {
+            string ReportDesc = "<b>Comment:</b>\n";
+            if(string.IsNullOrEmpty(ReferenceManager.instance.commentQuestionnaire.CommentInputField.text)) {
                 ReportDesc = "No Description";
             }
-            foreach(var item in ReferenceManager.instance.graphManagers)
+            else
             {
-                ReportDesc += item.JointType;
-                if(item.SecondJointType != LightBuzz.AvaSci.Measurements.MeasurementType.None)
-                {
-                    ReportDesc += ", "+item.SecondJointType;
-                }
-                if(ReferenceManager.instance.graphManagers.IndexOf(item) != ReferenceManager.instance.graphManagers.Count - 1)
-                {
-                    ReportDesc += ", ";
-                }
+                ReportDesc += ReferenceManager.instance.commentQuestionnaire.CommentInputField.text;
             }
             ReportRecordBody reportRecordBody = new ReportRecordBody()
             {
