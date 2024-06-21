@@ -1,5 +1,5 @@
-using LightBuzz.BodyTracking;
 using System.Threading.Tasks;
+using LightBuzz.BodyTracking;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
@@ -11,12 +11,20 @@ namespace LightBuzz.AvaSci.UI
     /// </summary>
     public class SettingsView : MonoBehaviour
     {
-        [SerializeField] private GameObject _loading;
-        [SerializeField] private GameObject _scrollView;
+        [SerializeField]
+        private GameObject _loading;
 
-        [SerializeField] private Text _labelSmoothing;
-        [SerializeField] private Text _labelBrightness;
-        [SerializeField] private Text _labelContrast;
+        [SerializeField]
+        private GameObject _scrollView;
+
+        [SerializeField]
+        private Text _labelSmoothing;
+
+        [SerializeField]
+        private Text _labelBrightness;
+
+        [SerializeField]
+        private Text _labelContrast;
 
         /// <summary>
         /// Raised when the sensor type changes.
@@ -146,8 +154,7 @@ namespace LightBuzz.AvaSci.UI
         /// <param name="value">0 for the Webcam sensor type, 1 for the LiDAR sensor type.</param>
         public void OnSensorChange(int value)
         {
-            SensorType sensorType =
-                value == 0 ? SensorType.Webcam : SensorType.LiDAR;
+            SensorType sensorType = value == 0 ? SensorType.Webcam : SensorType.LiDAR;
 
             SensorChanged?.Invoke((int)sensorType);
         }
@@ -182,8 +189,7 @@ namespace LightBuzz.AvaSci.UI
         /// <param name="value">The new smoothing type.</param>
         public void OnSmoothingTypeChange(int value)
         {
-            SmoothingType smoothingType =
-                value == 0 ? SmoothingType.Dynamic : SmoothingType.Legacy;
+            SmoothingType smoothingType = value == 0 ? SmoothingType.Dynamic : SmoothingType.Legacy;
 
             SmoothingTypeChanged?.Invoke((int)smoothingType);
         }

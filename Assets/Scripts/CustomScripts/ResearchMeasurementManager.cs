@@ -1,8 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using DG.Tweening;
+using LightBuzz.AvaSci.Measurements;
 using LightBuzz.BodyTracking;
 using TMPro;
+using Unity.VisualScripting.Dependencies.NCalc;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -42,6 +45,15 @@ public class ResearchMeasurementManager : MonoBehaviour
     bool isStarted;
     public float tollorance;
     public Button TriggerButton;
+    public List<float> footStrikeAtTimes = new List<float>();
+    public UserConsentPanel userConsentPanel;
+
+    [HideInInspector]
+    public bool leftLeg;
+
+    [HideInInspector]
+    public bool rightLeg;
+
     private void Awake()
     {
         instance = this;
@@ -51,10 +63,13 @@ public class ResearchMeasurementManager : MonoBehaviour
     {
         isStarted = true;
         researchProjectCompleteBodyDatas.ForEach(x => x.gameObject.SetActive(true));
+        ReferenceManager.instance.StartTimer();
+        TakeUserConsent();
     }
 
     public void StopReading()
     {
+        ReferenceManager.instance.StopTimer();
         isStarted = false;
         researchProjectCompleteBodyDatas.ForEach(x => x.gameObject.SetActive(false));
     }
@@ -69,7 +84,6 @@ public class ResearchMeasurementManager : MonoBehaviour
         {
             foreach (var item in LightbuzzBody.Joints)
             {
-
                 if (item.Value.TrackingState != TrackingState.Inferred)
                 {
                     TempBodyDataSaver tempBodyDataSaver = new TempBodyDataSaver()
@@ -79,7 +93,17 @@ public class ResearchMeasurementManager : MonoBehaviour
                         Position2D = item.Value.Position2D,
                         Position3D = item.Value.Position3D,
                         trackingState = item.Value.TrackingState,
-                        PointPosition = SkeletonMangerTransform.Find("Skeleton(Clone)")?.Find("Points")?.Find(item.Value.Type.ToString()) == null ? null : SkeletonMangerTransform.Find("Skeleton(Clone)").Find("Points").Find(item.Value.Type.ToString()).transform
+                        PointPosition =
+                            SkeletonMangerTransform
+                                .Find("Skeleton(Clone)")
+                                ?.Find("Points")
+                                ?.Find(item.Value.Type.ToString()) == null
+                                ? null
+                                : SkeletonMangerTransform
+                                    .Find("Skeleton(Clone)")
+                                    .Find("Points")
+                                    .Find(item.Value.Type.ToString())
+                                    .transform
                     };
 
                     var alreadyAdded = tempBodyDataSavers.FirstOrDefault(x =>
@@ -260,17 +284,51 @@ public class ResearchMeasurementManager : MonoBehaviour
         //SetInitialFootPlace();
     }
 
+    public void DetectFootOnGround() { }
 
     public void ClearFootOnGroundPosition()
     {
         footOnGroundPosition = null;
     }
+
     public void SetInitialFootPlace()
     {
+        ResearchProjectCompleteBodyData jointForStrideLengthL = null;
 
-        var jointForStrideLengthL = researchProjectCompleteBodyDatas.FirstOrDefault(x =>
-            x.gameObject.name == JointType.AnkleLeft.ToString()
-        );
+        if (leftLeg)
+        {
+            jointForStrideLengthL = researchProjectCompleteBodyDatas.FirstOrDefault(x =>
+                x.gameObject.name == JointType.AnkleLeft.ToString()
+            );
+            if (
+                !GeneralStaticManager.GraphsReadings.ContainsKey(
+                    MeasurementType.HipAnkleHipKneeLeftAbductionDifference.ToString()
+                )
+            )
+            {
+                ReferenceManager.instance.PopupManager.Show(
+                    "Need Gait Data",
+                    "Please Select gait measures in measurement selector"
+                );
+            }
+        }
+        else
+        {
+            jointForStrideLengthL = researchProjectCompleteBodyDatas.FirstOrDefault(x =>
+                x.gameObject.name == JointType.AnkleRight.ToString()
+            );
+            if (
+                !GeneralStaticManager.GraphsReadings.ContainsKey(
+                    MeasurementType.HipAnkleHipKneeRightAbductionDifference.ToString()
+                )
+            )
+            {
+                ReferenceManager.instance.PopupManager.Show(
+                    "Need Gait Data",
+                    "Please Select gait measures in measurement selector"
+                );
+            }
+        }
 
         if (jointForStrideLengthL == null)
         {
@@ -285,21 +343,85 @@ public class ResearchMeasurementManager : MonoBehaviour
 
         if (footCount == 0)
         {
+            footStrikeAtTimes.Clear();
+            AddTimerReading();
+
             lastFootPosition = jointForStrideLengthL.Position3D;
-            TriggerButton.transform.GetChild(0).GetComponent<TMP_Text>().text = "Measure StrideLength";
+
             footCount += 1;
+            TriggerButton.transform.GetChild(0).GetComponent<TMP_Text>().text =
+                $"Set Step {footCount + 1}";
         }
         else if (footCount > 0)
         {
+            if (footCount != 1)
+            {
+                lastFootPosition = newFootPosition;
+            }
+            AddTimerReading();
             newFootPosition = jointForStrideLengthL.Position3D;
             float distance = Vector3.Distance(newFootPosition, lastFootPosition);
             distance = Mathf.Round(distance * 100.0f) * 0.01f;
             strideLengthNotifier.text = $"Stride Length\n{distance}m";
-            TriggerButton.transform.GetChild(0).GetComponent<TMP_Text>().text = "Set Initial Foot Position";
-            footCount = 0;
+
+            footCount += 1;
+            TriggerButton.transform.GetChild(0).GetComponent<TMP_Text>().text =
+                $"Set Step {footCount + 1}";
         }
+    }
 
+    public void AddTimerReading()
+    {
+        float footstrikesAtTime = 0;
+        if (ReferenceManager.instance.videoPlayerView.gameObject.activeSelf)
+        {
+            footstrikesAtTime = (float)
+                ReferenceManager.instance.videoPlayerView.VideoPlayer.TimeElapsed.TotalSeconds;
+            footStrikeAtTimes.Add(footstrikesAtTime);
+        }
+        else
+        {
+            footstrikesAtTime = ReferenceManager.instance.Timer;
+            footStrikeAtTimes.Add(footstrikesAtTime);
+        }
+        float maxAngle;
+        float maxDistance;
+        if (leftLeg)
+        {
+            maxAngle = GeneralStaticManager
+                .GraphsReadings[MeasurementType.HipAnkleHipKneeLeftAbductionDifference.ToString()]
+                .Max();
+        }
+        else
+        {
+            maxAngle = GeneralStaticManager
+                .GraphsReadings[MeasurementType.HipAnkleHipKneeRightAbductionDifference.ToString()]
+                .Max();
+        }
+        if (leftLeg)
+        {
+            maxDistance = GeneralStaticManager
+                .GraphsReadings[MeasurementType.HipKneeLeftDistance.ToString()]
+                .Max();
+        }
+        else
+        {
+            maxDistance = GeneralStaticManager
+                .GraphsReadings[MeasurementType.HipKneeRightDistance.ToString()]
+                .Max();
+        }
+        ReferenceManager.instance.maxAngleAtFootStrikingTime.Add(footstrikesAtTime, maxAngle);
+        ReferenceManager.instance.maxDistanceAtFootStrikingTime.Add(footstrikesAtTime, maxDistance);
+    }
 
+    public void Reset()
+    {
+        footCount = 0;
+        TriggerButton.transform.GetChild(0).GetComponent<TMP_Text>().text =
+            $"Set Step {footCount + 1}";
+
+        ReferenceManager.instance.maxAngleAtFootStrikingTime.Clear();
+        ReferenceManager.instance.maxDistanceAtFootStrikingTime.Clear();
     }
 
     public void CalculateStepWidthL()
@@ -332,6 +454,40 @@ public class ResearchMeasurementManager : MonoBehaviour
         }
         float stepWidth = Math.Abs(ankleRight.Position3D.x - pelvis.Position3D.x);
         stepwidthRNotifier.text = $"Step Width L:\n{stepWidth}";
+    }
+
+    public void TakeUserConsent()
+    {
+        userConsentPanel.gameObject.SetActive(true);
+    }
+
+    public void OnLeftConsentSelection(bool value)
+    {
+        leftLeg = value;
+        if (value)
+        {
+            userConsentPanel.LeftToggle.image.DOColor(UnityEngine.Color.green, 1f);
+            userConsentPanel.RightToggle.isOn = false;
+            ;
+        }
+        else
+        {
+            userConsentPanel.LeftToggle.image.DOColor(UnityEngine.Color.white, 1f);
+        }
+    }
+
+    public void OnRightConsentSelection(bool value)
+    {
+        rightLeg = value;
+        if (value)
+        {
+            userConsentPanel.RightToggle.image.DOColor(UnityEngine.Color.green, 1f);
+            userConsentPanel.LeftToggle.isOn = false;
+        }
+        else
+        {
+            userConsentPanel.RightToggle.image.DOColor(UnityEngine.Color.white, 1f);
+        }
     }
 }
 

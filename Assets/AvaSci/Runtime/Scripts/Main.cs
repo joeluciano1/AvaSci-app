@@ -14,18 +14,35 @@ namespace LightBuzz.AvaSci
     /// </summary>
     public class Main : MonoBehaviour
     {
-        [SerializeField] private SettingsView _settingsView;
-        [SerializeField] private LightBuzzViewer _viewer;
-        [SerializeField] private AngleManager _angles;
-        [SerializeField] public VideoRecordingView _videoRecorderView;
-        [SerializeField] private VideoPlayerView _videoPlayerView;
-        [SerializeField] private MeasurementSelector _measurementSelector;
+        [SerializeField]
+        private SettingsView _settingsView;
 
-        [SerializeField] private WarningCollection _warnings;
+        [SerializeField]
+        private LightBuzzViewer _viewer;
 
-        [SerializeField] TMPro.TMP_Text _loading;
-        [SerializeField] TMPro.TMP_Text _debug;
-        [SerializeField] TMPro.TMP_Text _version;
+        [SerializeField]
+        private AngleManager _angles;
+
+        [SerializeField]
+        public VideoRecordingView _videoRecorderView;
+
+        [SerializeField]
+        private VideoPlayerView _videoPlayerView;
+
+        [SerializeField]
+        private MeasurementSelector _measurementSelector;
+
+        [SerializeField]
+        private WarningCollection _warnings;
+
+        [SerializeField]
+        TMPro.TMP_Text _loading;
+
+        [SerializeField]
+        TMPro.TMP_Text _debug;
+
+        [SerializeField]
+        TMPro.TMP_Text _version;
 
         private bool _isReady = false;
 
@@ -89,7 +106,9 @@ namespace LightBuzz.AvaSci
             _isReady = ready;
 
             _viewer.gameObject.SetActive(true);
-            _loading.text = _isReady ? string.Empty : "Could not start the specified camera. Check your configuration settings.";
+            _loading.text = _isReady
+                ? string.Empty
+                : "Could not start the specified camera. Check your configuration settings.";
         }
 
         /// <summary>
@@ -238,7 +257,9 @@ namespace LightBuzz.AvaSci
         /// <param name="value">True if the image view fits the screen; false if it covers all the available area.</param>
         public void OnFitImage(bool value)
         {
-            _viewer.Image.AspectMode = value ? AspectRatioFitter.AspectMode.FitInParent : AspectRatioFitter.AspectMode.EnvelopeParent;
+            _viewer.Image.AspectMode = value
+                ? AspectRatioFitter.AspectMode.FitInParent
+                : AspectRatioFitter.AspectMode.EnvelopeParent;
         }
 
         #endregion

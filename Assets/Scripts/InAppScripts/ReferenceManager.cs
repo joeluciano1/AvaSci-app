@@ -41,6 +41,7 @@ public class ReferenceManager : MonoBehaviour
     public List<Angle2D> AnglesAdded = new List<Angle2D>();
     public ButtonHandler ButtonHandler;
     public CommentQuestionnaire commentQuestionnaire;
+
     /// <summary>
     /// Screens
     /// </summary>
@@ -79,6 +80,18 @@ public class ReferenceManager : MonoBehaviour
     public Transform LightBuzzPanel;
     public Dropdown OptimizationModeDropDown;
 
+    public bool isDone;
+    public bool isShowingRecording;
+
+    public MeasurementSelector measurementSelector;
+    public GameObject VideoPlayButton;
+
+    public float Timer;
+    bool timerStarted;
+    Coroutine coroutine;
+
+    public Dictionary<float, float> maxAngleAtFootStrikingTime = new Dictionary<float, float>();
+    public Dictionary<float, float> maxDistanceAtFootStrikingTime = new Dictionary<float, float>();
 
     private void Awake()
     {
@@ -94,12 +107,6 @@ public class ReferenceManager : MonoBehaviour
             DebugButton.SetActive(false);
         }
     }
-
-    public bool isDone;
-    public bool isShowingRecording;
-
-    public MeasurementSelector measurementSelector;
-    public GameObject VideoPlayButton;
 
     public async void SwitchToLidar()
     {
@@ -232,16 +239,23 @@ public class ReferenceManager : MonoBehaviour
 
     public void OnVideoScrolled(float value)
     {
-
         if (value.ToString("0.0") == "0.0")
         {
             if (ResearchMeasurementManager.instance.footOnGroundPosition != null)
-            { ResearchMeasurementManager.instance.ClearFootOnGroundPosition(); }
+            {
+                ResearchMeasurementManager.instance.ClearFootOnGroundPosition();
+            }
         }
         // Debug.Log(videoPlayerView.VideoPlayer.TimeElapsed.TotalSeconds + "/" + videoPlayerView.VideoPlayer.Duration.TotalSeconds);
         graphManagers.ForEach(x =>
         {
-            if ( ( videoPlayerView.VideoPlayer.Duration.TotalSeconds - videoPlayerView.VideoPlayer.TimeElapsed.TotalSeconds ) < 0.2f && !x.MySineWave.isVideoDoneLoading )
+            if (
+                (
+                    videoPlayerView.VideoPlayer.Duration.TotalSeconds
+                    - videoPlayerView.VideoPlayer.TimeElapsed.TotalSeconds
+                ) < 0.2f
+                && !x.MySineWave.isVideoDoneLoading
+            )
             {
                 x.MySineWave.isVideoDoneLoading = true;
                 x.MySineWave.LoadingScreen.SetActive(false);
@@ -266,7 +280,7 @@ public class ReferenceManager : MonoBehaviour
         });
         // }
     }
-    
+
     public void ClearAllGraphs() // we clear the graphs when a new recording is started
     {
         graphManagers.ForEach(x =>
@@ -308,7 +322,9 @@ public class ReferenceManager : MonoBehaviour
             ButtonHandler.CaptureRectTransform();
             await Task.Delay(1000);
             var secondDirectory = new DirectoryInfo(Application.persistentDataPath);
-            FileInfo reportFile = secondDirectory.GetFiles().FirstOrDefault(x => x.Name == "Sample.pdf");
+            FileInfo reportFile = secondDirectory
+                .GetFiles()
+                .FirstOrDefault(x => x.Name == "Sample.pdf");
             myFiles.Add(reportFile);
         }
         List<VideoSaveBody> videoSaveBodies = new List<VideoSaveBody>();
@@ -346,8 +362,32 @@ public class ReferenceManager : MonoBehaviour
         else
         {
             Debug.Log("Sensor Yet Not Detected");
-            PopupManager.Show("Sensor Not Detected", "In order to change the type of recording kindly go to the recording view of the app");
+            PopupManager.Show(
+                "Sensor Not Detected",
+                "In order to change the type of recording kindly go to the recording view of the app"
+            );
         }
+    }
 
+    public void StartTimer()
+    {
+        timerStarted = true;
+        Timer = 0;
+        coroutine = StartCoroutine(TimerTick());
+    }
+
+    IEnumerator TimerTick()
+    {
+        while (timerStarted)
+        {
+            yield return new WaitForSeconds(1);
+            Timer += 1;
+        }
+    }
+
+    public void StopTimer()
+    {
+        timerStarted = false;
+        StopCoroutine(coroutine);
     }
 }
