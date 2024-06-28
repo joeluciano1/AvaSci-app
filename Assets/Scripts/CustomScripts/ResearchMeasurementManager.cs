@@ -310,6 +310,7 @@ public class ResearchMeasurementManager : MonoBehaviour
                     "Need Gait Data",
                     "Please Select gait measures in measurement selector"
                 );
+                return;
             }
         }
         else
@@ -327,6 +328,7 @@ public class ResearchMeasurementManager : MonoBehaviour
                     "Need Gait Data",
                     "Please Select gait measures in measurement selector"
                 );
+                return;
             }
         }
 

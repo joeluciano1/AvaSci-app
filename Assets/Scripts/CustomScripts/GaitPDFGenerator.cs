@@ -4,6 +4,8 @@ using System.Data;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
+using Nrjwolf.Tools;
 using Syncfusion.Drawing;
 using Syncfusion.Pdf;
 using Syncfusion.Pdf.Graphics;
@@ -80,5 +82,61 @@ public class GaitPDFGenerator : MonoBehaviour
         Debug.Log("Persistance = " + path);
         GeneralStaticManager.OpenFile(path);
 #endif
+    }
+
+    public void UploadResults()
+    {
+        for (int i = 0; i < ReferenceManager.instance.maxAngleAtFootStrikingTime.Count; i++)
+        {
+            CreateGaitReportBody body = new CreateGaitReportBody()
+            {
+                Subject = GeneralStaticManager.GlobalVar["UserName"],
+                FootStrikeAtTime = ReferenceManager
+                    .instance.maxAngleAtFootStrikingTime.ElementAt(i)
+                    .Key,
+                MaxAngleDifference = ReferenceManager
+                    .instance.maxAngleAtFootStrikingTime.ElementAt(i)
+                    .Value,
+                MaxmmDistance = ReferenceManager
+                    .instance.maxDistanceAtFootStrikingTime.ElementAt(i)
+                    .Value,
+                SelectedLeg = ResearchMeasurementManager.instance.leftLeg ? "Left Leg" : "Right Leg"
+            };
+            string json = JsonConvert.SerializeObject(body);
+            APIHandler.instance.Post(
+                "UserReport/PostGaitReport",
+                json,
+                onSuccess: (response) =>
+                {
+                    ResponseWithNoObject responseWithNoObject =
+                        JsonConvert.DeserializeObject<ResponseWithNoObject>(response);
+                    if (responseWithNoObject.isSuccess)
+                    {
+                        ReferenceManager.instance.PopupManager.Show(
+                            "Success",
+                            "Your Report has been uploaded successfully"
+                        );
+                    }
+                    if (responseWithNoObject.isError)
+                    {
+                        string reasons = "";
+                        foreach (var item in responseWithNoObject.serviceErrors)
+                        {
+                            reasons += $"\n {item.code} {item.description}";
+                        }
+                        IOSNativeAlert.ShowAlertMessage(
+                            "Signin Failed!",
+                            $"Reasons are: {reasons}"
+                        );
+                        Debug.Log($"{responseWithNoObject.serviceErrors}");
+                    }
+                },
+                onError: (error) =>
+                {
+                    IOSNativeAlert.ShowAlertMessage("Signin Failed!", $"Reasons are: {error}");
+                    Debug.LogError($"Error: {error}");
+                }
+            );
+        }
     }
 }

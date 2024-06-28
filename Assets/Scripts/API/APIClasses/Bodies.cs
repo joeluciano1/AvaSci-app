@@ -2,10 +2,8 @@ using System;
 using System.Collections.Generic;
 using LightBuzz.BodyTracking;
 
-public class Bodies
-{
+public class Bodies { }
 
-}
 public class SignupBody
 {
     public string email { get; set; }
@@ -95,4 +93,13 @@ public class DeleteAccountBody
 public class GetReportsBody
 {
     public string UserID { get; set; }
+}
+
+public class CreateGaitReportBody
+{
+    public string Subject { get; set; }
+    public float FootStrikeAtTime { get; set; }
+    public float MaxAngleDifference { get; set; }
+    public float MaxmmDistance { get; set; }
+    public string SelectedLeg { get; set; }
 }
