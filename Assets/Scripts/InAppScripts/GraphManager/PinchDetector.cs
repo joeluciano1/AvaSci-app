@@ -43,19 +43,23 @@ public class PinchDetector : MonoBehaviour
                 float scaleFactor = currentDistance / initialDistance;
 
                 // Apply the scale factor to the object's initial scale
-                transform.localScale = initialScale * scaleFactor;
-
+                // transform.localScale = initialScale * scaleFactor;
+                Vector3 midPoint = (touch1.position + touch2.position) / 2;
                 // Determine if the gesture is pinch in or pinch out
                 if (scaleFactor > 1)
                 {
                     Debug.Log("Pinch Out");
 
+                    graphChart.HorizontalScrolling = midPoint.x;
+                    graphChart.VerticalScrolling = midPoint.y;
                     graphChart.DataSource.HorizontalViewSize -= 0.25f;
                     graphChart.DataSource.VerticalViewSize -= 0.25f;
                 }
                 else if (scaleFactor < 1)
                 {
                     Debug.Log("Pinch In");
+                    graphChart.HorizontalScrolling = midPoint.x;
+                    graphChart.VerticalScrolling = midPoint.y;
                     graphChart.DataSource.HorizontalViewSize += 0.25f;
                     graphChart.DataSource.VerticalViewSize += 0.25f;
                 }

@@ -142,14 +142,17 @@ namespace LightBuzz.AvaSci.UI
                 jName = values[0].Substring(0, 3);
                 if (item.Contains("Difference"))
                 {
-                    jName = values[0] + values[1]+"\n/"+ values[2] + values[3] + " Abd";
+                    jName = values[0] + values[1] + "\n/" + values[2] + values[3] + " Abd";
                 }
-                
+                else if (item.Contains("Distance"))
+                {
+                    jName = values[1];
+                }
+
                 jType = values.Last().Substring(0, 3);
                 string abbs = $"{direction} {jName} {jType}";
                 Abbriviations.Add(item, abbs);
             }
-
         }
 
         private static string SplitAccordingToCapital(string item)
