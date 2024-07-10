@@ -85,13 +85,16 @@ public class ReferenceManager : MonoBehaviour
 
     public MeasurementSelector measurementSelector;
     public GameObject VideoPlayButton;
-
+    public PlayButton LightBuzzVideoPlayerButton;
     public float Timer;
     bool timerStarted;
     Coroutine coroutine;
 
     public Dictionary<float, float> maxAngleAtFootStrikingTime = new Dictionary<float, float>();
     public Dictionary<float, float> maxDistanceAtFootStrikingTime = new Dictionary<float, float>();
+
+    public Dictionary<float, float> AngleAtFootStrikingTime = new Dictionary<float, float>();
+    public Dictionary<float, float> DistanceAtFootStrikingTime = new Dictionary<float, float>();
 
     private void Awake()
     {
@@ -389,5 +392,18 @@ public class ReferenceManager : MonoBehaviour
     {
         timerStarted = false;
         StopCoroutine(coroutine);
+    }
+
+    [ContextMenu("PauseVid")]
+    public void PauseTheVideo()
+    {
+        if (videoPlayerView.VideoPlayer.IsPlaying)
+            LightBuzzVideoPlayerButton.onClick.Invoke();
+    }
+
+    public void PlayTheVideo()
+    {
+        if (videoPlayerView.VideoPlayer.IsPaused)
+            LightBuzzVideoPlayerButton.onClick.Invoke();
     }
 }

@@ -17,4 +17,5 @@ public static class StringConstants
     /// </summary>
     public const string LOGINEMAIL = "LoginEmail";
     public const string LOGINPASSWORD = "LoginPass";
+    public const float ANIMATIONTIME = 0.5f;
 }

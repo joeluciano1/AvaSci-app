@@ -99,6 +99,8 @@ public class CreateGaitReportBody
 {
     public string Subject { get; set; }
     public float FootStrikeAtTime { get; set; }
+    public float AngleDifferenceAtTime { get; set; }
+    public float MMDistaceAtTime { get; set; }
     public float MaxAngleDifference { get; set; }
     public float MaxmmDistance { get; set; }
     public string SelectedLeg { get; set; }

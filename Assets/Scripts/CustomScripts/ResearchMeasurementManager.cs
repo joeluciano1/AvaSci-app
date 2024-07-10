@@ -388,32 +388,55 @@ public class ResearchMeasurementManager : MonoBehaviour
         }
         float maxAngle;
         float maxDistance;
+        float currentAngle;
+        float curreentDistance;
         if (leftLeg)
         {
             maxAngle = GeneralStaticManager
                 .GraphsReadings[MeasurementType.HipAnkleHipKneeLeftAbductionDifference.ToString()]
                 .Max();
+
+            currentAngle = GeneralStaticManager
+                .GraphsReadings[MeasurementType.HipAnkleHipKneeLeftAbductionDifference.ToString()]
+                .Last();
         }
         else
         {
             maxAngle = GeneralStaticManager
                 .GraphsReadings[MeasurementType.HipAnkleHipKneeRightAbductionDifference.ToString()]
                 .Max();
+
+            currentAngle = GeneralStaticManager
+                .GraphsReadings[MeasurementType.HipAnkleHipKneeRightAbductionDifference.ToString()]
+                .Last();
         }
         if (leftLeg)
         {
             maxDistance = GeneralStaticManager
                 .GraphsReadings[MeasurementType.HipKneeLeftDistance.ToString()]
                 .Max();
+
+            curreentDistance = GeneralStaticManager
+                .GraphsReadings[MeasurementType.HipKneeLeftDistance.ToString()]
+                .Last();
         }
         else
         {
             maxDistance = GeneralStaticManager
                 .GraphsReadings[MeasurementType.HipKneeRightDistance.ToString()]
                 .Max();
+
+            curreentDistance = GeneralStaticManager
+                .GraphsReadings[MeasurementType.HipKneeRightDistance.ToString()]
+                .Last();
         }
         ReferenceManager.instance.maxAngleAtFootStrikingTime.Add(footstrikesAtTime, maxAngle);
         ReferenceManager.instance.maxDistanceAtFootStrikingTime.Add(footstrikesAtTime, maxDistance);
+        ReferenceManager.instance.AngleAtFootStrikingTime.Add(footstrikesAtTime, currentAngle);
+        ReferenceManager.instance.DistanceAtFootStrikingTime.Add(
+            footstrikesAtTime,
+            curreentDistance
+        );
     }
 
     public void Reset()

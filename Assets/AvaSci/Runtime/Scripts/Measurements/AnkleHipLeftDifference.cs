@@ -35,7 +35,7 @@ public class AnkleHipLeftDifference : Measurement
         Vector3D foot3D = foot.Position3D;
 
         float angleAnkleABD = Calculations.Rotation(hip3D, ankle3D, Plane.Sagittal);
-        UnityEngine.Debug.Log("AngleValue "+angleAnkleABD);
+        // UnityEngine.Debug.Log("AngleValue "+angleAnkleABD);
         if (ankle3D.Y < hip3D.Y)
         {
             angleAnkleABD = 180.0f - angleAnkleABD;

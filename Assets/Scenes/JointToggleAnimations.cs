@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using DG.Tweening;
 using UnityEngine;
 using UnityEngine.UI;
+
 public class JointToggleAnimations : MonoBehaviour
 {
     float InitialYScale;
@@ -24,18 +25,28 @@ public class JointToggleAnimations : MonoBehaviour
     {
         if (value)
         {
-            ParentToggleRect.DOSizeDelta(new Vector2(ParentToggleRect.rect.width, ExpandedYScale), 1).OnComplete(() =>
-            ToggleChilds.ForEach(x =>
-            {
-                x.SetActive(true);
-                x.GetComponent<Toggle>().isOn = true;
-            }));
+            ParentToggleRect
+                .DOSizeDelta(
+                    new Vector2(ParentToggleRect.rect.width, ExpandedYScale),
+                    StringConstants.ANIMATIONTIME
+                )
+                .OnComplete(
+                    () =>
+                        ToggleChilds.ForEach(x =>
+                        {
+                            x.SetActive(true);
+                            x.GetComponent<Toggle>().isOn = true;
+                        })
+                );
 
             Content.sizeDelta += new Vector2(0, scaleDifference);
         }
         else
         {
-            ParentToggleRect.DOSizeDelta(new Vector2(ParentToggleRect.rect.width, InitialYScale), 1);
+            ParentToggleRect.DOSizeDelta(
+                new Vector2(ParentToggleRect.rect.width, InitialYScale),
+                StringConstants.ANIMATIONTIME
+            );
             ToggleChilds.ForEach(x =>
             {
                 x.SetActive(false);

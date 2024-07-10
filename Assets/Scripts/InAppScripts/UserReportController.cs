@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using DG.Tweening;
 using LightBuzz.AvaSci;
 using LightBuzz.AvaSci.UI;
 using LightBuzz.BodyTracking;
@@ -12,7 +13,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.Networking;
 using UnityEngine.UI;
-using DG.Tweening;
+
 public class UserReportController : MonoBehaviour
 {
     public UserReportFromDB userReportFromDBPrefab;
@@ -29,7 +30,7 @@ public class UserReportController : MonoBehaviour
     public VideoRecordingView videoRecorderView;
 
     UserReportFromDB RecentlyPlayedButton;
-    
+
     // Start is called before the first frame update
     public void Start()
     {
@@ -39,101 +40,151 @@ public class UserReportController : MonoBehaviour
         };
         string json = JsonConvert.SerializeObject(getReportsBody);
         Transform itemToSnapTo = null;
-        APIHandler.instance.Post("UserReport/GetReports", json, onSuccess: (response) =>
-        {
-            UserReportResponse userReportResponse = JsonConvert.DeserializeObject<UserReportResponse>(response);
-            if (userReportResponse.isSuccess)
+        APIHandler.instance.Post(
+            "UserReport/GetReports",
+            json,
+            onSuccess: (response) =>
             {
-                foreach (var item in userReportResponse.result)
+                UserReportResponse userReportResponse =
+                    JsonConvert.DeserializeObject<UserReportResponse>(response);
+                if (userReportResponse.isSuccess)
                 {
-                    var user = userReportFromDBs.FirstOrDefault(x => x.VideoURL == item.VideoURL);
-                    if (user != null)
+                    foreach (var item in userReportResponse.result)
                     {
-                        if (!PlayerPrefs.GetString("LastVidURL").Equals(user.VideoURL))
+                        var user = userReportFromDBs.FirstOrDefault(x =>
+                            x.VideoURL == item.VideoURL
+                        );
+                        if (user != null)
                         {
-                            user.WatchBtn.onClick.RemoveAllListeners();
-                            user.WatchBtn.onClick.AddListener(() => StartCoroutine(GetText(user.VideoURL, user.WatchBtn, user)));
-                            user.ButtonText.text = "Download";
+                            if (!PlayerPrefs.GetString("LastVidURL").Equals(user.VideoURL))
+                            {
+                                user.WatchBtn.onClick.RemoveAllListeners();
+                                user.WatchBtn.onClick.AddListener(
+                                    () =>
+                                        StartCoroutine(GetText(user.VideoURL, user.WatchBtn, user))
+                                );
+                                user.ButtonText.text = "Download";
+                            }
+                            continue;
                         }
-                        continue;
-                    }
-                    UserReportFromDB userReportFromDB = Instantiate(userReportFromDBPrefab, userReportFromDBPrefab.transform.parent);
-                    userReportFromDB.UserId = item.UserID;
-                    userReportFromDB.VideoURL = item.VideoURL;
-                    userReportFromDB.gameObject.SetActive(true);
-                    userReportFromDB.UserName.text = item.UserName;
-                    if (!string.IsNullOrEmpty(item.ReportDescription))
-                        userReportFromDB.ReportDescription.text = item.ReportDescription;
-                    DateTime serverTime;
-                    
-                    if (DateTime.TryParseExact(item.CreatedOn, "M/dd/yyyy h:mm:ss tt",
-                                   System.Globalization.CultureInfo.InvariantCulture,
-                                   System.Globalization.DateTimeStyles.None,
-                                   out serverTime))
-                    {
-                        DateTime localTime = ConvertToLocalTime(serverTime);
-                        userReportFromDB.CreatedOn.text = localTime.ToString("MM/dd/yyyy h:mm:ss tt");
-                        Debug.Log($"Yes: {item.CreatedOn}");
-                    }
-                    else if(DateTime.TryParseExact(item.CreatedOn, "M/d/yyyy hh:mm:ss tt",
-                                   System.Globalization.CultureInfo.InvariantCulture,
-                                   System.Globalization.DateTimeStyles.None,
-                                   out serverTime))
-                    {
-                        DateTime localTime = ConvertToLocalTime(serverTime);
-                        userReportFromDB.CreatedOn.text = localTime.ToString("MM/dd/yyyy h:mm:ss tt");
-                        Debug.Log($"Yes2: {item.CreatedOn}");
-                    }
-                    else
-                    {
-                        Debug.Log($"No: {item.CreatedOn}");
-                        userReportFromDB.CreatedOn.text = item.CreatedOn;
-                    }
+                        UserReportFromDB userReportFromDB = Instantiate(
+                            userReportFromDBPrefab,
+                            userReportFromDBPrefab.transform.parent
+                        );
+                        userReportFromDB.UserId = item.UserID;
+                        userReportFromDB.VideoURL = item.VideoURL;
+                        userReportFromDB.gameObject.SetActive(true);
+                        userReportFromDB.UserName.text = item.UserName;
+                        if (!string.IsNullOrEmpty(item.ReportDescription))
+                            userReportFromDB.ReportDescription.text = item.ReportDescription;
+                        DateTime serverTime;
 
-                    userReportFromDB.WatchBtn.interactable = true;
-                    if (!PlayerPrefs.GetString("LastVidURL").Equals(item.VideoURL))
-                    {
-                        userReportFromDB.WatchBtn.onClick.AddListener(() => StartCoroutine(GetText(item.VideoURL, userReportFromDB.WatchBtn, userReportFromDB)));
-                        userReportFromDB.ButtonText.text = "Download";
-                    }
-                    else
-                    {
-                        userReportFromDB.WatchBtn.onClick.RemoveAllListeners();
-                        userReportFromDB.ButtonText.text = "Watch";
-                        itemToSnapTo = userReportFromDB.transform;
-                        RecentlyPlayedButton = userReportFromDB;
-                        userReportFromDB.WatchBtn.onClick.AddListener(() => CreateFileAndView());
-                        if (!string.IsNullOrEmpty(item.ReportURL))
+                        if (
+                            DateTime.TryParseExact(
+                                item.CreatedOn,
+                                "M/dd/yyyy h:mm:ss tt",
+                                System.Globalization.CultureInfo.InvariantCulture,
+                                System.Globalization.DateTimeStyles.None,
+                                out serverTime
+                            )
+                        )
                         {
-                            userReportFromDB.PreviewButton.interactable = true;
-                            userReportFromDB.PreviewButton.gameObject.SetActive(true);
-                            userReportFromDB.PreviewButton.transform.GetChild(0).GetComponent<TMP_Text>().text = "View Report";
-                            userReportFromDB.PreviewButton.onClick.AddListener(() => CreateReportAndView());
+                            DateTime localTime = ConvertToLocalTime(serverTime);
+                            userReportFromDB.CreatedOn.text = localTime.ToString(
+                                "MM/dd/yyyy h:mm:ss tt"
+                            );
+                            // Debug.Log($"Yes: {item.CreatedOn}");
                         }
-                    }
+                        else if (
+                            DateTime.TryParseExact(
+                                item.CreatedOn,
+                                "M/d/yyyy hh:mm:ss tt",
+                                System.Globalization.CultureInfo.InvariantCulture,
+                                System.Globalization.DateTimeStyles.None,
+                                out serverTime
+                            )
+                        )
+                        {
+                            DateTime localTime = ConvertToLocalTime(serverTime);
+                            userReportFromDB.CreatedOn.text = localTime.ToString(
+                                "MM/dd/yyyy h:mm:ss tt"
+                            );
+                            Debug.Log($"Yes2: {item.CreatedOn}");
+                        }
+                        else
+                        {
+                            Debug.Log($"No: {item.CreatedOn}");
+                            userReportFromDB.CreatedOn.text = item.CreatedOn;
+                        }
 
-                    userReportFromDBs.Add(userReportFromDB);
+                        userReportFromDB.WatchBtn.interactable = true;
+                        if (!PlayerPrefs.GetString("LastVidURL").Equals(item.VideoURL))
+                        {
+                            userReportFromDB.WatchBtn.onClick.AddListener(
+                                () =>
+                                    StartCoroutine(
+                                        GetText(
+                                            item.VideoURL,
+                                            userReportFromDB.WatchBtn,
+                                            userReportFromDB
+                                        )
+                                    )
+                            );
+                            userReportFromDB.ButtonText.text = "Download";
+                        }
+                        else
+                        {
+                            userReportFromDB.WatchBtn.onClick.RemoveAllListeners();
+                            userReportFromDB.ButtonText.text = "Watch";
+                            itemToSnapTo = userReportFromDB.transform;
+                            RecentlyPlayedButton = userReportFromDB;
+                            userReportFromDB.WatchBtn.onClick.AddListener(
+                                () => CreateFileAndView(null, "", userReportFromDB.UserName.text)
+                            );
+                            if (!string.IsNullOrEmpty(item.ReportURL))
+                            {
+                                userReportFromDB.PreviewButton.interactable = true;
+                                userReportFromDB.PreviewButton.gameObject.SetActive(true);
+                                userReportFromDB
+                                    .PreviewButton.transform.GetChild(0)
+                                    .GetComponent<TMP_Text>()
+                                    .text = "View Report";
+                                userReportFromDB.PreviewButton.onClick.AddListener(
+                                    () => CreateReportAndView()
+                                );
+                            }
+                        }
+
+                        userReportFromDBs.Add(userReportFromDB);
+                    }
+                    if (itemToSnapTo != null)
+                        SnapToChild(itemToSnapTo);
                 }
-                if(itemToSnapTo!=null)
-                SnapToChild(itemToSnapTo);
-            }
-            if (userReportResponse.isError)
+                if (userReportResponse.isError)
+                {
+                    string reasons = "";
+                    foreach (var item in userReportResponse.serviceErrors)
+                    {
+                        reasons += $"\n {item.code} {item.description}";
+                    }
+                    ReferenceManager.instance.PopupManager.Show(
+                        "Fetching Users Failed!",
+                        $"Reasons are: {reasons}"
+                    );
+                    Debug.Log($"{userReportResponse.serviceErrors}");
+                }
+            },
+            onError: (error) =>
             {
-                string reasons = "";
-                foreach (var item in userReportResponse.serviceErrors)
-                {
-                    reasons += $"\n {item.code} {item.description}";
-                }
-                ReferenceManager.instance.PopupManager.Show("Fetching Users Failed!", $"Reasons are: {reasons}");
-                Debug.Log($"{userReportResponse.serviceErrors}");
+                ReferenceManager.instance.PopupManager.Show(
+                    "Fetching Users Failed!",
+                    $"Reasons are: {error}"
+                );
+                Debug.LogError($"Error: {error}");
             }
-
-        }, onError: (error) =>
-        {
-            ReferenceManager.instance.PopupManager.Show("Fetching Users Failed!", $"Reasons are: {error}");
-            Debug.LogError($"Error: {error}");
-        });
+        );
     }
+
     public void CreateNew()
     {
         if (videoPlayerView.gameObject.activeSelf)
@@ -141,22 +192,38 @@ public class UserReportController : MonoBehaviour
             videoPlayerView.OnClose();
         }
         RecorderView.gameObject.SetActive(false);
+        if (!GeneralStaticManager.GlobalVar.ContainsKey("Subject"))
+            GeneralStaticManager.GlobalVar.Add("Subject", "");
+        else
+            GeneralStaticManager.GlobalVar["Subject"] = "";
         LightBuzzViewer.SetActive(false);
         Start();
     }
+
     public void ReallyCreateNew()
     {
         ReferenceManager.instance.isShowingRecording = false;
         videoRecorderView.Show();
     }
+
     List<UnityWebRequest> requests = new List<UnityWebRequest>();
     float progress;
+
     IEnumerator GetText(string url, Button btn, UserReportFromDB userReportFromDB)
     {
         if (RecentlyPlayedButton != null)
         {
             RecentlyPlayedButton.WatchBtn.onClick.RemoveAllListeners();
-            RecentlyPlayedButton.WatchBtn.onClick.AddListener(() => StartCoroutine(GetText(PlayerPrefs.GetString("LastVidURL"), RecentlyPlayedButton.WatchBtn, RecentlyPlayedButton)));
+            RecentlyPlayedButton.WatchBtn.onClick.AddListener(
+                () =>
+                    StartCoroutine(
+                        GetText(
+                            PlayerPrefs.GetString("LastVidURL"),
+                            RecentlyPlayedButton.WatchBtn,
+                            RecentlyPlayedButton
+                        )
+                    )
+            );
             RecentlyPlayedButton.ButtonText.text = "Download";
             RecentlyPlayedButton.PreviewButton.gameObject.SetActive(false);
         }
@@ -181,19 +248,27 @@ public class UserReportController : MonoBehaviour
         }
         else
         {
-            List<VideoSaveBody> videoSaveBodies = JsonConvert.DeserializeObject<List<VideoSaveBody>>(request.downloadHandler.text);
+            List<VideoSaveBody> videoSaveBodies = JsonConvert.DeserializeObject<
+                List<VideoSaveBody>
+            >(request.downloadHandler.text);
             var reportFile = videoSaveBodies.FirstOrDefault(x => x.FileName.Equals("Sample.pdf"));
             btn.onClick.RemoveAllListeners();
-            btn.onClick.AddListener(() => CreateFileAndView(videoSaveBodies, url));
+            btn.onClick.AddListener(
+                () => CreateFileAndView(videoSaveBodies, url, userReportFromDB.UserName.text)
+            );
             btn.interactable = true;
             userReportFromDB.ProgressImage.gameObject.SetActive(false);
             userReportFromDB.ButtonText.text = $"Watch";
-            if (reportFile != null) {
+            if (reportFile != null)
+            {
                 userReportFromDB.PreviewButton.onClick.RemoveAllListeners();
                 userReportFromDB.PreviewButton.interactable = true;
                 userReportFromDB.PreviewButton.gameObject.SetActive(true);
-                userReportFromDB.PreviewButton.transform.GetChild(0).GetComponent<TMP_Text>().text = "View Report";
-                userReportFromDB.PreviewButton.onClick.AddListener(() => CreateReportAndView(reportFile));
+                userReportFromDB.PreviewButton.transform.GetChild(0).GetComponent<TMP_Text>().text =
+                    "View Report";
+                userReportFromDB.PreviewButton.onClick.AddListener(
+                    () => CreateReportAndView(reportFile)
+                );
             }
             if (userReportFromDB.request.downloadProgress == 0)
             {
@@ -209,9 +284,8 @@ public class UserReportController : MonoBehaviour
             // Or retrieve results as binary data
             // byte[] results = www.downloadHandler.data;
         }
-
-
     }
+
     public void SearchUser(string name)
     {
         if (string.IsNullOrEmpty(name))
@@ -221,13 +295,16 @@ public class UserReportController : MonoBehaviour
         else
         {
             userReportFromDBs.ForEach(x => x.gameObject.SetActive(false));
-            var matchingNames = userReportFromDBs.Where(x => x.UserName.text.Contains(name, StringComparison.OrdinalIgnoreCase)).ToList();
+            var matchingNames = userReportFromDBs
+                .Where(x => x.UserName.text.Contains(name, StringComparison.OrdinalIgnoreCase))
+                .ToList();
             foreach (var item in matchingNames)
             {
                 item.gameObject.SetActive(true);
             }
         }
     }
+
     private void LateUpdate()
     {
         foreach (var item in userReportFromDBs)
@@ -251,10 +328,11 @@ public class UserReportController : MonoBehaviour
                     }
                 }
             }
-
         }
     }
-    public async void CreateReportAndView(VideoSaveBody videoSaveBody = null) {
+
+    public async void CreateReportAndView(VideoSaveBody videoSaveBody = null)
+    {
         string path1 = Application.persistentDataPath;
         string path = System.IO.Path.Combine(Application.persistentDataPath, "Sample.pdf");
         ReferenceManager.instance.isShowingRecording = true;
@@ -275,13 +353,22 @@ public class UserReportController : MonoBehaviour
 #else
 
         string url = "file://" + path.Replace(" ", "%20");
-        Debug.Log("URL = "+ url);
+        Debug.Log("URL = " + url);
         Debug.Log("Persistance = " + path);
         GeneralStaticManager.OpenFile(path);
 #endif
     }
-    public async void CreateFileAndView(List<VideoSaveBody> videoSaveBodies = null, string url = "")
+
+    public async void CreateFileAndView(
+        List<VideoSaveBody> videoSaveBodies = null,
+        string url = "",
+        string username = ""
+    )
     {
+        if (!GeneralStaticManager.GlobalVar.ContainsKey("Subject"))
+            GeneralStaticManager.GlobalVar.Add("Subject", username);
+        else
+            GeneralStaticManager.GlobalVar["Subject"] = username;
         string path1 = System.IO.Path.Combine(Application.persistentDataPath, "Video");
         ReferenceManager.instance.isShowingRecording = true;
         if (!string.IsNullOrEmpty(url))
@@ -304,15 +391,17 @@ public class UserReportController : MonoBehaviour
                 string fileName = item.FileName;
                 string fileData = item.FileData;
 
-                string path = System.IO.Path.Combine(Application.persistentDataPath, "Video", fileName);
+                string path = System.IO.Path.Combine(
+                    Application.persistentDataPath,
+                    "Video",
+                    fileName
+                );
                 byte[] bytes = System.Convert.FromBase64String(fileData);
                 File.WriteAllBytes(path, bytes);
-
-
             }
 
             var filePaths = Directory.GetFiles(path1);
-            while (filePaths.Length < videoSaveBodies.Count-1)
+            while (filePaths.Length < videoSaveBodies.Count - 1)
             {
                 await Task.Delay(500);
             }
@@ -327,12 +416,11 @@ public class UserReportController : MonoBehaviour
         }
         await Task.Delay(1000);
 
-
         videoPlayerView.Options.Path = path1;
         LighbuzzMain._videoRecorderView._videoPath = path1;
         LighbuzzMain.OnRecordingCompleted();
-
     }
+
     public static byte[] ReadFully(Stream input)
     {
         byte[] buffer = new byte[16 * 1024];
@@ -346,13 +434,18 @@ public class UserReportController : MonoBehaviour
             return ms.ToArray();
         }
     }
+
     DateTime ParseServerTime(string serverTimeString)
     {
         Debug.Log(serverTimeString);
         // Define the expected format of the server time
         string format = "MM/dd/yyyy h:mm:ss tt";
         // Parse the server time string into a DateTime object
-        DateTime serverTime = DateTime.ParseExact(serverTimeString, format, System.Globalization.CultureInfo.InvariantCulture);
+        DateTime serverTime = DateTime.ParseExact(
+            serverTimeString,
+            format,
+            System.Globalization.CultureInfo.InvariantCulture
+        );
         return serverTime;
     }
 
@@ -360,25 +453,27 @@ public class UserReportController : MonoBehaviour
     {
         // Assuming the server time is in UTC, convert it to local time
         TimeZoneInfo localZone = TimeZoneInfo.Local;
-        
+
         DateTime localTime = TimeZoneInfo.ConvertTimeFromUtc(serverTime, localZone);
         return localTime;
     }
+
     public RectTransform _contentPanel;
     public ScrollRect _scrollRect;
     public float offset;
+
     private async void SnapToChild(Transform stage)
     {
         await Task.Delay(500);
         Canvas.ForceUpdateCanvases();
-        
+
         Vector2 endValue =
-            (Vector2)_scrollRect.transform.InverseTransformPoint(_contentPanel.position) -
-            (Vector2)_scrollRect.transform.InverseTransformPoint(stage.position);
+            (Vector2)_scrollRect.transform.InverseTransformPoint(_contentPanel.position)
+            - (Vector2)_scrollRect.transform.InverseTransformPoint(stage.position);
 
         endValue.x = 0;
         endValue.y -= offset;
 
-        _contentPanel.DOAnchorPos(endValue,1f);
+        _contentPanel.DOAnchorPos(endValue, 1f);
     }
 }

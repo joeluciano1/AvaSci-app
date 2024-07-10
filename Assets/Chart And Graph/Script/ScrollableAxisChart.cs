@@ -18,9 +18,11 @@ namespace ChartAndGraph
         private GameObject mMask;
         private Vector2? mLastPosition;
         private GraphicRaycaster mCaster;
-        protected Dictionary<string, Dictionary<int, BillboardText>> mTexts = new Dictionary<string, Dictionary<int, BillboardText>>();
+        protected Dictionary<string, Dictionary<int, BillboardText>> mTexts =
+            new Dictionary<string, Dictionary<int, BillboardText>>();
         protected HashSet<BillboardText> mActiveTexts = new HashSet<BillboardText>();
-       // bool mMaskCreated = false;
+
+        // bool mMaskCreated = false;
         public ScrollableChartData ScrollableData
         {
             get { return (ScrollableChartData)DataLink; }
@@ -44,7 +46,7 @@ namespace ChartAndGraph
         {
             base.Update();
 
-            if(IsCanvas)
+            if (IsCanvas)
             {
                 // handle mouse events for canvas charts
                 HandleMouseDrag();
@@ -54,7 +56,7 @@ namespace ChartAndGraph
         public override void GenerateRealtime()
         {
             base.GenerateRealtime();
-            if(SupportRealtimeGeneration)
+            if (SupportRealtimeGeneration)
             {
                 GenerateAxis(false);
             }
@@ -65,7 +67,7 @@ namespace ChartAndGraph
             if (Scrollable == false)
                 return 0f;
             if ((autoScrollHorizontally && axis == 0) || (autoScrollVertically && axis == 1))
-            {                
+            {
                 double sMax = ScrollableData.GetMaxValue(axis, false);
                 //float sMin = (float)((IInternalGraphData)Data).GetMinValue(axis,false);
                 double dMax = ScrollableData.GetMaxValue(axis, true);
@@ -116,8 +118,9 @@ namespace ChartAndGraph
             foreach (Dictionary<int, BillboardText> d in mTexts.Values)
                 d.Clear();
         }
+
         [HideInInspector]
-     //   [SerializeField]
+        //   [SerializeField]
         [NonSerialized]
         protected bool scrollable = true;
 
@@ -131,9 +134,9 @@ namespace ChartAndGraph
             }
         }
 
-        [HideInInspector]
+        // [HideInInspector]
         [SerializeField]
-        protected double horizontalScrolling = 0f;
+        public double horizontalScrolling = 0f;
 
         public double HorizontalScrolling
         {
@@ -173,13 +176,16 @@ namespace ChartAndGraph
             }
         }
 
-
         [SerializeField]
         private bool raycastTarget = true;
 
         public bool RaycastTarget
         {
-            get { return raycastTarget; ; }
+            get
+            {
+                return raycastTarget;
+                ;
+            }
             set
             {
                 raycastTarget = value;
@@ -189,27 +195,28 @@ namespace ChartAndGraph
 
         public bool PointToClient(Vector3 worldPoint, out double x, out DateTime y)
         {
-            double dx, dy;
+            double dx,
+                dy;
             bool res = PointToClient(worldPoint, out dx, out dy);
             x = dx;
             y = ChartDateUtility.ValueToDate(dy);
             return res;
-
         }
 
         public bool PointToClient(Vector3 worldPoint, out DateTime x, out DateTime y)
         {
-            double dx, dy;
+            double dx,
+                dy;
             bool res = PointToClient(worldPoint, out dx, out dy);
             x = ChartDateUtility.ValueToDate(dx);
             y = ChartDateUtility.ValueToDate(dy);
             return res;
-
         }
 
         public bool PointToClient(Vector3 worldPoint, out DateTime x, out double y)
         {
-            double dx, dy;
+            double dx,
+                dy;
             bool res = PointToClient(worldPoint, out dx, out dy);
             x = ChartDateUtility.ValueToDate(dx);
             y = dy;
@@ -224,9 +231,14 @@ namespace ChartAndGraph
         /// <param name="y">y coodinate in axis units</param>
         /// <param name="category">for 3d chart specifing a catgory will return a point with the proper depth setting</param>
         /// <returns></returns>
-        public bool PointToWorldSpace(out Vector3 result,DateTime x, double y, string category = null)
+        public bool PointToWorldSpace(
+            out Vector3 result,
+            DateTime x,
+            double y,
+            string category = null
+        )
         {
-            return PointToWorldSpace(out result,ChartDateUtility.DateToValue(x), y, category);
+            return PointToWorldSpace(out result, ChartDateUtility.DateToValue(x), y, category);
         }
 
         /// <summary>
@@ -237,9 +249,14 @@ namespace ChartAndGraph
         /// <param name="y">y coodinate in axis units</param>
         /// <param name="category">for 3d chart specifing a catgory will return a point with the proper depth setting</param>
         /// <returns></returns>
-        public bool PointToWorldSpace(out Vector3 result,double x, DateTime y, string category = null)
+        public bool PointToWorldSpace(
+            out Vector3 result,
+            double x,
+            DateTime y,
+            string category = null
+        )
         {
-            return PointToWorldSpace(out result,x, ChartDateUtility.DateToValue(y), category);
+            return PointToWorldSpace(out result, x, ChartDateUtility.DateToValue(y), category);
         }
 
         /// <summary>
@@ -250,9 +267,19 @@ namespace ChartAndGraph
         /// <param name="y">y coodinate in axis units</param>
         /// <param name="category">for 3d chart specifing a catgory will return a point with the proper depth setting</param>
         /// <returns></returns>
-        public bool PointToWorldSpace(out Vector3 result,DateTime x, DateTime y, string category = null)
+        public bool PointToWorldSpace(
+            out Vector3 result,
+            DateTime x,
+            DateTime y,
+            string category = null
+        )
         {
-            return PointToWorldSpace(out result,ChartDateUtility.DateToValue(x), ChartDateUtility.DateToValue(y), category);
+            return PointToWorldSpace(
+                out result,
+                ChartDateUtility.DateToValue(x),
+                ChartDateUtility.DateToValue(y),
+                category
+            );
         }
 
         protected abstract double GetCategoryDepth(string category);
@@ -262,20 +289,55 @@ namespace ChartAndGraph
         /// </summary>
         internal abstract void SetAsMixedSeries();
 
-
         private DoubleVector3 PointToNormalized(double x, double y)
         {
-            double minX, minY, maxX, maxY, xScroll, yScroll, xSize, ySize, xOut;
-            GetScrollParams(out minX, out minY, out maxX, out maxY, out xScroll, out yScroll, out xSize, out ySize, out xOut);
+            double minX,
+                minY,
+                maxX,
+                maxY,
+                xScroll,
+                yScroll,
+                xSize,
+                ySize,
+                xOut;
+            GetScrollParams(
+                out minX,
+                out minY,
+                out maxX,
+                out maxY,
+                out xScroll,
+                out yScroll,
+                out xSize,
+                out ySize,
+                out xOut
+            );
             double resX = ((x - xScroll) / xSize);
             double resY = ((y - yScroll) / ySize);
-            return new DoubleVector3(resX, resY,0.0);
+            return new DoubleVector3(resX, resY, 0.0);
         }
 
         private DoubleVector3 NormalizedToPoint(double x, double y)
         {
-            double minX, minY, maxX, maxY, xScroll, yScroll, xSize, ySize, xOut;
-            GetScrollParams(out minX, out minY, out maxX, out maxY, out xScroll, out yScroll, out xSize, out ySize, out xOut);
+            double minX,
+                minY,
+                maxX,
+                maxY,
+                xScroll,
+                yScroll,
+                xSize,
+                ySize,
+                xOut;
+            GetScrollParams(
+                out minX,
+                out minY,
+                out maxX,
+                out maxY,
+                out xScroll,
+                out yScroll,
+                out xSize,
+                out ySize,
+                out xOut
+            );
             double resX = x * xSize + xScroll;
             double resY = y * ySize + yScroll;
             return new DoubleVector3(resX, resY, 0.0);
@@ -283,13 +345,18 @@ namespace ChartAndGraph
 
         private Vector3 PointShift
         {
-            get {
-                if(IsCanvas)
+            get
+            {
+                if (IsCanvas)
                     return CanvasFitOffset;
                 return new Vector3();
             }
         }
-        protected override Vector3 CanvasFitOffset { get { return new Vector3(0.5f, 0.5f, 0f); } }
+        protected override Vector3 CanvasFitOffset
+        {
+            get { return new Vector3(0.5f, 0.5f, 0f); }
+        }
+
         /// <summary>
         /// transform a point from axis units into world space. returns true on success and false on failure (failure should never happen for this implementation)
         /// </summary>
@@ -298,16 +365,41 @@ namespace ChartAndGraph
         /// <param name="y">y coodinate in axis units</param>
         /// <param name="category">for 3d chart specifing a catgory will return a point with the proper depth setting</param>
         /// <returns></returns>
-        public bool PointToWorldSpace(out Vector3 result,double x,double y, string category = null)
+        public bool PointToWorldSpace(
+            out Vector3 result,
+            double x,
+            double y,
+            string category = null
+        )
         {
             Vector3 fit = PointShift;
-            double minX, minY, maxX, maxY, xScroll, yScroll, xSize, ySize, xOut;
-            GetScrollParams(out minX, out minY, out maxX, out maxY, out xScroll, out yScroll, out xSize, out ySize, out xOut);
+            double minX,
+                minY,
+                maxX,
+                maxY,
+                xScroll,
+                yScroll,
+                xSize,
+                ySize,
+                xOut;
+            GetScrollParams(
+                out minX,
+                out minY,
+                out maxX,
+                out maxY,
+                out xScroll,
+                out yScroll,
+                out xSize,
+                out ySize,
+                out xOut
+            );
 
-            double resX = (((x - xScroll) / xSize)- fit.x) * ((IInternalUse)this).InternalTotalWidth;
-            double resY = (((y-yScroll) / ySize) - fit.y) * ((IInternalUse)this).InternalTotalHeight;
+            double resX =
+                (((x - xScroll) / xSize) - fit.x) * ((IInternalUse)this).InternalTotalWidth;
+            double resY =
+                (((y - yScroll) / ySize) - fit.y) * ((IInternalUse)this).InternalTotalHeight;
             double resZ = 0.0;
-            if(category != null)
+            if (category != null)
                 resZ = GetCategoryDepth(category);
             Transform t = transform;
             if (FixPosition != null)
@@ -322,17 +414,22 @@ namespace ChartAndGraph
         /// <param name="x"></param>
         /// <param name="y"></param>
         /// <returns></returns>
-        public bool MouseToClient(out double x,out double y)
+        public bool MouseToClient(out double x, out double y)
         {
             Vector2 mousePos;
             x = y = 0.0;
-            
+
             mCaster = GetComponentInParent<GraphicRaycaster>();
             if (mCaster == null)
                 return false;
-            RectTransformUtility.ScreenPointToLocalPointInRectangle(transform as RectTransform, Input.mousePosition, mCaster.eventCamera, out mousePos);
+            RectTransformUtility.ScreenPointToLocalPointInRectangle(
+                transform as RectTransform,
+                Input.mousePosition,
+                mCaster.eventCamera,
+                out mousePos
+            );
 
-            if(FixPosition != null)
+            if (FixPosition != null)
             {
                 mousePos = transform.TransformPoint(mousePos);
                 mousePos = FixPosition.transform.InverseTransformPoint(mousePos);
@@ -344,9 +441,12 @@ namespace ChartAndGraph
             Vector3 fit = PointShift;
             mousePos.x += fit.x;
             mousePos.y += fit.y;
-            bool mouseIn = RectTransformUtility.RectangleContainsScreenPoint(transform as RectTransform, Input.mousePosition);
+            bool mouseIn = RectTransformUtility.RectangleContainsScreenPoint(
+                transform as RectTransform,
+                Input.mousePosition
+            );
 
-            DoubleVector3 res =  NormalizedToPoint(mousePos.x, mousePos.y);
+            DoubleVector3 res = NormalizedToPoint(mousePos.x, mousePos.y);
             x = res.x;
             y = res.y;
             return mouseIn;
@@ -357,19 +457,43 @@ namespace ChartAndGraph
         /// </summary>
         /// <param name="worldPoint"></param>
         /// <param name="x"></param>
-        /// <param name="y"></param> 
+        /// <param name="y"></param>
         /// <returns></returns>
         public bool PointToClient(Vector3 worldPoint, out double x, out double y)
         {
             Vector3 fit = PointShift;
-            double minX, minY, maxX, maxY, xScroll, yScroll, xSize, ySize, xOut;
-            GetScrollParams(out minX, out minY, out maxX, out maxY, out xScroll, out yScroll, out xSize, out ySize, out xOut);
+            double minX,
+                minY,
+                maxX,
+                maxY,
+                xScroll,
+                yScroll,
+                xSize,
+                ySize,
+                xOut;
+            GetScrollParams(
+                out minX,
+                out minY,
+                out maxX,
+                out maxY,
+                out xScroll,
+                out yScroll,
+                out xSize,
+                out ySize,
+                out xOut
+            );
             Transform t = transform;
             if (FixPosition != null)
                 t = FixPosition.transform;
             worldPoint = t.InverseTransformPoint(worldPoint);
-            x = xScroll + xSize * ((((double)worldPoint.x) / ((IInternalUse)this).InternalTotalWidth) + fit.x);
-            y = yScroll + ySize * ((((double)worldPoint.y) / ((IInternalUse)this).InternalTotalHeight) + fit.y);
+            x =
+                xScroll
+                + xSize
+                    * ((((double)worldPoint.x) / ((IInternalUse)this).InternalTotalWidth) + fit.x);
+            y =
+                yScroll
+                + ySize
+                    * ((((double)worldPoint.y) / ((IInternalUse)this).InternalTotalHeight) + fit.y);
             return true;
         }
 
@@ -400,7 +524,7 @@ namespace ChartAndGraph
             min = NormalizedToPoint(minX, minY);
             max = NormalizedToPoint(maxX, maxY);
 
-            trimmed = new DoubleRect(min.x,min.y, max.x -min.x,max.y - min.y);
+            trimmed = new DoubleRect(min.x, min.y, max.x - min.x, max.y - min.y);
             return true;
         }
 
@@ -436,12 +560,12 @@ namespace ChartAndGraph
             DoubleVector3 min = rect.min;
             DoubleVector3 max = rect.max;
 
-            Vector3 worldMin, worldMax;
-            if(PointToWorldSpace(out worldMin, min.x, min.y, catgeory) == false)
+            Vector3 worldMin,
+                worldMax;
+            if (PointToWorldSpace(out worldMin, min.x, min.y, catgeory) == false)
                 return false;
             if (PointToWorldSpace(out worldMax, max.x, max.y, catgeory) == false)
                 return false;
-
 
             Transform parent = assignTo.parent;
 
@@ -472,7 +596,11 @@ namespace ChartAndGraph
 
         public bool HorizontalPanning
         {
-            get { return horizontalPanning; ; }
+            get
+            {
+                return horizontalPanning;
+                ;
+            }
             set
             {
                 horizontalPanning = value;
@@ -485,7 +613,11 @@ namespace ChartAndGraph
 
         public bool VerticalPanning
         {
-            get { return verticalPanning; ; }
+            get
+            {
+                return verticalPanning;
+                ;
+            }
             set
             {
                 verticalPanning = value;
@@ -503,11 +635,13 @@ namespace ChartAndGraph
                 Invalidate();
             }
         }
+
         protected GameObject CreateRectMask(Rect viewRect)
         {
             //GameObject obj = Instantiate(Resources.Load("Chart And Graph/RectMask") as GameObject);
             GameObject obj = ChartCommon.CreateCanvasChartItem();
-            obj.name = "rectMask2D";;
+            obj.name = "rectMask2D";
+            ;
             ChartCommon.HideObject(obj, hideHierarchy);
             if (mStencilMask)
             {
@@ -520,8 +654,8 @@ namespace ChartAndGraph
             else
                 obj.AddComponent<RectMask2D>();
 
-                //obj.AddComponent<ChartItem>();
-                obj.transform.SetParent(transform, false);
+            //obj.AddComponent<ChartItem>();
+            obj.transform.SetParent(transform, false);
             var rectTransform = obj.GetComponent<RectTransform>();
             rectTransform.anchorMin = new Vector2(0f, 0f);
             rectTransform.anchorMax = new Vector2(0f, 0f);
@@ -538,22 +672,27 @@ namespace ChartAndGraph
             base.ClearChart();
         }
 
-        protected string StringFromAxisFormat(DoubleVector3 val, AxisBase axis,bool isX)
+        protected string StringFromAxisFormat(DoubleVector3 val, AxisBase axis, bool isX)
         {
             double itemVal = isX ? val.x : val.y;
             if (axis == null)
                 return ChartAdancedSettings.Instance.FormatFractionDigits(2, itemVal);
             return StringFromAxisFormat(val, axis, axis.MainDivisions.FractionDigits, isX);
         }
-        
-        protected string StringFromAxisFormat(DoubleVector3 val, AxisBase axis, int fractionDigits,bool isX)
+
+        protected string StringFromAxisFormat(
+            DoubleVector3 val,
+            AxisBase axis,
+            int fractionDigits,
+            bool isX
+        )
         {
             val.z = 0;
             double itemVal = isX ? val.x : val.y;
             var dic = VectorValueToStringMap;
 
-            KeyValuePair<string,string> res;
-       //     Debug.Log("try get " + val + " count is " + dic.Count);
+            KeyValuePair<string, string> res;
+            //     Debug.Log("try get " + val + " count is " + dic.Count);
             if (dic.TryGetValue(val, out res))
             {
                 if (isX && res.Key != null)
@@ -562,16 +701,24 @@ namespace ChartAndGraph
                     return res.Value;
             }
             if (axis == null)
-                return ChartAdancedSettings.Instance.FormatFractionDigits(fractionDigits, itemVal, CustomNumberFormat);
-            
+                return ChartAdancedSettings.Instance.FormatFractionDigits(
+                    fractionDigits,
+                    itemVal,
+                    CustomNumberFormat
+                );
+
             string toSet = "";
             if (axis.Format == AxisFormat.Number)
-                toSet = ChartAdancedSettings.Instance.FormatFractionDigits(fractionDigits, itemVal, CustomNumberFormat);
+                toSet = ChartAdancedSettings.Instance.FormatFractionDigits(
+                    fractionDigits,
+                    itemVal,
+                    CustomNumberFormat
+                );
             else
             {
                 DateTime date = ChartDateUtility.ValueToDate(itemVal);
                 if (axis.Format == AxisFormat.DateTime)
-                    toSet = ChartDateUtility.DateToDateTimeString(date,CustomDateTimeFormat);
+                    toSet = ChartDateUtility.DateToDateTimeString(date, CustomDateTimeFormat);
                 else
                 {
                     if (axis.Format == AxisFormat.Date)
@@ -583,7 +730,17 @@ namespace ChartAndGraph
             return toSet;
         }
 
-        protected void GetScrollParams(out double minX,out double minY,out double maxX,out double maxY,out double xScroll,out double yScroll,out double xSize,out double ySize,out double xOut)
+        protected void GetScrollParams(
+            out double minX,
+            out double minY,
+            out double maxX,
+            out double maxY,
+            out double xScroll,
+            out double yScroll,
+            out double xSize,
+            out double ySize,
+            out double xOut
+        )
         {
             minX = ScrollableData.GetMinValue(0, false);
             minY = ScrollableData.GetMinValue(1, false);
@@ -600,7 +757,7 @@ namespace ChartAndGraph
         {
             bool drag = false;
             if (VerticalPanning)
-            {                
+            {
                 float range = GetScrollingRange(1);
                 VerticalScrolling -= (delta.y / TotalHeightLink) * range;
                 if (Mathf.Abs(delta.y) > 1f)
@@ -610,7 +767,7 @@ namespace ChartAndGraph
             if (HorizontalPanning)
             {
                 float range = GetScrollingRange(0);
-                HorizontalScrolling -= (delta.x / TotalWidthLink);
+                HorizontalScrolling -= (delta.x / TotalWidthLink) * range;
                 if (Mathf.Abs(delta.x) > 1f)
                     drag = true;
             }
@@ -641,10 +798,19 @@ namespace ChartAndGraph
                 return;
             Vector3 checkMousePos = pointer.ScreenPosition;
 
-            RectTransformUtility.ScreenPointToLocalPointInRectangle(transform as RectTransform, checkMousePos, mCaster.eventCamera, out mousePos);
+            RectTransformUtility.ScreenPointToLocalPointInRectangle(
+                transform as RectTransform,
+                checkMousePos,
+                mCaster.eventCamera,
+                out mousePos
+            );
             var cam = mCaster.eventCamera;
-            bool mouseIn = RectTransformUtility.RectangleContainsScreenPoint(transform as RectTransform, checkMousePos, cam);
-            if (( (pointer!=null && pointer.IsMouseDown)) && mouseIn)
+            bool mouseIn = RectTransformUtility.RectangleContainsScreenPoint(
+                transform as RectTransform,
+                checkMousePos,
+                cam
+            );
+            if (((pointer != null && pointer.IsMouseDown)) && mouseIn)
             {
                 if (mLastPosition.HasValue)
                 {
@@ -693,6 +859,5 @@ namespace ChartAndGraph
                 }
             }
         }
-
     }
 }

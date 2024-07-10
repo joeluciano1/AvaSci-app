@@ -276,8 +276,8 @@ namespace LightBuzz.AvaSci.UI
                     gameObject.transform.parent = ReferenceManager.instance.LeftSideContents;
                 }
             }
-            if (gameObject.name.Contains("Difference"))
-                Debug.Log("Angle Value " + measurement.Value);
+            // if (gameObject.name.Contains("Difference"))
+            //     Debug.Log("Angle Value " + measurement.Value);
 
             _angle = measurement.Value;
 

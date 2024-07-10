@@ -29,6 +29,8 @@ public class GaitPDFGenerator : MonoBehaviour
         //Include columns to the DataTable
         table.Columns.Add("Subject");
         table.Columns.Add("Foot Strike at (time)");
+        table.Columns.Add("Angle Difference");
+        table.Columns.Add("mm Distance");
         table.Columns.Add("Max Angle Difference");
         table.Columns.Add("Max mm Distance");
 
@@ -38,10 +40,16 @@ public class GaitPDFGenerator : MonoBehaviour
             table.Rows.Add(
                 new string[]
                 {
-                    GeneralStaticManager.GlobalVar["UserName"],
+                    GeneralStaticManager.GlobalVar["Subject"],
                     ReferenceManager
                         .instance.maxAngleAtFootStrikingTime.ElementAt(i)
                         .Key.ToString("0.0"),
+                    ReferenceManager
+                        .instance.AngleAtFootStrikingTime.ElementAt(i)
+                        .Value.ToString("0.00") + "º",
+                    ReferenceManager
+                        .instance.DistanceAtFootStrikingTime.ElementAt(i)
+                        .Value.ToString("0.00") + "mm",
                     ReferenceManager
                         .instance.maxAngleAtFootStrikingTime.ElementAt(i)
                         .Value.ToString("0.00") + "º",
@@ -90,7 +98,7 @@ public class GaitPDFGenerator : MonoBehaviour
         {
             CreateGaitReportBody body = new CreateGaitReportBody()
             {
-                Subject = GeneralStaticManager.GlobalVar["UserName"],
+                Subject = GeneralStaticManager.GlobalVar["Subject"],
                 FootStrikeAtTime = ReferenceManager
                     .instance.maxAngleAtFootStrikingTime.ElementAt(i)
                     .Key,
@@ -99,6 +107,12 @@ public class GaitPDFGenerator : MonoBehaviour
                     .Value,
                 MaxmmDistance = ReferenceManager
                     .instance.maxDistanceAtFootStrikingTime.ElementAt(i)
+                    .Value,
+                AngleDifferenceAtTime = ReferenceManager
+                    .instance.AngleAtFootStrikingTime.ElementAt(i)
+                    .Value,
+                MMDistaceAtTime = ReferenceManager
+                    .instance.DistanceAtFootStrikingTime.ElementAt(i)
                     .Value,
                 SelectedLeg = ResearchMeasurementManager.instance.leftLeg ? "Left Leg" : "Right Leg"
             };

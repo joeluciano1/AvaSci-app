@@ -4,6 +4,7 @@ using System.Collections;
 using ChartAndGraph;
 using UnityEngine;
 using UnityEngine.UI;
+using static ChartAndGraph.GraphChartBase;
 
 /// <summary>
 /// this is an example of zoom using mouse for the graph chart
@@ -23,6 +24,8 @@ public class GraphZoom : MonoBehaviour
     public float MaxViewSize = 10f;
     public float MinViewSize = 0.1f;
     float totalZoom = 0;
+    private float initialDistance;
+    private Vector2 initialScale;
 
     // Use this for initialization
     void Start() { }
@@ -59,121 +62,118 @@ public class GraphZoom : MonoBehaviour
         return true;
     }
 
+    public Vector2 mousePos;
+    public Vector2 mousePos2;
+
     // Update is called once per frame
     void Update()
     {
         if (graph == null) // no graph attached to this script for some reason
             return;
 
-        if (Application.isEditor)
-        {
-            HandleMouseZoom();
-        }
-        else if (Input.touchCount == 2)
-        {
-            HandleTouchZoom();
-        }
-    }
-
-    void HandleMouseZoom()
-    {
-        Vector2 mousePos = Input.mousePosition;
+        // mousePos = Input.mousePosition;
         double mouseX,
             mouseY;
         graph.PointToClient(mousePos, out mouseX, out mouseY);
-        if (CompareWithError(mousePos, mZoomBasePosition) == false) // the mouse has moved beyond the error
+        if (CompareWithError(mousePos, mZoomBasePosition) == false) // the mouse has moved beyond the erroo
         {
+            Debug.Log("Happened");
             mZoomBasePosition = mousePos;
             graph.PointToClient(mousePos, out mouseX, out mouseY);
-            mZoomBaseChartSpace = new DoubleVector3(mouseX, mouseY);
+            mZoomBaseChartSpace = new DoubleVector3(mousePos2.x, mousePos2.y);
             ResetZoomAnchor();
         }
         else
         {
-            mousePos = mZoomBasePosition;
+            // mousePos = mZoomBasePosition;
         }
-
         float delta = Input.mouseScrollDelta.y;
-        totalZoom += delta; //accumulate the delta change for the current positions
+
+        if (Input.touchCount == 2)
+        {
+            Touch touch1 = Input.GetTouch(0);
+            Touch touch2 = Input.GetTouch(1);
+
+            // Calculate the distance between the two touches in the current frame
+            float currentDistance = Vector2.Distance(touch1.position, touch2.position);
+
+            // Check the phase of both touches
+            if (touch1.phase == TouchPhase.Began || touch2.phase == TouchPhase.Began)
+            {
+                // Store the initial distance and initial scale when the touches begin
+                initialDistance = currentDistance;
+                initialScale = transform.localScale;
+            }
+            else if (touch1.phase == TouchPhase.Moved || touch2.phase == TouchPhase.Moved)
+            {
+                if (Mathf.Approximately(initialDistance, 0))
+                    return;
+
+                // Calculate the scale factor based on the ratio of the current distance to the initial distance
+                float scaleFactor = currentDistance / initialDistance;
+
+                // Apply the scale factor to the object's initial scale
+                // transform.localScale = initialScale * scaleFactor;
+                Vector3 midPoint = (touch1.position + touch2.position) / 2;
+
+                // Determine if the gesture is pinch in or pinch out
+                if (scaleFactor > 1)
+                {
+                    delta = -0.25f;
+                }
+                else if (scaleFactor < 1)
+                {
+                    delta = 0.25f;
+                }
+            }
+        }
+        totalZoom += delta;
+        // Debug.Log(delta);
+        //accumilate the delta change for the currnet positions
 
         if (delta != 0 && graph.PointToClient(mousePos, out mouseX, out mouseY))
         {
-            ApplyZoom(delta, mouseX, mouseY);
+            graph.DataSource.AutomaticHorizontalView = false;
+            graph.DataSource.AutomaticVerticallView = false;
+            Debug.Log($"MouseX = {mouseX}, {mousePos2.x}");
+            Debug.Log($"MouseY = {mouseY}, {mousePos2.y}");
+            DoubleVector3 ViewCenter = InitialOrigin + InitalScrolling;
+            DoubleVector3 trans = new DoubleVector3(
+                (mZoomBaseChartSpace.x - ViewCenter.x),
+                (mZoomBaseChartSpace.y - ViewCenter.y)
+            );
+            float growFactor = Mathf.Pow(2, totalZoom / ZoomSpeed);
+            double hSize = InitalViewSize.x * growFactor;
+            double vSize = InitalViewSize.y * growFactor;
+            if (
+                hSize * InitalViewDirection.x < MaxViewSize
+                && hSize * InitalViewDirection.x > MinViewSize
+                && vSize * InitalViewDirection.y < MaxViewSize
+                && vSize * InitalViewDirection.y > MinViewSize
+            )
+            {
+                graph.HorizontalScrolling = InitalScrolling.x + trans.x - (trans.x * growFactor);
+                graph.VerticalScrolling = InitalScrolling.y + trans.y - (trans.y * growFactor);
+                graph.DataSource.HorizontalViewSize = hSize;
+                graph.DataSource.VerticalViewSize = vSize;
+
+                Debug.Log($"Hsize = {hSize}");
+                Debug.Log($"Vsize = {vSize}");
+            }
         }
     }
 
-    void HandleTouchZoom()
+    public void PointClicked(GraphEventArgs arg)
     {
-        Touch touch0 = Input.GetTouch(0);
-        Touch touch1 = Input.GetTouch(1);
+        mousePos = GetComponent<CustomChartPointer>().ScreenPosition;
+        // RectTransformUtility.ScreenPointToLocalPointInRectangle(
+        //     Canvas,
+        //     Input.mousePosition,
+        //     Camera.main,
+        //     out Vector2 mousePosi
+        // );
+        // Debug.Log(mousePosi);
 
-        Vector2 touch0PrevPos = touch0.position - touch0.deltaPosition;
-        Vector2 touch1PrevPos = touch1.position - touch1.deltaPosition;
-
-        float prevTouchDeltaMag = (touch0PrevPos - touch1PrevPos).magnitude;
-        float touchDeltaMag = (touch0.position - touch1.position).magnitude;
-
-        float deltaMagnitudeDiff = prevTouchDeltaMag - touchDeltaMag;
-
-        Vector2 pinchCenter = (touch0.position + touch1.position) / 2;
-
-        // Adjust pinch center using the rect transform of the graph
-        RectTransform rectTransform = graph.GetComponent<RectTransform>();
-        Vector2 localPoint;
-        RectTransformUtility.ScreenPointToLocalPointInRectangle(
-            rectTransform,
-            pinchCenter,
-            null,
-            out localPoint
-        );
-        Vector3 worldPoint = rectTransform.TransformPoint(localPoint);
-
-        double pinchX,
-            pinchY;
-        if (graph.PointToClient(worldPoint, out pinchX, out pinchY))
-        {
-            Debug.Log(
-                $"Pinch Center: {pinchCenter}, Local Point: {localPoint}, World Point: {worldPoint}, Converted: ({pinchX}, {pinchY})"
-            );
-
-            totalZoom += deltaMagnitudeDiff * 0.01f; // adjust the speed of zoom here
-            ApplyZoom(deltaMagnitudeDiff * 0.01f, pinchX, pinchY);
-        }
-        else
-        {
-            Debug.LogWarning("Failed to convert pinch center to graph coordinates.");
-        }
-    }
-
-    void ApplyZoom(float delta, double mouseX, double mouseY)
-    {
-        DoubleVector3 ViewCenter = InitialOrigin + InitalScrolling;
-        DoubleVector3 trans = new DoubleVector3(
-            (mZoomBaseChartSpace.x - ViewCenter.x),
-            (mZoomBaseChartSpace.y - ViewCenter.y)
-        );
-        float growFactor = Mathf.Pow(2, totalZoom / ZoomSpeed);
-        double hSize = InitalViewSize.x * growFactor;
-        double vSize = InitalViewSize.y * growFactor;
-        if (
-            hSize * InitalViewDirection.x < MaxViewSize
-            && hSize * InitalViewDirection.x > MinViewSize
-            && vSize * InitalViewDirection.y < MaxViewSize
-            && vSize * InitalViewDirection.y > MinViewSize
-        )
-        {
-            graph.HorizontalScrolling = InitalScrolling.x + trans.x - (trans.x * growFactor);
-            graph.VerticalScrolling = InitalScrolling.y + trans.y - (trans.y * growFactor);
-            graph.DataSource.HorizontalViewSize = hSize;
-            graph.DataSource.VerticalViewSize = vSize;
-
-            Debug.Log(
-                $"Zoom applied: hSize={hSize}, vSize={vSize}, HScroll={graph.HorizontalScrolling}, VScroll={graph.VerticalScrolling}"
-            );
-        }
-        else
-        {
-            Debug.LogWarning("Zoom size limits reached.");
-        }
+        mousePos2 = new Vector2(float.Parse(arg.XString), float.Parse(arg.YString));
     }
 }

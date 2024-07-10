@@ -7,7 +7,6 @@ using LightBuzz.AvaSci.Measurements;
 using UnityEngine;
 using UnityEngine.UI;
 
-
 public class SineWave : MonoBehaviour
 {
     public GraphChart graphChart,
@@ -221,16 +220,11 @@ public class SineWave : MonoBehaviour
                 null,
                 true,
                 pointMaterial,
-                pointSize
+                0.1
             );
             foreach (var item in GeneralStaticManager.GraphsReadings[joint1])
             {
-                BiggeerChart.DataSource.AddPointToCategoryRealtime(
-                    joint1,
-                    valueOnX,
-                    item,
-                    pointSize
-                );
+                BiggeerChart.DataSource.AddPointToCategoryRealtime(joint1, valueOnX, item, 0, 0.1);
                 if (GeneralStaticManager.GraphsReadings[joint1].IndexOf(item) == 0)
                     BiggeerChart.VerticalScrolling = item;
                 valueOnX += 0.1f;
@@ -254,16 +248,11 @@ public class SineWave : MonoBehaviour
                 null,
                 true,
                 pointMaterial,
-                pointSize
+                0.1
             );
             foreach (var item in GeneralStaticManager.GraphsReadings[joint2])
             {
-                BiggeerChart.DataSource.AddPointToCategoryRealtime(
-                    joint2,
-                    valueOnX,
-                    item,
-                    pointSize
-                );
+                BiggeerChart.DataSource.AddPointToCategoryRealtime(joint2, valueOnX, item, 0, 0.1);
                 valueOnX += 0.1f;
             }
         }
@@ -335,7 +324,6 @@ public class SineWave : MonoBehaviour
                 GeneralStaticManager.GraphsReadings.Remove(itemName);
             }
 
-
             graphChart.DataSource.AddPointToCategory(itemName, time, item.Value.Value, pointSize);
 
             if (GeneralStaticManager.GraphsReadings.ContainsKey(itemName))
@@ -349,10 +337,10 @@ public class SineWave : MonoBehaviour
                     new List<float> { item.Value.Value }
                 );
             }
-
         }
     }
-    public void SetReadingWithoutLightbuzzData(float time, float value,string nameOfReading)
+
+    public void SetReadingWithoutLightbuzzData(float time, float value, string nameOfReading)
     {
         if (!graphChart.DataSource.HasCategory(nameOfReading))
         {
@@ -364,7 +352,7 @@ public class SineWave : MonoBehaviour
             else
                 myParentGraphManager.Title.text += $"\n<color=#{linecolor}>{nameOfReading}</color>";
             innerFill.color = UnityEngine.Random.ColorHSV();
-            
+
             Material innFillMat = new Material(innerFill);
             var color1 = Colors[UnityEngine.Random.Range(0, Colors.Count)];
             color1.a = 0.5f;
@@ -387,7 +375,6 @@ public class SineWave : MonoBehaviour
             GeneralStaticManager.GraphsReadings.Remove(nameOfReading);
         }
 
-
         graphChart.DataSource.AddPointToCategory(nameOfReading, time, value, pointSize);
 
         if (GeneralStaticManager.GraphsReadings.ContainsKey(nameOfReading))
@@ -396,12 +383,10 @@ public class SineWave : MonoBehaviour
         }
         else
         {
-            GeneralStaticManager.GraphsReadings.Add(
-            nameOfReading,
-                new List<float> { value }
-            );
+            GeneralStaticManager.GraphsReadings.Add(nameOfReading, new List<float> { value });
         }
     }
+
     public void SetGraphsAutoScroll(bool value)
     {
         //graphChart.AutoScrollHorizontally = value;
