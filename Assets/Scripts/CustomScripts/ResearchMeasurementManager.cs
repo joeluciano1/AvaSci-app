@@ -1,6 +1,8 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using DG.Tweening;
 using LightBuzz.AvaSci.Measurements;
 using LightBuzz.BodyTracking;
@@ -53,7 +55,9 @@ public class ResearchMeasurementManager : MonoBehaviour
 
     [HideInInspector]
     public bool rightLeg;
-
+    public Button StepButon;
+    public float debugDistance;
+    public TMP_InputField toloranceValue;
     private void Awake()
     {
         instance = this;
@@ -62,6 +66,7 @@ public class ResearchMeasurementManager : MonoBehaviour
     public void StartReading()
     {
         isStarted = true;
+        ReferenceManager.instance.PopupManager.Show("Information", "Please run the video completely once again to complete the foot detection record. Thanks!");
         researchProjectCompleteBodyDatas.ForEach(x => x.gameObject.SetActive(true));
         ReferenceManager.instance.StartTimer();
         TakeUserConsent();
@@ -281,10 +286,152 @@ public class ResearchMeasurementManager : MonoBehaviour
         {
             StepAngleLNotifier.text = $"Step AngleL\nNo Joint";
         }
+        if (!ReferenceManager.instance.graphManagers.Any(x => x.MySineWave.isVideoDoneLoading))
+            RecordFoots();
         //SetInitialFootPlace();
+        if (
+            coroutine == null
+            && ReferenceManager.instance.graphManagers.Any(x => x.MySineWave.isVideoDoneLoading)
+        )
+            coroutine = StartCoroutine(DetectFootOnGround());
     }
 
-    public void DetectFootOnGround() { }
+    public List<float> footDistances = new List<float>();
+
+    public void RecordFoots()
+    {
+        ResearchProjectCompleteBodyData jointForStrideLengthL =
+            researchProjectCompleteBodyDatas.FirstOrDefault(x =>
+                x.gameObject.name == JointType.AnkleLeft.ToString()
+            );
+
+        ResearchProjectCompleteBodyData jointForStrideLengthR =
+            researchProjectCompleteBodyDatas.FirstOrDefault(x =>
+                x.gameObject.name == JointType.AnkleRight.ToString()
+            );
+        if (
+            jointForStrideLengthL == null
+            || !jointForStrideLengthL.gameObject.activeSelf
+            || jointForStrideLengthR == null
+            || !jointForStrideLengthR.gameObject.activeSelf
+        )
+        {
+            return;
+        }
+        float distance = Vector3.Distance(
+            jointForStrideLengthL.Position3D,
+            jointForStrideLengthR.Position3D
+        );
+        if (!footDistances.Contains(distance))
+        {
+            footDistances.Add(distance);
+            footDistances.Sort();
+        }
+    }
+
+    Coroutine coroutine;
+    public Vector3 previousPosition;
+
+    public IEnumerator DetectFootOnGround()
+    {
+        if(footDistances.Count == 0)
+        {
+            ReferenceManager.instance.graphManagers.ForEach(x=>x.MySineWave.isVideoDoneLoading = false);
+            coroutine = null;
+            yield break;
+        }
+        if (ReferenceManager.instance.videoPlayerView.VideoPlayer.IsPaused)
+        {
+            Debug.Log("Video Is paused");
+            coroutine = null;
+            yield break;
+        }
+        ResearchProjectCompleteBodyData jointForStrideLengthL =
+            researchProjectCompleteBodyDatas.FirstOrDefault(x =>
+                x.gameObject.name == JointType.AnkleLeft.ToString()
+            );
+        ResearchProjectCompleteBodyData jointForStrideLengthR =
+            researchProjectCompleteBodyDatas.FirstOrDefault(x =>
+                x.gameObject.name == JointType.AnkleRight.ToString()
+            );
+        if (
+            jointForStrideLengthL == null
+            || !jointForStrideLengthL.gameObject.activeSelf
+            || jointForStrideLengthR == null
+            || !jointForStrideLengthR.gameObject.activeSelf
+        )
+        {
+            jointForStrideLengthL?.ShockWaveEffect.SetActive(false);
+            jointForStrideLengthR?.ShockWaveEffect.SetActive(false);
+            coroutine = null;
+            yield break;
+        }
+        // Debug.Log(
+        //     $"Left Z Pos: {jointForStrideLengthL.Position3D.z}\nRight Z Pos: {jointForStrideLengthR.Position3D.z}"
+        // );
+
+        yield return new WaitForEndOfFrame();
+        if (leftLeg)
+        {
+            if (jointForStrideLengthL.Position3D.z > jointForStrideLengthR.Position3D.z)
+            {
+                jointForStrideLengthL.ShockWaveEffect.SetActive(false);
+                jointForStrideLengthR.ShockWaveEffect.SetActive(false);
+                coroutine = null;
+                yield break;
+            }
+            debugDistance = Vector3.Distance(
+                jointForStrideLengthL.Position3D,
+                jointForStrideLengthR.Position3D
+            );
+            if (
+                Vector3.Distance(jointForStrideLengthL.Position3D, jointForStrideLengthR.Position3D)
+                >= footDistances.Max() - float.Parse(toloranceValue.text)
+            )
+            {
+                Debug.Log("Foot Detected");
+                StepButon.onClick.Invoke();
+                
+                jointForStrideLengthL.ShockWaveEffect.SetActive(true);
+                jointForStrideLengthR.ShockWaveEffect.SetActive(false);
+                yield return new WaitForSeconds(1);
+            }
+            else
+            {
+                previousPosition = jointForStrideLengthL.Position3D;
+                jointForStrideLengthL.ShockWaveEffect.SetActive(false);
+            }
+        }
+        else
+        {
+            if (jointForStrideLengthR.Position3D.z > jointForStrideLengthL.Position3D.z)
+            {
+                Debug.Log("Because z is less or behind");
+                jointForStrideLengthL.ShockWaveEffect.SetActive(false);
+                jointForStrideLengthR.ShockWaveEffect.SetActive(false);
+                coroutine = null;
+                yield break;
+            }
+            if (
+                Vector3.Distance(jointForStrideLengthL.Position3D, jointForStrideLengthR.Position3D)
+                >= footDistances.Max() - float.Parse(toloranceValue.text)
+            )
+            {
+                Debug.Log("Foot Detected");
+                StepButon.onClick.Invoke();
+                
+                jointForStrideLengthR.ShockWaveEffect.SetActive(true);
+                jointForStrideLengthL.ShockWaveEffect.SetActive(false);
+                yield return new WaitForSeconds(1);
+            }
+            else
+            {
+                previousPosition = jointForStrideLengthR.Position3D;
+                jointForStrideLengthR.ShockWaveEffect.SetActive(false);
+            }
+        }
+        coroutine = null;
+    }
 
     public void ClearFootOnGroundPosition()
     {
@@ -377,14 +524,15 @@ public class ResearchMeasurementManager : MonoBehaviour
         float footstrikesAtTime = 0;
         if (ReferenceManager.instance.videoPlayerView.gameObject.activeSelf)
         {
-            footstrikesAtTime = (float)
-                ReferenceManager.instance.videoPlayerView.VideoPlayer.TimeElapsed.TotalSeconds;
-            footStrikeAtTimes.Add(footstrikesAtTime);
+            footstrikesAtTime = (float)ReferenceManager.instance.videoPlayerView.VideoPlayer.TimeElapsed.TotalSeconds;
+            if (!footStrikeAtTimes.Contains(footstrikesAtTime))
+                footStrikeAtTimes.Add(footstrikesAtTime);
         }
         else
         {
             footstrikesAtTime = ReferenceManager.instance.Timer;
-            footStrikeAtTimes.Add(footstrikesAtTime);
+            if (!footStrikeAtTimes.Contains(footstrikesAtTime))
+                footStrikeAtTimes.Add(footstrikesAtTime);
         }
         float maxAngle;
         float maxDistance;
@@ -396,9 +544,11 @@ public class ResearchMeasurementManager : MonoBehaviour
                 .GraphsReadings[MeasurementType.HipAnkleHipKneeLeftAbductionDifference.ToString()]
                 .Max();
 
-            currentAngle = GeneralStaticManager
-                .GraphsReadings[MeasurementType.HipAnkleHipKneeLeftAbductionDifference.ToString()]
-                .Last();
+            currentAngle = ReferenceManager
+                .instance
+                .angleManager
+                ._angles[MeasurementType.HipAnkleHipKneeLeftAbductionDifference]
+                .Angle;
         }
         else
         {
@@ -406,9 +556,11 @@ public class ResearchMeasurementManager : MonoBehaviour
                 .GraphsReadings[MeasurementType.HipAnkleHipKneeRightAbductionDifference.ToString()]
                 .Max();
 
-            currentAngle = GeneralStaticManager
-                .GraphsReadings[MeasurementType.HipAnkleHipKneeRightAbductionDifference.ToString()]
-                .Last();
+            currentAngle = ReferenceManager
+                .instance
+                .angleManager
+                ._angles[MeasurementType.HipAnkleHipKneeRightAbductionDifference]
+                .Angle;
         }
         if (leftLeg)
         {
@@ -416,9 +568,11 @@ public class ResearchMeasurementManager : MonoBehaviour
                 .GraphsReadings[MeasurementType.HipKneeLeftDistance.ToString()]
                 .Max();
 
-            curreentDistance = GeneralStaticManager
-                .GraphsReadings[MeasurementType.HipKneeLeftDistance.ToString()]
-                .Last();
+            curreentDistance = ReferenceManager
+                .instance
+                .angleManager
+                ._angles[MeasurementType.HipKneeLeftDistance]
+                .Angle;
         }
         else
         {
@@ -426,17 +580,38 @@ public class ResearchMeasurementManager : MonoBehaviour
                 .GraphsReadings[MeasurementType.HipKneeRightDistance.ToString()]
                 .Max();
 
-            curreentDistance = GeneralStaticManager
-                .GraphsReadings[MeasurementType.HipKneeRightDistance.ToString()]
-                .Last();
+            curreentDistance = ReferenceManager
+                .instance
+                .angleManager
+                ._angles[MeasurementType.HipKneeRightDistance]
+                .Angle;
         }
-        ReferenceManager.instance.maxAngleAtFootStrikingTime.Add(footstrikesAtTime, maxAngle);
-        ReferenceManager.instance.maxDistanceAtFootStrikingTime.Add(footstrikesAtTime, maxDistance);
-        ReferenceManager.instance.AngleAtFootStrikingTime.Add(footstrikesAtTime, currentAngle);
-        ReferenceManager.instance.DistanceAtFootStrikingTime.Add(
-            footstrikesAtTime,
-            curreentDistance
-        );
+        if (!ReferenceManager.instance.maxAngleAtFootStrikingTime.ContainsKey(footstrikesAtTime))
+            ReferenceManager.instance.maxAngleAtFootStrikingTime.Add(footstrikesAtTime, maxAngle);
+        else
+            ReferenceManager.instance.maxAngleAtFootStrikingTime[footstrikesAtTime] = maxAngle;
+        if (!ReferenceManager.instance.maxDistanceAtFootStrikingTime.ContainsKey(footstrikesAtTime))
+            ReferenceManager.instance.maxDistanceAtFootStrikingTime.Add(
+                footstrikesAtTime,
+                maxDistance
+            );
+        else
+            ReferenceManager.instance.maxDistanceAtFootStrikingTime[footstrikesAtTime] =
+                maxDistance;
+        if (!ReferenceManager.instance.AngleAtFootStrikingTime.ContainsKey(footstrikesAtTime))
+            ReferenceManager.instance.AngleAtFootStrikingTime.Add(footstrikesAtTime, currentAngle);
+        else
+            ReferenceManager.instance.AngleAtFootStrikingTime[footstrikesAtTime] = currentAngle;
+        if (!ReferenceManager.instance.DistanceAtFootStrikingTime.ContainsKey(footstrikesAtTime))
+            ReferenceManager.instance.DistanceAtFootStrikingTime.Add(
+                footstrikesAtTime,
+                curreentDistance
+            );
+        else
+            ReferenceManager.instance.DistanceAtFootStrikingTime[footstrikesAtTime] =
+                curreentDistance;
+        
+
     }
 
     public void Reset()

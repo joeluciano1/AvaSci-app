@@ -21,7 +21,7 @@ public class HipKneeLeftDifference : Measurement
         Vector3D hipLeft3D = hipLeft.Position3D;
         Vector3D kneeLeft3D = kneeLeft.Position3D;
 
-        float angleHipABD = Calculations.Rotation(hipLeft3D, kneeLeft3D, Plane.Sagittal);
+        float angleHipABD = Calculations.Rotation(hipLeft3D, kneeLeft3D, Plane.Coronal);
 
         // if (kneeLeft3D.Y < hipLeft3D.Y)
         // {

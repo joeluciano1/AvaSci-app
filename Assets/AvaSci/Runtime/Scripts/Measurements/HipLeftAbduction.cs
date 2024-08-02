@@ -27,7 +27,7 @@ namespace LightBuzz.AvaSci.Measurements
             Vector3D hip3D = hip.Position3D;
             Vector3D knee3D = knee.Position3D;
 
-            float angle = Calculations.Rotation(hip3D, knee3D, Plane.Sagittal);
+            float angle = Calculations.Rotation(hip3D, knee3D, Plane.Coronal);
 
             if (knee3D.Y < hip3D.Y)
             {

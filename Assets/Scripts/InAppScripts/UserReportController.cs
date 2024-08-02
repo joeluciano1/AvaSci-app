@@ -30,6 +30,8 @@ public class UserReportController : MonoBehaviour
     public VideoRecordingView videoRecorderView;
 
     UserReportFromDB RecentlyPlayedButton;
+    public Button StopRecButton;
+    public Button ResetButton;
 
     // Start is called before the first frame update
     public void Start()
@@ -197,11 +199,14 @@ public class UserReportController : MonoBehaviour
         else
             GeneralStaticManager.GlobalVar["Subject"] = "";
         LightBuzzViewer.SetActive(false);
+        StopRecButton.onClick.Invoke();
+        ResetButton.onClick.Invoke();
         Start();
     }
 
     public void ReallyCreateNew()
     {
+        ResearchMeasurementManager.instance.footDistances.Clear();
         ReferenceManager.instance.isShowingRecording = false;
         videoRecorderView.Show();
     }
@@ -343,6 +348,7 @@ public class UserReportController : MonoBehaviour
 
             path = System.IO.Path.Combine(Application.persistentDataPath, filename);
             byte[] bytes = System.Convert.FromBase64String(fileData);
+            Debug.Log(fileData);
             File.WriteAllBytes(path, bytes);
         }
         await Task.Delay(3000);

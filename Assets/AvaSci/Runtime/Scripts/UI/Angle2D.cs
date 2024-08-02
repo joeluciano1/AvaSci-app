@@ -117,7 +117,7 @@ namespace LightBuzz.AvaSci.UI
 
         private void OnDestroy()
         {
-            Debug.Log("destroyed " + gameObject.name);
+            // Debug.Log("destroyed " + gameObject.name);
             if (ReferenceManager.instance.AnglesAdded.Contains(this))
                 ReferenceManager.instance.AnglesAdded.Remove(this);
         }

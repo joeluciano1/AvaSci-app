@@ -21,7 +21,7 @@ public class AnkleHipLeftDifference : Measurement
         Vector3D hip3D = hip.Position3D;
         Vector3D knee3D = knee.Position3D;
 
-        float angleHipABD = Calculations.Rotation(hip3D, knee3D, Plane.Sagittal);
+        float angleHipABD = Calculations.Rotation(hip3D, knee3D, Plane.Coronal);
 
         if (knee3D.Y < hip3D.Y)
         {
@@ -34,7 +34,7 @@ public class AnkleHipLeftDifference : Measurement
         Vector3D ankle3D = ankle.Position3D;
         Vector3D foot3D = foot.Position3D;
 
-        float angleAnkleABD = Calculations.Rotation(hip3D, ankle3D, Plane.Sagittal);
+        float angleAnkleABD = Calculations.Rotation(hip3D, ankle3D, Plane.Coronal);
         // UnityEngine.Debug.Log("AngleValue "+angleAnkleABD);
         if (ankle3D.Y < hip3D.Y)
         {

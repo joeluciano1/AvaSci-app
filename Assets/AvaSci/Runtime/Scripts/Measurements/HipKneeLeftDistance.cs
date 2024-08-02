@@ -23,8 +23,8 @@ public class HipKneeLeftDistance : Measurement
 
         Vector3D hipRight3D = hipLeft.Position3D;
         Vector3D kneeRight3D = kneeLeft.Position3D;
-
-        float difference = Math.Abs(hipRight3D.X - kneeRight3D.X);
+        
+        float difference = hipRight3D.X - kneeRight3D.X;  
         float miliMetersValue = difference * 1000;
         _value = miliMetersValue;
         _angleStart = hipLeft.Position2D;

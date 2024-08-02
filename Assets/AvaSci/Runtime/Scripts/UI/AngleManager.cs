@@ -19,7 +19,7 @@ namespace LightBuzz.AvaSci.UI
         [SerializeField]
         private Angle2D _anglePrefab;
 
-        private readonly Dictionary<MeasurementType, Angle2D> _angles =
+        public readonly Dictionary<MeasurementType, Angle2D> _angles =
             new Dictionary<MeasurementType, Angle2D>();
 
         private void OnDestroy()

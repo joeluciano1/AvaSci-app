@@ -19,6 +19,7 @@ public class ResearchProjectCompleteBodyData
     public Vector3 offset;
     bool isDragging;
     public RectTransform MyTransform;
+    public GameObject ShockWaveEffect;
 
     private void Awake()
     {

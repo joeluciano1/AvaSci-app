@@ -21,7 +21,7 @@ namespace LightBuzz.AvaSci.Measurements
             Vector3D nose3D = nose.Position3D;
             Vector3D head3D = head.Position3D;
 
-            float angle = Calculations.Rotation(nose3D, head3D, Plane.Sagittal);
+            float angle = Calculations.Rotation(nose3D, head3D, Plane.Coronal);
 
             if (nose3D.X > head3D.X) angle = -angle;
 

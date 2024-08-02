@@ -95,7 +95,8 @@ public class ReferenceManager : MonoBehaviour
 
     public Dictionary<float, float> AngleAtFootStrikingTime = new Dictionary<float, float>();
     public Dictionary<float, float> DistanceAtFootStrikingTime = new Dictionary<float, float>();
-
+    public AngleManager angleManager;
+    public Text TimeElapsedLightBuzz;
     private void Awake()
     {
         instance = this;
@@ -242,6 +243,9 @@ public class ReferenceManager : MonoBehaviour
 
     public void OnVideoScrolled(float value)
     {
+        if(videoPlayerView.VideoPlayer.IsPaused){
+            TimeElapsedLightBuzz.text = videoPlayerView.VideoPlayer.TimeElapsed.Format();
+        }
         if (value.ToString("0.0") == "0.0")
         {
             if (ResearchMeasurementManager.instance.footOnGroundPosition != null)
@@ -391,13 +395,15 @@ public class ReferenceManager : MonoBehaviour
     public void StopTimer()
     {
         timerStarted = false;
-        StopCoroutine(coroutine);
+        if (coroutine != null)
+            StopCoroutine(coroutine);
     }
 
     [ContextMenu("PauseVid")]
-    public void PauseTheVideo()
+    public async void PauseTheVideo()
     {
-        if (videoPlayerView.VideoPlayer.IsPlaying)
+        await Task.Delay(500);
+        if (!videoPlayerView.VideoPlayer.IsPaused)
             LightBuzzVideoPlayerButton.onClick.Invoke();
     }
 

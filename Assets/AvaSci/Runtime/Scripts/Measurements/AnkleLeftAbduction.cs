@@ -20,7 +20,7 @@ public class AnkleLeftAbduction : Measurement
         Vector3D hip3D = hip.Position3D;
         Vector3D ankle3D = ankle.Position3D;
 
-        float angle = Calculations.Rotation(hip3D, ankle3D, Plane.Sagittal);
+        float angle = Calculations.Rotation(hip3D, ankle3D, Plane.Coronal);
 
         if (ankle3D.Y < hip3D.Y)
         {
