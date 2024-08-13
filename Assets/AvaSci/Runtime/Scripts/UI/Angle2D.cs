@@ -241,8 +241,8 @@ namespace LightBuzz.AvaSci.UI
         /// <param name="measurement">The measurement to display.</param>
         ///
         public float initialDifference;
-        public float MinScale = 0.3f;
-        public float MaxScale = 1f;
+        public float MinScale = 0.5f;
+        public float MaxScale = 1.5f;
         public RectTransform ReferencePosition;
 
         public void Load(Measurement measurement, Body body = null)
@@ -262,7 +262,7 @@ namespace LightBuzz.AvaSci.UI
                     MinScale
                     + (MaxScale - MinScale)
                         * (1 - (body.Joints[JointType.Neck].Position3D.Z - 1) / (3 - 1));
-                scale = Math.Clamp(scale, 0.5f, 1f);
+                scale = Math.Clamp(scale, 0.5f, 1.5f);
                 transform.localScale = new Vector3(scale, scale, scale);
             }
             else
@@ -270,10 +270,27 @@ namespace LightBuzz.AvaSci.UI
                 if (gameObject.name.Contains("Right"))
                 {
                     gameObject.transform.parent = ReferenceManager.instance.RightSideContents;
+                    if (!gameObject.name.Contains("VarusValgus"))
+                    {
+                        ReferenceManager.instance.RightDistance = this;
+                        if (ReferenceManager.instance.RightAngleDifference != null)
+                        {
+                            // ReferenceManager.instance.CalculateAngle();
+                        }
+                    }
                 }
                 if (gameObject.name.Contains("Left"))
                 {
+                    
                     gameObject.transform.parent = ReferenceManager.instance.LeftSideContents;
+                    if (!gameObject.name.Contains("VarusValgus"))
+                    {
+                        ReferenceManager.instance.LeftDistance = this;
+                        if (ReferenceManager.instance.LeftAngleDifference != null)
+                        {
+                            // ReferenceManager.instance.CalculateAngle();
+                        }
+                    }
                 }
             }
             // if (gameObject.name.Contains("Difference"))
@@ -285,13 +302,35 @@ namespace LightBuzz.AvaSci.UI
             if (!gameObject.name.Contains("Distance"))
             {
                 if (!gameObject.name.Contains("Difference"))
-                    _displayMessage = $"{measurement.Value:N0}° \n{name}";
+                {
+                    _displayMessage = $"{measurement.Value:N2}° \n{name}";
+                }
                 else
+                {
+                    if(gameObject.name.Contains("Right")){
+                        
+                            ReferenceManager.instance.RightAngleDifference = this;
+                            if (ReferenceManager.instance.RightDistance != null)
+                            {
+                                // ReferenceManager.instance.CalculateAngle();
+                            }
+                        
+                    }
+                    if(gameObject.name.Contains("Left")){
+                        
+                            ReferenceManager.instance.LeftAngleDifference = this;
+                            if (ReferenceManager.instance.LeftDistance != null)
+                            {
+                                // ReferenceManager.instance.CalculateAngle();
+                            }
+                        
+                    }
                     _displayMessage = $"{measurement.Value:N1}° \n{name}";
+                }
             }
             else
             {
-                _displayMessage = $"{measurement.Value:N0}mm \n{name}";
+                _displayMessage = $"{measurement.Value:N2}mm \n{name}";
                 if (_rect == null)
                     _rect = gameObject.transform as RectTransform;
                 ReferencePosition.transform.parent = ReferenceManager.instance.LightBuzzPanel;
@@ -301,8 +340,8 @@ namespace LightBuzz.AvaSci.UI
 
             if (measurement.Type.ToString().Contains("Difference"))
             {
-                MinScale = 2;
-                MaxScale = 3;
+                // MinScale = 2;
+                // MaxScale = 3;
                 _foregroundImage.color = UnityEngine.Color.red;
             }
 
@@ -341,7 +380,13 @@ namespace LightBuzz.AvaSci.UI
                     _displayMessage += "\nVarus Condition";
                 }
             }
-
+            if(measurement.Type == MeasurementType.HipKneeLeftDistance || measurement.Type == MeasurementType.HipKneeRightDistance){
+                _displayMessage = _displayMessage.Replace(name, name.Substring(0,1)+" Hip/Knee Dis");
+            }
+            if(gameObject.name.Contains("Varus")){
+                _displayMessage = _displayMessage.Replace("mm", "");
+                _displayMessage = _displayMessage.Replace(name, name.Substring(0,1)+" Var/Val Dis");
+            }
             Refresh();
         }
     }

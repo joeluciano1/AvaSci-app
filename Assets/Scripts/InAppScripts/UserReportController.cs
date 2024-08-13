@@ -73,6 +73,7 @@ public class UserReportController : MonoBehaviour
                             userReportFromDBPrefab,
                             userReportFromDBPrefab.transform.parent
                         );
+                        userReportFromDB.videoId = item.Id;
                         userReportFromDB.UserId = item.UserID;
                         userReportFromDB.VideoURL = item.VideoURL;
                         userReportFromDB.gameObject.SetActive(true);
@@ -141,7 +142,7 @@ public class UserReportController : MonoBehaviour
                             itemToSnapTo = userReportFromDB.transform;
                             RecentlyPlayedButton = userReportFromDB;
                             userReportFromDB.WatchBtn.onClick.AddListener(
-                                () => CreateFileAndView(null, "", userReportFromDB.UserName.text)
+                                () => { CreateFileAndView(null, "", userReportFromDB.UserName.text); ReferenceManager.instance.SelectedVideoID = userReportFromDB.videoId; }
                             );
                             if (!string.IsNullOrEmpty(item.ReportURL))
                             {
@@ -208,6 +209,8 @@ public class UserReportController : MonoBehaviour
     {
         ResearchMeasurementManager.instance.footDistances.Clear();
         ReferenceManager.instance.isShowingRecording = false;
+        ReferenceManager.instance.SelectedVideoID = null;
+        ReferenceManager.instance.CleareVarusValgus();
         videoRecorderView.Show();
     }
 
@@ -259,7 +262,7 @@ public class UserReportController : MonoBehaviour
             var reportFile = videoSaveBodies.FirstOrDefault(x => x.FileName.Equals("Sample.pdf"));
             btn.onClick.RemoveAllListeners();
             btn.onClick.AddListener(
-                () => CreateFileAndView(videoSaveBodies, url, userReportFromDB.UserName.text)
+                () => { CreateFileAndView(videoSaveBodies, url, userReportFromDB.UserName.text); ReferenceManager.instance.SelectedVideoID = userReportFromDB.videoId; }
             );
             btn.interactable = true;
             userReportFromDB.ProgressImage.gameObject.SetActive(false);
@@ -301,7 +304,7 @@ public class UserReportController : MonoBehaviour
         {
             userReportFromDBs.ForEach(x => x.gameObject.SetActive(false));
             var matchingNames = userReportFromDBs
-                .Where(x => x.UserName.text.Contains(name, StringComparison.OrdinalIgnoreCase))
+                .Where(x => x.UserName.text.Contains(name, StringComparison.OrdinalIgnoreCase)|| x.ReportDescription.text.Contains(name, StringComparison.OrdinalIgnoreCase))
                 .ToList();
             foreach (var item in matchingNames)
             {

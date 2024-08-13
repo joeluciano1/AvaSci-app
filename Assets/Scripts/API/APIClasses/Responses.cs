@@ -164,6 +164,7 @@ public class InstructionsResponse
 
 public class UserReportData
 {
+    public long Id { get; set; }
     public string UserID { get; set; }
     public string UserName { get; set; }
     public string VideoURL { get; set; }

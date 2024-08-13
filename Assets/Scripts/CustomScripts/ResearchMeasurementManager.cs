@@ -294,8 +294,50 @@ public class ResearchMeasurementManager : MonoBehaviour
             && ReferenceManager.instance.graphManagers.Any(x => x.MySineWave.isVideoDoneLoading)
         )
             coroutine = StartCoroutine(DetectFootOnGround());
+        DetectFootFullyPressed();
+        generate();
+    }
+    public GameObject cubePrefab;
+    List<GameObject> cubes = new List<GameObject>();
+    public void generate(){
+        foreach(var bodyData in researchProjectCompleteBodyDatas){
+            var alreadycube = cubes.FirstOrDefault(x=>x.name == bodyData.name);
+            if (alreadycube != null)
+            {
+                alreadycube.transform.localPosition = bodyData.Position3D;
+            }
+            else
+            {
+                GameObject cube = Instantiate(cubePrefab);
+                cube.name = bodyData.name;
+                cube.transform.localPosition = bodyData.Position3D;
+                cubes.Add(cube);
+            }
+        }
+    }
+    public void DetectFootFullyPressed(){
+        ResearchProjectCompleteBodyData ankleLeft =
+                researchProjectCompleteBodyDatas.FirstOrDefault(x =>
+                    x.gameObject.name == JointType.AnkleLeft.ToString()
+                );
+
+            ResearchProjectCompleteBodyData ankleRight =
+                researchProjectCompleteBodyDatas.FirstOrDefault(x =>
+                    x.gameObject.name == JointType.AnkleRight.ToString()
+                );
+            if (ankleLeft == null || ankleRight == null)
+                return;
+
+            if(Math.Abs(ankleLeft.Position3D.z - ankleRight.Position3D.z)<=0.05f){
+                if(ankleLeft.Position3D.y < ankleRight.Position3D.y){
+                            Debug.Log("Right Foot fully pressed");
+                }
+                if(ankleRight.Position3D.y < ankleLeft.Position3D.y){
+                            Debug.Log("Left Foot is fully pressed");
+                }
     }
 
+}
     public List<float> footDistances = new List<float>();
 
     public void RecordFoots()
@@ -342,7 +384,7 @@ public class ResearchMeasurementManager : MonoBehaviour
         }
         if (ReferenceManager.instance.videoPlayerView.VideoPlayer.IsPaused)
         {
-            Debug.Log("Video Is paused");
+            // Debug.Log("Video Is paused");
             coroutine = null;
             yield break;
         }
@@ -389,7 +431,7 @@ public class ResearchMeasurementManager : MonoBehaviour
                 >= footDistances.Max() - float.Parse(toloranceValue.text)
             )
             {
-                Debug.Log("Foot Detected");
+                // Debug.Log("Foot Detected");
                 StepButon.onClick.Invoke();
                 
                 jointForStrideLengthL.ShockWaveEffect.SetActive(true);
@@ -406,7 +448,7 @@ public class ResearchMeasurementManager : MonoBehaviour
         {
             if (jointForStrideLengthR.Position3D.z > jointForStrideLengthL.Position3D.z)
             {
-                Debug.Log("Because z is less or behind");
+                // Debug.Log("Because z is less or behind");
                 jointForStrideLengthL.ShockWaveEffect.SetActive(false);
                 jointForStrideLengthR.ShockWaveEffect.SetActive(false);
                 coroutine = null;
@@ -417,7 +459,7 @@ public class ResearchMeasurementManager : MonoBehaviour
                 >= footDistances.Max() - float.Parse(toloranceValue.text)
             )
             {
-                Debug.Log("Foot Detected");
+                // Debug.Log("Foot Detected");
                 StepButon.onClick.Invoke();
                 
                 jointForStrideLengthR.ShockWaveEffect.SetActive(true);

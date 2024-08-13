@@ -143,6 +143,10 @@ namespace LightBuzz.AvaSci.Measurements
                     return new HipKneeRightDistance();
                 case MeasurementType.HipKneeLeftDistance:
                     return new HipKneeLeftDistance();
+                case MeasurementType.VarusValgusLeftAngleDistance:
+                    return new VarusValgusLeftAngle();
+                case MeasurementType.VarusValgusRightAngleDistance:
+                    return new VarusValgusRightAngle();
                 default:
                     throw new NotImplementedException(
                         $"The {type} measurement is not implemented!"

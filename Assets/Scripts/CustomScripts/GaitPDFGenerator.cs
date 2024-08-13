@@ -98,6 +98,8 @@ public class GaitPDFGenerator : MonoBehaviour
         {
             CreateGaitReportBody body = new CreateGaitReportBody()
             {
+                ReportsRecordId = ReferenceManager.instance.SelectedVideoID,
+                CreatedBy = GeneralStaticManager.GlobalVar["UserName"],
                 Subject = GeneralStaticManager.GlobalVar["Subject"],
                 FootStrikeAtTime = ReferenceManager
                     .instance.maxAngleAtFootStrikingTime.ElementAt(i)

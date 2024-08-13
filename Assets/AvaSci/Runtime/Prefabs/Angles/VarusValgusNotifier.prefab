@@ -331,7 +331,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4144172353085979388}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 24dfede67b4424207937d2c9c9a725e5, type: 3}
   m_Name: 
@@ -456,9 +456,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4831087291830169773}
-  - component: {fileID: 3538557964374531573}
+  - component: {fileID: 2047220491662226979}
   m_Layer: 5
-  m_Name: Angle
+  m_Name: VarusValgusNotifier
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -486,7 +486,7 @@ RectTransform:
   m_AnchoredPosition: {x: -30.572693, y: -0.9655}
   m_SizeDelta: {x: 81.821, y: 82.3511}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &3538557964374531573
+--- !u!114 &2047220491662226979
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -495,23 +495,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 7461724032137592647}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b45a03f7b1ef4474d842c9e44b722cb0, type: 3}
+  m_Script: {fileID: 11500000, guid: 722a32f799db04b529e40df3bc30a63e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _imageView: {fileID: 0}
-  _backgroundImage: {fileID: 8971243072530343391}
-  _foregroundImage: {fileID: 8512407794543227007}
-  _text: {fileID: 3940488475626902282}
-  _angle: 150
-  _start: {x: 0, y: 0}
-  _center: {x: 0, y: 0}
-  _end: {x: 0, y: 0}
-  _displayMessage: 
-  uIDragger: {fileID: 1708598311276105012}
-  initialDifference: 0
-  MinScale: 0.5
-  MaxScale: 1
-  ReferencePosition: {fileID: 2092139265444351542}
+  AngleValue: {fileID: 3940488475626902282}
 --- !u!1 &8774747854789740960
 GameObject:
   m_ObjectHideFlags: 0
