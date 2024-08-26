@@ -93,7 +93,7 @@ public class ReferenceManager : MonoBehaviour
 
 	public Dictionary<float, float> maxAngleAtFootStrikingTime = new Dictionary<float, float>();
 	public Dictionary<float, float> maxDistanceAtFootStrikingTime = new Dictionary<float, float>();
-
+	public List<HeelPressDetectionBody> heelPressDetectionBodies = new List<HeelPressDetectionBody>();
 	public Dictionary<float, float> AngleAtFootStrikingTime = new Dictionary<float, float>();
 	public Dictionary<float, float> DistanceAtFootStrikingTime = new Dictionary<float, float>();
 	public AngleManager angleManager;
@@ -109,6 +109,9 @@ public class ReferenceManager : MonoBehaviour
 	VarusValgusNotifier varusValgusNotifierLeft;
 	VarusValgusNotifier varusValgusNotifierRight;
 	public VarusValgusNotifier varusValgusNotifierPrefab;
+	public int videoPlayingCount;
+	public TMP_Text ProcessingNotifier;
+	public bool placeHeelDetectionValues;
 	private void Awake()
 	{
 		instance = this;
@@ -280,12 +283,19 @@ public class ReferenceManager : MonoBehaviour
 			x.MySineWave.graphChart.AutoScrollHorizontally = false;
 		});
 	}
-
+	
 	public void OnVideoScrolled(float value)
 	{
 		if(videoPlayerView.VideoPlayer.IsPaused){
 			TimeElapsedLightBuzz.text = videoPlayerView.VideoPlayer.TimeElapsed.Format();
 		}
+		// if(placeHeelDetectionValues)
+		// {
+		// 	HeelPressDetectionBody videoAtSavedValue = heelPressDetectionBodies.FirstOrDefault(x => x.TimeOfHeelPressed == videoPlayerView.VideoPlayer.TimeElapsed.TotalSeconds.ToString());
+		// 	ResearchMeasurementManager.instance.PutGaitValuesInDetectedTime(videoAtSavedValue);
+		// }
+		
+		
 		if (value.ToString("0.0") == "0.0")
 		{
 			if (ResearchMeasurementManager.instance.footOnGroundPosition != null)
@@ -293,19 +303,21 @@ public class ReferenceManager : MonoBehaviour
 				ResearchMeasurementManager.instance.ClearFootOnGroundPosition();
 			}
 		}
+		if (value.ToString("0.00") == "0.90")
+		{
+			videoPlayingCount += 1;
+		}
 		// Debug.Log(videoPlayerView.VideoPlayer.TimeElapsed.TotalSeconds + "/" + videoPlayerView.VideoPlayer.Duration.TotalSeconds);
 		graphManagers.ForEach(x =>
 		{
-			if (
-				(
-					videoPlayerView.VideoPlayer.Duration.TotalSeconds
-					- videoPlayerView.VideoPlayer.TimeElapsed.TotalSeconds
-				) < 0.2f
-				&& !x.MySineWave.isVideoDoneLoading
-			)
+			if (( videoPlayerView.VideoPlayer.Duration.TotalSeconds - videoPlayerView.VideoPlayer.TimeElapsed.TotalSeconds) < 0.2f)
 			{
-				x.MySineWave.isVideoDoneLoading = true;
-				x.MySineWave.LoadingScreen.SetActive(false);
+				
+				if (!x.MySineWave.isVideoDoneLoading)
+				{
+					x.MySineWave.isVideoDoneLoading = true;
+					x.MySineWave.LoadingScreen.SetActive(false);
+				}
 			}
 
 			x.MySineWave.isReading = false;
@@ -325,6 +337,7 @@ public class ReferenceManager : MonoBehaviour
 					.TotalSeconds;
 			}
 		});
+		
 		// }
 	}
 

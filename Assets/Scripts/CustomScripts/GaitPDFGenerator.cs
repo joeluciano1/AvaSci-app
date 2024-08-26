@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
@@ -22,9 +23,12 @@ public class GaitPDFGenerator : MonoBehaviour
         PdfPage page = doc.Pages.Add();
         // Create a PdfLightTable
         PdfLightTable pdfLightTable = new PdfLightTable();
+        PdfLightTable pdfLightTable2 = new PdfLightTable();
         // Initialize DataTable to assign as DateSource to the light table
         DataTable table = new DataTable();
+        DataTable table2 = new DataTable();
         pdfLightTable.Style.BorderPen = new PdfPen(new PdfColor(0, 0, 0), 0.5F);
+        pdfLightTable2.Style.BorderPen = new PdfPen(new PdfColor(0, 0, 0), 0.5F);
 
         //Include columns to the DataTable
         table.Columns.Add("Subject");
@@ -33,6 +37,13 @@ public class GaitPDFGenerator : MonoBehaviour
         table.Columns.Add("mm Distance");
         table.Columns.Add("Max Angle Difference");
         table.Columns.Add("Max mm Distance");
+
+        table2.Columns.Add("Subject");
+        table2.Columns.Add("Heal Passing (Time)");
+        table2.Columns.Add("ABD Angle Difference");
+        table2.Columns.Add("Hip/Knee Distance");
+        table2.Columns.Add("Heel Detected");
+
 
         //Include rows to the DataTable
         for (int i = 0; i < ReferenceManager.instance.maxAngleAtFootStrikingTime.Count; i++)
@@ -59,15 +70,37 @@ public class GaitPDFGenerator : MonoBehaviour
                 }
             );
         }
+        for(int i = 0; i < ReferenceManager.instance.heelPressDetectionBodies.Count; i++)
+        {
+            table2.Rows.Add(
+                new string[]
+                {
+                    GeneralStaticManager.GlobalVar["Subject"],
+                    TimeSpan.FromSeconds(float.Parse(ReferenceManager
+                        .instance.heelPressDetectionBodies[i].TimeOfHeelPressed)).ToString(@"mm\:ss\:fff"),
+                    ReferenceManager
+                        .instance.heelPressDetectionBodies[i].angleDifferenceValue.ToString("0.00"),
+                    ReferenceManager
+                        .instance.heelPressDetectionBodies[i].distanceValue.ToString("0.00"),
+                    ReferenceManager
+                        .instance.heelPressDetectionBodies[i].nameOfTheFoot,
+                }
+            );
+        }
         //Applying cell padding to table
         pdfLightTable.Style.CellPadding = 3;
+        pdfLightTable2.Style.CellPadding = 3;
         pdfLightTable.ApplyBuiltinStyle(PdfLightTableBuiltinStyle.GridTable3Accent3);
+        pdfLightTable2.ApplyBuiltinStyle(PdfLightTableBuiltinStyle.GridTable3Accent3);
         //Assign data source
         pdfLightTable.DataSource = table;
+        pdfLightTable2.DataSource = table2;
         //Setting this property to true to show the header of table
         pdfLightTable.Style.ShowHeader = true;
+        pdfLightTable2.Style.ShowHeader = true;
         //Draw PdfLightTable
-        pdfLightTable.Draw(page, new PointF(0, 0));
+        var result =pdfLightTable.Draw(page, new PointF(0, 0));
+        pdfLightTable2.Draw(page, new PointF(0, result.Bounds.Height+10));
         //Save the document
         MemoryStream stream = new MemoryStream();
 

@@ -107,3 +107,11 @@ public class CreateGaitReportBody
     public float MaxmmDistance { get; set; }
     public string SelectedLeg { get; set; }
 }
+[System.Serializable]
+public class HeelPressDetectionBody{
+    public string Subject { get; set; }
+    public string TimeOfHeelPressed{get; set; }
+    public string nameOfTheFoot{ get; set; }
+    public float distanceValue{ get; set; }
+    public float angleDifferenceValue{ get; set; }
+}

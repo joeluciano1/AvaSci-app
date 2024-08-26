@@ -91,7 +91,7 @@ public class ResearchMeasurementManager : MonoBehaviour
             {
                 if (item.Value.TrackingState != TrackingState.Inferred)
                 {
-                    TempBodyDataSaver tempBodyDataSaver = new TempBodyDataSaver()
+                TempBodyDataSaver tempBodyDataSaver = new TempBodyDataSaver()
                     {
                         bodyJointType = item.Value.Type,
                         bodyJoint = item.Value,
@@ -294,27 +294,75 @@ public class ResearchMeasurementManager : MonoBehaviour
             && ReferenceManager.instance.graphManagers.Any(x => x.MySineWave.isVideoDoneLoading)
         )
             coroutine = StartCoroutine(DetectFootOnGround());
-        DetectFootFullyPressed();
-        generate();
+        // DetectFootFullyPressed();
+        FootFullyPressedNewDetection();
     }
-    public GameObject cubePrefab;
-    List<GameObject> cubes = new List<GameObject>();
-    public void generate(){
-        foreach(var bodyData in researchProjectCompleteBodyDatas){
-            var alreadycube = cubes.FirstOrDefault(x=>x.name == bodyData.name);
-            if (alreadycube != null)
+   public void FootFullyPressedNewDetection()
+   {
+        if(ReferenceManager.instance.videoPlayingCount ==2 &&footStrikeAtTimes.Count!=0)
+        {
+            ReferenceManager.instance.ProcessingNotifier.text = "Gathering Heel Pressed Data...";
+            for(int i = 0; i<footStrikeAtTimes.Count; i++)
             {
-                alreadycube.transform.localPosition = bodyData.Position3D;
+                float time1 = footStrikeAtTimes[i];
+                float time2 = 0;
+                if (i < footStrikeAtTimes.Count-1)
+                {
+                    time2 = footStrikeAtTimes[i + 1];
+                }
+                else if(i == footStrikeAtTimes.Count-1)
+                {
+                    time2 = footStrikeAtTimes[i - 1];
+                }
+                float finalValue = (time1 + time2) / 2;
+                
+                HeelPressDetectionBody heelPressDetectionBody = new HeelPressDetectionBody()
+                {
+                    
+                    TimeOfHeelPressed = finalValue.ToString(),
+                };
+                if(ReferenceManager.instance.heelPressDetectionBodies.FirstOrDefault(x=>x.TimeOfHeelPressed == heelPressDetectionBody.TimeOfHeelPressed)==null)
+                    ReferenceManager.instance.heelPressDetectionBodies.Add(heelPressDetectionBody);
+            }    
+        }
+        if(ReferenceManager.instance.videoPlayingCount >=3 &&footStrikeAtTimes.Count!=0)
+        {
+            ReferenceManager.instance.ProcessingNotifier.text = "Processing Heel Pressed Data...";
+            ReferenceManager.instance.placeHeelDetectionValues = true;
+            if (ReferenceManager.instance.videoPlayingCount > 3)
+            {
+                ReferenceManager.instance.ProcessingNotifier.text = "";
+                ReferenceManager.instance.placeHeelDetectionValues = false;
             }
-            else
+            HeelPressDetectionBody videoAtSavedValue = ReferenceManager.instance.heelPressDetectionBodies.FirstOrDefault(x => Math.Abs(float.Parse(x.TimeOfHeelPressed) - ReferenceManager.instance.videoPlayerView.VideoPlayer.TimeElapsed.TotalSeconds)<=0.2f);
+            PutGaitValuesInDetectedTime(videoAtSavedValue);
+        }
+    }
+
+    public void PutGaitValuesInDetectedTime(HeelPressDetectionBody videoAtSavedValue)
+    {
+        if (videoAtSavedValue != null)
+        {
+            if (leftLeg)
             {
-                GameObject cube = Instantiate(cubePrefab);
-                cube.name = bodyData.name;
-                cube.transform.localPosition = bodyData.Position3D;
-                cubes.Add(cube);
+                // videoAtSavedValue.TimeOfHeelPressed = float.Parse(videoAtSavedValue.TimeOfHeelPressed).ToString(@"hh\:mm\:ss\:fff");
+                videoAtSavedValue.Subject = GeneralStaticManager.GlobalVar["Subject"];
+                videoAtSavedValue.nameOfTheFoot = "Left Leg";
+                videoAtSavedValue.angleDifferenceValue = ReferenceManager.instance.angleManager._angles[MeasurementType.HipAnkleHipKneeLeftAbductionDifference].Angle;
+                videoAtSavedValue.distanceValue = ReferenceManager.instance.angleManager._angles[MeasurementType.HipKneeLeftDistance].Angle;
+            }
+            if (rightLeg)
+            {
+                // videoAtSavedValue.TimeOfHeelPressed = float.Parse(videoAtSavedValue.TimeOfHeelPressed).ToString(@"hh\:mm\:ss\:fff");
+                videoAtSavedValue.Subject = GeneralStaticManager.GlobalVar["Subject"];
+                videoAtSavedValue.nameOfTheFoot = "Right Leg";
+                videoAtSavedValue.angleDifferenceValue = ReferenceManager.instance.angleManager._angles[MeasurementType.HipAnkleHipKneeRightAbductionDifference].Angle;
+                videoAtSavedValue.distanceValue = ReferenceManager.instance.angleManager._angles[MeasurementType.HipKneeRightDistance].Angle;
             }
         }
     }
+
+    // TMP_Text testText;
     public void DetectFootFullyPressed(){
         ResearchProjectCompleteBodyData ankleLeft =
                 researchProjectCompleteBodyDatas.FirstOrDefault(x =>
@@ -325,23 +373,78 @@ public class ResearchMeasurementManager : MonoBehaviour
                 researchProjectCompleteBodyDatas.FirstOrDefault(x =>
                     x.gameObject.name == JointType.AnkleRight.ToString()
                 );
-            if (ankleLeft == null || ankleRight == null)
+            if (ankleLeft == null || ankleRight == null || ReferenceManager.instance.graphManagers.Any(x=>!x.MySineWave.isVideoDoneLoading))
                 return;
+        // if (testText == null)
+        // {
+        //     GameObject go = new GameObject();
+        //     testText = go.AddComponent<TextMeshProUGUI>();
+        //     testText.transform.parent = ankleLeft.transform.parent;
+        //     testText.transform.localScale = Vector3.one;
+        //     testText.transform.localPosition = Vector3.zero;
+        // }
 
-            if(Math.Abs(ankleLeft.Position3D.z - ankleRight.Position3D.z)<=0.05f){
-                if(ankleLeft.Position3D.y < ankleRight.Position3D.y){
-                            Debug.Log("Right Foot fully pressed");
+        // // testText.text = GeneralStaticManager.ClosestTo(footDistances, Math.Abs(ankleLeft.Position3D.z- ankleRight.Position3D.z)).ToString();
+        // testText.text = (Mathf.Round(Math.Abs(ankleLeft.Position3D.z - ankleRight.Position3D.z)*10)/10).ToString();
+        float valueToCompare = Mathf.Round(Math.Abs(ankleLeft.Position3D.z - ankleRight.Position3D.z) * 10) / 10;
+        // float closestToValue = GeneralStaticManager.ClosestTo(footZDistances, Math.Abs(ankleLeft.Position3D.z - ankleRight.Position3D.z));
+        // Debug.Log("Current Difference: " + Math.Abs(ankleLeft.Position3D.z - ankleRight.Position3D.z));
+            if(valueToCompare==0.2f)
+            {
+            
+                if(ankleLeft.Position3D.y < ankleRight.Position3D.y && rightLeg)
+                {
+                    Debug.Log("Right Foot fully pressed");
+                    HeelPressDetectionBody heelPressDetectionBody = new HeelPressDetectionBody()
+                    {
+                        Subject = GeneralStaticManager.GlobalVar["Subject"],
+                        nameOfTheFoot = "Right Leg",
+                        angleDifferenceValue = ReferenceManager.instance.angleManager._angles[MeasurementType.HipAnkleHipKneeRightAbductionDifference].Angle,
+                        distanceValue = ReferenceManager.instance.angleManager._angles[MeasurementType.HipKneeRightDistance].Angle,
+                        TimeOfHeelPressed= ReferenceManager.instance.videoPlayerView.VideoPlayer.TimeElapsed.TotalSeconds.ToString("0.0")
+                    };
+                    var alreadyPresent = ReferenceManager.instance.heelPressDetectionBodies.FirstOrDefault(x => x.TimeOfHeelPressed == heelPressDetectionBody.TimeOfHeelPressed);
+                    if (alreadyPresent != null)
+                    {
+                        alreadyPresent = heelPressDetectionBody;
+                    }
+                    else
+                    {
+                        ReferenceManager.instance.heelPressDetectionBodies.Add(heelPressDetectionBody);
+                        ReferenceManager.instance.heelPressDetectionBodies = ReferenceManager.instance.heelPressDetectionBodies.OrderBy(x => x.TimeOfHeelPressed).ToList();
+                    }
                 }
-                if(ankleRight.Position3D.y < ankleLeft.Position3D.y){
-                            Debug.Log("Left Foot is fully pressed");
+                if(ankleRight.Position3D.y < ankleLeft.Position3D.y && leftLeg)
+                {
+                    Debug.Log("Left Foot is fully pressed");
+                    HeelPressDetectionBody heelPressDetectionBody = new HeelPressDetectionBody()
+                    {
+                        Subject = GeneralStaticManager.GlobalVar["Subject"],
+                        nameOfTheFoot = "Left Leg",
+                        angleDifferenceValue = ReferenceManager.instance.angleManager._angles[MeasurementType.HipAnkleHipKneeLeftAbductionDifference].Angle,
+                        distanceValue = ReferenceManager.instance.angleManager._angles[MeasurementType.HipKneeLeftDistance].Angle,
+                        TimeOfHeelPressed= ReferenceManager.instance.videoPlayerView.VideoPlayer.TimeElapsed.TotalSeconds.ToString("0.0")
+                    };
+                    var alreadyPresent = ReferenceManager.instance.heelPressDetectionBodies.FirstOrDefault(x => x.TimeOfHeelPressed == heelPressDetectionBody.TimeOfHeelPressed);
+                    if (alreadyPresent != null)
+                    {
+                        alreadyPresent = heelPressDetectionBody;
+                    }
+                    else
+                    {
+                        ReferenceManager.instance.heelPressDetectionBodies.Add(heelPressDetectionBody);
+                        ReferenceManager.instance.heelPressDetectionBodies = ReferenceManager.instance.heelPressDetectionBodies.OrderBy(x => x.TimeOfHeelPressed).ToList();
+                    }
                 }
     }
 
 }
     public List<float> footDistances = new List<float>();
+    // public List<float> footZDistances = new List<float>();
 
     public void RecordFoots()
     {
+        ReferenceManager.instance.ProcessingNotifier.text = "Reading Video Data...";
         ResearchProjectCompleteBodyData jointForStrideLengthL =
             researchProjectCompleteBodyDatas.FirstOrDefault(x =>
                 x.gameObject.name == JointType.AnkleLeft.ToString()
@@ -364,18 +467,24 @@ public class ResearchMeasurementManager : MonoBehaviour
             jointForStrideLengthL.Position3D,
             jointForStrideLengthR.Position3D
         );
+        // float zDistance = Math.Abs(jointForStrideLengthL.Position3D.z - jointForStrideLengthR.Position3D.z);
         if (!footDistances.Contains(distance))
         {
             footDistances.Add(distance);
             footDistances.Sort();
         }
+        // if(!footZDistances.Contains(zDistance)){
+        //     footZDistances.Add(zDistance);
+        //     footZDistances.Sort();
+        // }
     }
 
     Coroutine coroutine;
     public Vector3 previousPosition;
-
+    
     public IEnumerator DetectFootOnGround()
     {
+        ReferenceManager.instance.ProcessingNotifier.text = "Detecting Foot On Ground...";
         if(footDistances.Count == 0)
         {
             ReferenceManager.instance.graphManagers.ForEach(x=>x.MySineWave.isVideoDoneLoading = false);
@@ -528,7 +637,7 @@ public class ResearchMeasurementManager : MonoBehaviour
         }
         //Debug.Log($"\n3D Position {jointForStrideLengthL.Position3D}\n2D Position {jointForStrideLengthL.Position2D}");
 
-        Debug.Log("Detected");
+        // Debug.Log("Detected");
 
         footOnGroundPosition = jointForStrideLengthL.MyTransform.anchoredPosition.y;
 
@@ -653,7 +762,11 @@ public class ResearchMeasurementManager : MonoBehaviour
             ReferenceManager.instance.DistanceAtFootStrikingTime[footstrikesAtTime] =
                 curreentDistance;
         
-
+        ReferenceManager.instance.AngleAtFootStrikingTime.OrderBy(x => x.Key);
+        ReferenceManager.instance.maxAngleAtFootStrikingTime.OrderBy(x=>x.Key);
+        ReferenceManager.instance.maxDistanceAtFootStrikingTime.OrderBy(x=>x.Key);
+        ReferenceManager.instance.DistanceAtFootStrikingTime.OrderBy(x=>x.Key);
+        ReferenceManager.instance.heelPressDetectionBodies.OrderBy(x=>x.TimeOfHeelPressed);
     }
 
     public void Reset()
@@ -664,6 +777,8 @@ public class ResearchMeasurementManager : MonoBehaviour
 
         ReferenceManager.instance.maxAngleAtFootStrikingTime.Clear();
         ReferenceManager.instance.maxDistanceAtFootStrikingTime.Clear();
+        ReferenceManager.instance.heelPressDetectionBodies.Clear();
+        ReferenceManager.instance.videoPlayingCount = 0;
     }
 
     public void CalculateStepWidthL()

@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using LightBuzz.AvaSci.Measurements;
@@ -49,4 +50,8 @@ public static class GeneralStaticManager
     {
         return Enum.GetName(typeof(MeasurementType), value);
     }
+    public static float ClosestTo(this IEnumerable<float> collection, float target)
+{
+    return collection.OrderBy(x => Math.Abs(target - x)).First();
+}
 }

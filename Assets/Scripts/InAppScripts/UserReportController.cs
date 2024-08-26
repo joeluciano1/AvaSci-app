@@ -211,6 +211,7 @@ public class UserReportController : MonoBehaviour
         ReferenceManager.instance.isShowingRecording = false;
         ReferenceManager.instance.SelectedVideoID = null;
         ReferenceManager.instance.CleareVarusValgus();
+        ReferenceManager.instance.videoPlayingCount = 0;
         videoRecorderView.Show();
     }
 
