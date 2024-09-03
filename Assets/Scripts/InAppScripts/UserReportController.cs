@@ -208,6 +208,8 @@ public class UserReportController : MonoBehaviour
     public void ReallyCreateNew()
     {
         ResearchMeasurementManager.instance.footDistances.Clear();
+        ResearchMeasurementManager.instance.footStrikeAtTimes.Clear();
+        ReferenceManager.instance.heelPressDetectionBodies.Clear();
         ReferenceManager.instance.isShowingRecording = false;
         ReferenceManager.instance.SelectedVideoID = null;
         ReferenceManager.instance.CleareVarusValgus();

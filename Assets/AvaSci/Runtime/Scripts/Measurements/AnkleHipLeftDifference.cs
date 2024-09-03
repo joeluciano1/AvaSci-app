@@ -55,5 +55,7 @@ public class AnkleHipLeftDifference : Measurement
         _angleStart = hipLeft.Position2D;
         _angleCenter = (knee.Position2D + hipLeft.Position2D) / 2;
         _angleEnd = ankleLeft.Position2D;
+
+        ResearchMeasurementManager.instance.leftAngleValue = difference;
     }
 }

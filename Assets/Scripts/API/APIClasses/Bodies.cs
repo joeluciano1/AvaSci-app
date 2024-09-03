@@ -100,7 +100,7 @@ public class CreateGaitReportBody
     public long? ReportsRecordId { get; set; }
     public string CreatedBy { get; set; }
     public string Subject { get; set; }
-    public float FootStrikeAtTime { get; set; }
+    public string FootStrikeAtTime { get; set; }
     public float AngleDifferenceAtTime { get; set; }
     public float MMDistaceAtTime { get; set; }
     public float MaxAngleDifference { get; set; }
@@ -109,6 +109,7 @@ public class CreateGaitReportBody
 }
 [System.Serializable]
 public class HeelPressDetectionBody{
+    public bool added { get; set; }
     public string Subject { get; set; }
     public string TimeOfHeelPressed{get; set; }
     public string nameOfTheFoot{ get; set; }

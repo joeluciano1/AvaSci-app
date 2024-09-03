@@ -34,5 +34,8 @@ public class VarusValgusLeftAngle : Measurement
         _angleStart = hipLeft.Position2D;
         _angleCenter = kneeLeft.Position2D;
         _angleEnd = kneeLeft.Position2D;
+        
+        ResearchMeasurementManager.instance.leftDisValue = myval;
+         
     }
 }

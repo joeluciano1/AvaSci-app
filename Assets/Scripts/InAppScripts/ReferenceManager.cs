@@ -74,7 +74,7 @@ public class ReferenceManager : MonoBehaviour
 	public Image UploadingImage;
 	public Transform UploaderAnimation;
 
-	public Slider videoSlider;
+	public VideoViewSlider videoSlider;
 	public Transform RightSideContents;
 	public Transform LeftSideContents;
 	public Canvas canvas;
@@ -91,11 +91,11 @@ public class ReferenceManager : MonoBehaviour
 	bool timerStarted;
 	Coroutine coroutine;
 
-	public Dictionary<float, float> maxAngleAtFootStrikingTime = new Dictionary<float, float>();
-	public Dictionary<float, float> maxDistanceAtFootStrikingTime = new Dictionary<float, float>();
+	public Dictionary<string, float> maxAngleAtFootStrikingTime = new Dictionary<string, float>();
+	public Dictionary<string, float> maxDistanceAtFootStrikingTime = new Dictionary<string, float>();
 	public List<HeelPressDetectionBody> heelPressDetectionBodies = new List<HeelPressDetectionBody>();
-	public Dictionary<float, float> AngleAtFootStrikingTime = new Dictionary<float, float>();
-	public Dictionary<float, float> DistanceAtFootStrikingTime = new Dictionary<float, float>();
+	public Dictionary<string, float> AngleAtFootStrikingTime = new Dictionary<string, float>();
+	public Dictionary<string, float> DistanceAtFootStrikingTime = new Dictionary<string, float>();
 	public AngleManager angleManager;
 	public Text TimeElapsedLightBuzz;
 	// [HideInInspector]
@@ -110,8 +110,9 @@ public class ReferenceManager : MonoBehaviour
 	VarusValgusNotifier varusValgusNotifierRight;
 	public VarusValgusNotifier varusValgusNotifierPrefab;
 	public int videoPlayingCount;
-	public TMP_Text ProcessingNotifier;
 	public bool placeHeelDetectionValues;
+	
+
 	private void Awake()
 	{
 		instance = this;
@@ -175,7 +176,16 @@ public class ReferenceManager : MonoBehaviour
 		}
 #endif
 	}
-
+	
+	
+	[ContextMenu("TestTime")]
+	public void SkipToVideo(float sliderValue){
+		videoPlayerView.OnSliderHandle();
+		
+		videoSlider.value = sliderValue;
+		videoSlider.onValueChanged.Invoke(sliderValue);
+		videoPlayerView.OnSliderHandle();
+	}
 	public void GenerateGraph(MeasurementType measurementType)
 	{
 		List<string> jointTypes = new List<string>();
@@ -283,12 +293,12 @@ public class ReferenceManager : MonoBehaviour
 			x.MySineWave.graphChart.AutoScrollHorizontally = false;
 		});
 	}
-	
+	bool reachedEnd;
 	public void OnVideoScrolled(float value)
 	{
-		if(videoPlayerView.VideoPlayer.IsPaused){
-			TimeElapsedLightBuzz.text = videoPlayerView.VideoPlayer.TimeElapsed.Format();
-		}
+		// if(videoPlayerView.VideoPlayer.IsPaused){
+			
+		// }
 		// if(placeHeelDetectionValues)
 		// {
 		// 	HeelPressDetectionBody videoAtSavedValue = heelPressDetectionBodies.FirstOrDefault(x => x.TimeOfHeelPressed == videoPlayerView.VideoPlayer.TimeElapsed.TotalSeconds.ToString());
@@ -303,9 +313,18 @@ public class ReferenceManager : MonoBehaviour
 				ResearchMeasurementManager.instance.ClearFootOnGroundPosition();
 			}
 		}
-		if (value.ToString("0.00") == "0.90")
+		if(ResearchMeasurementManager.instance.processingNotifier.gameObject.activeSelf)
+		{
+			ResearchMeasurementManager.instance.processingNotifier.LoadingFill.fillAmount = value;
+		}
+		if (Math.Abs( 1 - value) <= 0.05f && !reachedEnd)
 		{
 			videoPlayingCount += 1;
+			reachedEnd = true;
+		}
+		else if(Math.Abs(1 - value) > 0.05f && reachedEnd)
+		{
+			reachedEnd = false;
 		}
 		// Debug.Log(videoPlayerView.VideoPlayer.TimeElapsed.TotalSeconds + "/" + videoPlayerView.VideoPlayer.Duration.TotalSeconds);
 		graphManagers.ForEach(x =>
@@ -350,9 +369,14 @@ public class ReferenceManager : MonoBehaviour
 		});
 		graphManagers.ForEach(x => x.MySineWave.graphChart.DataSource.Clear());
 	}
-
+	private void LateUpdate()
+	{
+		if(videoPlayerView.gameObject.activeSelf)
+		TimeElapsedLightBuzz.text = videoPlayerView.VideoPlayer.TimeElapsed.ToString(@"mm\:ss\:fff");
+	}
 	private void Update()
 	{
+		
 		if (videoRecorded)
 		{
 			commentQuestionnaire.AskToUpload(recorderPath);
@@ -455,7 +479,7 @@ public class ReferenceManager : MonoBehaviour
 	[ContextMenu("PauseVid")]
 	public async void PauseTheVideo()
 	{
-		await Task.Delay(500);
+		await Task.Delay(50);
 		if (!videoPlayerView.VideoPlayer.IsPaused)
 			LightBuzzVideoPlayerButton.onClick.Invoke();
 	}
