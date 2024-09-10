@@ -46,7 +46,7 @@ public class ResearchMeasurementManager : MonoBehaviour
     public TMP_Text strideLengthNotifier;
     public TMP_Text stepwidthLNotifier;
     public TMP_Text stepwidthRNotifier;
-    bool isStarted;
+    public bool isStarted;
     public float tollorance;
     public Button TriggerButton;
     public List<string> footStrikeAtTimes = new List<string>();
@@ -77,11 +77,11 @@ public class ResearchMeasurementManager : MonoBehaviour
     {
         isStarted = true;
         ReferenceManager.instance.videoPlayingCount = 0;
-        if (!informationShown)
-        {
-            ReferenceManager.instance.PopupManager.Show("Information", "Please run the video completely once again to complete the foot detection record. Thanks!");
-            informationShown = true;
-        }
+        // if (!informationShown)
+        // {
+        //     ReferenceManager.instance.PopupManager.Show("Information", "Please run the video completely once again to complete the foot detection record. Thanks!");
+        //     informationShown = true;
+        // }
         researchProjectCompleteBodyDatas.ForEach(x => x.gameObject.SetActive(true));
         ReferenceManager.instance.StartTimer();
         TakeUserConsent();
@@ -381,22 +381,10 @@ public class ResearchMeasurementManager : MonoBehaviour
         }
         if(ReferenceManager.instance.videoPlayingCount >2 &&footStrikeAtTimes.Count!=0)
         {
-            // processingNotifier.NotifierText.text = "Processing Heel Pressed Data...";
-            // processingNotifier.gameObject.SetActive(true);
-            // ReferenceManager.instance.placeHeelDetectionValues = true;
-            // if (ReferenceManager.instance.videoPlayingCount > 3)
-            // {
+            
                 processingNotifier.NotifierText.text = "";
                 ReferenceManager.instance.placeHeelDetectionValues = false;
                 processingNotifier.gameObject.SetActive(false);
-            // }
-            // if (ReferenceManager.instance.videoPlayingCount == 3)
-            // {
-            //     List<float> floatValues = ReferenceManager.instance.heelPressDetectionBodies.Select(x => float.Parse(x.TimeOfHeelPressed)).ToList();
-            //     HeelPressDetectionBody videoAtSavedValue = ReferenceManager.instance.heelPressDetectionBodies.FirstOrDefault(x => GeneralStaticManager.ClosestTo(floatValues, (float)ReferenceManager.instance.videoPlayerView.VideoPlayer.TimeElapsed.TotalSeconds) == float.Parse(x.TimeOfHeelPressed));
-
-            //     PutGaitValuesInDetectedTime(videoAtSavedValue);
-            // }
         }
     }
     public GameObject cubePrefab;
@@ -576,8 +564,6 @@ public class ResearchMeasurementManager : MonoBehaviour
 
     public void RecordFoots()
     {
-        processingNotifier.NotifierText.text = "Reading Video Data...";
-        processingNotifier.gameObject.SetActive(true);
         ResearchProjectCompleteBodyData jointForStrideLengthL =
             researchProjectCompleteBodyDatas.FirstOrDefault(x =>
                 x.gameObject.name == JointType.AnkleLeft.ToString()
@@ -600,16 +586,14 @@ public class ResearchMeasurementManager : MonoBehaviour
             jointForStrideLengthL.Position3D,
             jointForStrideLengthR.Position3D
         );
-        // float zDistance = Math.Abs(jointForStrideLengthL.Position3D.z - jointForStrideLengthR.Position3D.z);
+        
         if (!footDistances.Contains(distance))
         {
             footDistances.Add(distance);
             footDistances.Sort();
         }
-        // if(!footZDistances.Contains(zDistance)){
-        //     footZDistances.Add(zDistance);
-        //     footZDistances.Sort();
-        // }
+        processingNotifier.NotifierText.text = "Reading Video Data...";
+        processingNotifier.gameObject.SetActive(true);
     }
 
     Coroutine coroutine;
@@ -831,7 +815,7 @@ public class ResearchMeasurementManager : MonoBehaviour
                 .GraphsReadings[MeasurementType.HipAnkleHipKneeLeftAbductionDifference.ToString()]
                 .Max();
 
-            currentAngle = abdDiffAtTime[footstrikesAtTime];
+            currentAngle = abdDiffAtTime.ContainsKey(footstrikesAtTime)? abdDiffAtTime[footstrikesAtTime]:0;
             currentAngle = currentAngle == 0 ? ReferenceManager.instance.angleManager._angles[MeasurementType.HipAnkleHipKneeLeftAbductionDifference].Angle : currentAngle;
         }
         else
@@ -840,7 +824,7 @@ public class ResearchMeasurementManager : MonoBehaviour
                 .GraphsReadings[MeasurementType.HipAnkleHipKneeRightAbductionDifference.ToString()]
                 .Max();
 
-            currentAngle = abdDiffAtTime[footstrikesAtTime];
+            currentAngle = abdDiffAtTime.ContainsKey(footstrikesAtTime)? abdDiffAtTime[footstrikesAtTime]:0;
             currentAngle = currentAngle == 0 ? ReferenceManager.instance.angleManager._angles[MeasurementType.HipAnkleHipKneeRightAbductionDifference].Angle : currentAngle;
         }
         if (leftLeg)
@@ -849,7 +833,7 @@ public class ResearchMeasurementManager : MonoBehaviour
                 .GraphsReadings[MeasurementType.VarusValgusLeftAngleDistance.ToString()]
                 .Max();
 
-            curreentDistance = varValAtTime[footstrikesAtTime];
+            curreentDistance = varValAtTime.ContainsKey(footstrikesAtTime)? varValAtTime[footstrikesAtTime]:0;
             curreentDistance = curreentDistance == 0 ? ReferenceManager.instance.angleManager._angles[MeasurementType.VarusValgusLeftAngleDistance].Angle : curreentDistance;
         }
         else
@@ -858,7 +842,7 @@ public class ResearchMeasurementManager : MonoBehaviour
                 .GraphsReadings[MeasurementType.VarusValgusRightAngleDistance.ToString()]
                 .Max();
 
-            curreentDistance = varValAtTime[footstrikesAtTime];
+            curreentDistance = varValAtTime.ContainsKey(footstrikesAtTime)? varValAtTime[footstrikesAtTime]:0;
             curreentDistance = curreentDistance == 0 ? ReferenceManager.instance.angleManager._angles[MeasurementType.VarusValgusRightAngleDistance].Angle : curreentDistance;
         }
         if (!ReferenceManager.instance.maxAngleAtFootStrikingTime.Any(x=> x.Key == footstrikesAtTime))

@@ -297,15 +297,32 @@ public class ReferenceManager : MonoBehaviour
 	public void OnVideoScrolled(float value)
 	{
 		// if(videoPlayerView.VideoPlayer.IsPaused){
-			
+
 		// }
 		// if(placeHeelDetectionValues)
 		// {
 		// 	HeelPressDetectionBody videoAtSavedValue = heelPressDetectionBodies.FirstOrDefault(x => x.TimeOfHeelPressed == videoPlayerView.VideoPlayer.TimeElapsed.TotalSeconds.ToString());
 		// 	ResearchMeasurementManager.instance.PutGaitValuesInDetectedTime(videoAtSavedValue);
 		// }
-		
-		
+		if ((bool)(ResearchMeasurementManager.instance?.isStarted))
+		{
+			if (ShouldHideSkeleton)
+			{
+				skeletonManager.Toggle(false);
+				angleManager._angles[MeasurementType.HipKneeLeftDistance].gameObject.GetComponentInChildren<LineRenderer>().enabled = false;
+				angleManager._angles[MeasurementType.HipKneeRightDistance].gameObject.GetComponentInChildren<LineRenderer>().enabled = false;
+				angleManager._angles[MeasurementType.VarusValgusLeftAngleDistance].gameObject.GetComponentInChildren<LineRenderer>().enabled = false;
+				angleManager._angles[MeasurementType.VarusValgusRightAngleDistance].gameObject.GetComponentInChildren<LineRenderer>().enabled = false;
+			}
+			else if (!ShouldHideSkeleton)
+			{
+				skeletonManager.Toggle(true);
+				angleManager._angles[MeasurementType.HipKneeLeftDistance].gameObject.GetComponentInChildren<LineRenderer>().enabled = true;
+				angleManager._angles[MeasurementType.HipKneeRightDistance].gameObject.GetComponentInChildren<LineRenderer>().enabled = true;
+				angleManager._angles[MeasurementType.VarusValgusLeftAngleDistance].gameObject.GetComponentInChildren<LineRenderer>().enabled = true;
+				angleManager._angles[MeasurementType.VarusValgusRightAngleDistance].gameObject.GetComponentInChildren<LineRenderer>().enabled = true;
+			}
+		}
 		if (value.ToString("0.0") == "0.0")
 		{
 			if (ResearchMeasurementManager.instance.footOnGroundPosition != null)
@@ -488,5 +505,25 @@ public class ReferenceManager : MonoBehaviour
 	{
 		if (videoPlayerView.VideoPlayer.IsPaused)
 			LightBuzzVideoPlayerButton.onClick.Invoke();
+	}
+	public SkeletonManager skeletonManager;
+	public bool ShouldHideSkeleton;
+	public void HideSkeleton()
+	{
+		ShouldHideSkeleton = true;
+		// skeletonManager.Toggle(false);
+		// angleManager._angles[MeasurementType.HipKneeLeftDistance].gameObject.GetComponentInChildren<LineRenderer>().enabled = false;
+		// angleManager._angles[MeasurementType.HipKneeRightDistance].gameObject.GetComponentInChildren<LineRenderer>().enabled = false;
+		// angleManager._angles[MeasurementType.VarusValgusLeftAngleDistance].gameObject.GetComponentInChildren<LineRenderer>().enabled = false;
+		// angleManager._angles[MeasurementType.VarusValgusRightAngleDistance].gameObject.GetComponentInChildren<LineRenderer>().enabled = false;
+	}
+	public void ShowSkeleton()
+	{
+		ShouldHideSkeleton = false;
+		// skeletonManager.Toggle(true);
+		// angleManager._angles[MeasurementType.HipKneeLeftDistance].gameObject.GetComponentInChildren<LineRenderer>().enabled = true;
+		// angleManager._angles[MeasurementType.HipKneeRightDistance].gameObject.GetComponentInChildren<LineRenderer>().enabled = true;
+		// angleManager._angles[MeasurementType.VarusValgusLeftAngleDistance].gameObject.GetComponentInChildren<LineRenderer>().enabled = true;
+		// angleManager._angles[MeasurementType.VarusValgusRightAngleDistance].gameObject.GetComponentInChildren<LineRenderer>().enabled = true;
 	}
 }

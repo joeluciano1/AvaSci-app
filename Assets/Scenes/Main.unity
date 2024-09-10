@@ -2827,6 +2827,8 @@ MonoBehaviour:
   varusValgusNotifierPrefab: {fileID: 2047220491662226979, guid: b6f70166373c24aca95463a84a416223, type: 3}
   videoPlayingCount: 0
   placeHeelDetectionValues: 0
+  skeletonManager: {fileID: 6928981563209070470}
+  ShouldHideSkeleton: 0
 --- !u!1 &119169133
 GameObject:
   m_ObjectHideFlags: 0
@@ -16551,16 +16553,16 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 607760313}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 8415342675569872438}
+  m_Father: {fileID: 5259929012984545265}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 0.5}
   m_AnchorMax: {x: 1, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 0.00000023841858}
+  m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 100, y: 0}
   m_Pivot: {x: 1, y: 0.5}
 --- !u!114 &607760315
@@ -30684,12 +30686,12 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1131865137}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 8415342675569872438}
+  m_Father: {fileID: 5259929012984545265}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0.5}
   m_AnchorMax: {x: 0, y: 0.5}
@@ -44018,6 +44020,18 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
+      - m_Target: {fileID: 109808598}
+        m_TargetAssemblyTypeName: ReferenceManager, Assembly-CSharp
+        m_MethodName: PlayTheVideo
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &1631379997
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -48490,8 +48504,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 6.966, y: 3}
+  m_AnchoredPosition: {x: 0, y: 181}
+  m_SizeDelta: {x: -300, y: 3}
   m_Pivot: {x: 0.5, y: 0}
 --- !u!114 &1793272441
 MonoBehaviour:
@@ -56827,6 +56841,7 @@ GameObject:
   - component: {fileID: 2043354594}
   - component: {fileID: 2043354593}
   - component: {fileID: 2043354592}
+  - component: {fileID: 2043354596}
   m_Layer: 5
   m_Name: PROCESSING
   m_TagString: Untagged
@@ -56861,7 +56876,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.103773594, g: 0.103773594, b: 0.103773594, a: 1}
+  m_Color: {r: 0.19215688, g: 0.19215688, b: 0.19215688, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -56900,13 +56915,66 @@ RectTransform:
   m_Children:
   - {fileID: 564986352}
   - {fileID: 1793272440}
-  m_Father: {fileID: 1875784771538651566}
+  m_Father: {fileID: 5259929012984545265}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 1, y: 1}
+  m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 177, y: 50}
-  m_SizeDelta: {x: 152.52002, y: 30.746002}
-  m_Pivot: {x: 1, y: 1}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &2043354596
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2043354591}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: afcb29986777642a797de478ba8382bc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  OnEnableAction:
+    m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 109808598}
+        m_TargetAssemblyTypeName: ReferenceManager, Assembly-CSharp
+        m_MethodName: HideSkeleton
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+  OnDisableAction:
+    m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 109808598}
+        m_TargetAssemblyTypeName: ReferenceManager, Assembly-CSharp
+        m_MethodName: ShowSkeleton
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+  OnDistroyAction:
+    m_PersistentCalls:
+      m_Calls: []
+  WhenNoGraphAction:
+    m_PersistentCalls:
+      m_Calls: []
+  WhenScrolledToTop:
+    m_PersistentCalls:
+      m_Calls: []
+  LoaderPrefab: {fileID: 0}
+  loadedLoader: {fileID: 0}
 --- !u!1 &2045831405
 GameObject:
   m_ObjectHideFlags: 0
@@ -64042,6 +64110,7 @@ MonoBehaviour:
   strideLengthNotifier: {fileID: 1558221059449052128}
   stepwidthLNotifier: {fileID: 1311370245347191050}
   stepwidthRNotifier: {fileID: 2262569021839525997}
+  isStarted: 0
   tollorance: 0.7
   TriggerButton: {fileID: 640202393}
   footStrikeAtTimes: []
@@ -67098,7 +67167,6 @@ RectTransform:
   - {fileID: 1000231778720360801}
   - {fileID: 6060791668056208963}
   - {fileID: 3497287428114822034}
-  - {fileID: 2043354595}
   m_Father: {fileID: 9046073212140579246}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0.5}
@@ -74063,6 +74131,18 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
+      - m_Target: {fileID: 109808598}
+        m_TargetAssemblyTypeName: ReferenceManager, Assembly-CSharp
+        m_MethodName: PauseTheVideo
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!222 &3846520040798767908
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -78822,6 +78902,9 @@ RectTransform:
   - {fileID: 1516026168739782993}
   - {fileID: 7566655851363880908}
   - {fileID: 2911145905652489685}
+  - {fileID: 607760314}
+  - {fileID: 1131865138}
+  - {fileID: 2043354595}
   m_Father: {fileID: 8415342675569872438}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -89291,7 +89374,7 @@ GameObject:
   - component: {fileID: 649631437113766047}
   - component: {fileID: 8615798115461727086}
   m_Layer: 5
-  m_Name: Video Player
+  m_Name: Video Player (off)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -89858,8 +89941,6 @@ RectTransform:
   - {fileID: 5412010929213027482}
   - {fileID: 1575313292}
   - {fileID: 5328218607465238444}
-  - {fileID: 607760314}
-  - {fileID: 1131865138}
   - {fileID: 2098334836}
   m_Father: {fileID: 259210210656388527}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -90267,7 +90348,7 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 1
         m_CallState: 2
-      - m_Target: {fileID: 1973344375517517827}
+      - m_Target: {fileID: 661964575}
         m_TargetAssemblyTypeName: UnityEngine.UI.Toggle, UnityEngine.UI
         m_MethodName: set_isOn
         m_Mode: 6
