@@ -30,7 +30,9 @@ public class GaitPDFGenerator : MonoBehaviour
         
         pdfLightTable.Style.BorderPen = new PdfPen(new PdfColor(0, 0, 0), 0.5F);
         
+        
         table.Columns.Add("Subject");
+        table.Columns.Add("Standing at (time)");
         table.Columns.Add("Foot Strike at (time)");
         table.Columns.Add("Foot Passing at (time)");
         table.Columns.Add("Hip/Knee ABD Angle Difference");
@@ -39,10 +41,28 @@ public class GaitPDFGenerator : MonoBehaviour
         //Include rows to the DataTable
         for (int i = 0; i < ReferenceManager.instance.AngleAtFootStrikingTime.Count; i++)
         {
+            var item1 = ReferenceManager.instance.standingDetectionBodies.FirstOrDefault(x=>x.angleDifferenceValue !=0 && x.distanceValue!=0&&!x.added);
+            if(item1 != null)
+            {
+                item1.added = true;
+                 table.Rows.Add(
+                new string[]
+                {
+                    GeneralStaticManager.GlobalVar["Subject"],
+                    item1.TimeofStanding,
+                    "",
+                    "",
+                    item1.angleDifferenceValue.ToString("0.00"),
+                    item1.distanceValue.ToString("0.00"),
+                    item1.nameOfTheFoot,
+                }
+            );
+            }
             table.Rows.Add(
                 new string[]
                 {
                     GeneralStaticManager.GlobalVar["Subject"],
+                    "",
                     ReferenceManager
                         .instance.AngleAtFootStrikingTime.ElementAt(i)
                         .Key,
@@ -56,7 +76,6 @@ public class GaitPDFGenerator : MonoBehaviour
                     ResearchMeasurementManager.instance.leftLeg ? "Left Leg":"Right Leg",    
                 }
             );
-            
             var item = ReferenceManager.instance.heelPressDetectionBodies.FirstOrDefault(x=>TimeSpan.ParseExact(x.TimeOfHeelPressed,@"mm\:ss\:fff", CultureInfo.InvariantCulture) > TimeSpan.ParseExact(ReferenceManager.instance.AngleAtFootStrikingTime.ElementAt(i).Key,@"mm\:ss\:fff", CultureInfo.InvariantCulture)&&!x.added);
             if(item == null)
             {
@@ -68,12 +87,14 @@ public class GaitPDFGenerator : MonoBehaviour
                 {
                     GeneralStaticManager.GlobalVar["Subject"],
                     "",
+                    "",
                     item.TimeOfHeelPressed,
-                     item.angleDifferenceValue.ToString("0.00"),
+                    item.angleDifferenceValue.ToString("0.00"),
                     item.distanceValue.ToString("0.00"),
                     item.nameOfTheFoot,
                 }
             );
+           
         }
         //Applying cell padding to table
         pdfLightTable.Style.CellPadding = 3;

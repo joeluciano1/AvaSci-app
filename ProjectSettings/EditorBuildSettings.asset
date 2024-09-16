@@ -5,13 +5,10 @@ EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Scenes:
-  - enabled: 0
-    path: Assets/Scenes/Main 2.unity
-    guid: ae63404b140034424979170d3c4f158c
+  - enabled: 1
+    path: Assets/Scenes/Splash.unity
+    guid: 5a8f518a030ea4a53989c6f7dbc38a5a
   - enabled: 1
     path: Assets/Scenes/Main.unity
     guid: 9fc0d4010bbf28b4594072e72b8655ab
-  - enabled: 0
-    path: Assets/Chart And Graph/Tutorials/Zoom/graph 1.unity
-    guid: 37bc33121528f8846bcb70ae9011da67
   m_configObjects: {}

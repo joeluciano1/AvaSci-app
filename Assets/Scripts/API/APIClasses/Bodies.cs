@@ -117,3 +117,14 @@ public class HeelPressDetectionBody{
     public float distanceValue{ get; set; }
     public float angleDifferenceValue{ get; set; }
 }
+
+[System.Serializable]
+public class StandingDetectionBody
+{
+    public bool added { get; set; }
+    public string Subject { get; set; }
+    public string TimeofStanding { get; set; }
+    public string nameOfTheFoot { get; set; }
+    public float distanceValue{ get; set; }
+    public float angleDifferenceValue{ get; set; }
+}

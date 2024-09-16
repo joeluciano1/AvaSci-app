@@ -94,6 +94,7 @@ public class ReferenceManager : MonoBehaviour
 	public Dictionary<string, float> maxAngleAtFootStrikingTime = new Dictionary<string, float>();
 	public Dictionary<string, float> maxDistanceAtFootStrikingTime = new Dictionary<string, float>();
 	public List<HeelPressDetectionBody> heelPressDetectionBodies = new List<HeelPressDetectionBody>();
+	public List<StandingDetectionBody> standingDetectionBodies = new List<StandingDetectionBody>();
 	public Dictionary<string, float> AngleAtFootStrikingTime = new Dictionary<string, float>();
 	public Dictionary<string, float> DistanceAtFootStrikingTime = new Dictionary<string, float>();
 	public AngleManager angleManager;
@@ -127,28 +128,6 @@ public class ReferenceManager : MonoBehaviour
 			DebugButton.SetActive(false);
 		}
 	}
-	// public void CalculateAngle()
-	// {
-	// 	float angleLeft = 0;
-	// 	float angleRight = 0;
-	// 	if(LeftDistance == null || RightDistance == null|| LeftAngleDifference== null || RightAngleDifference== null){
-	// 		return;
-	// 	}
-	// 	angleLeft = (float)(LeftDistance?.Angle * Math.Sin((double)LeftAngleDifference?.Angle));
-	// 	angleRight = (float)(RightDistance?.Angle * Math.Sin((double)RightAngleDifference?.Angle));
-
-	// 	if(varusValgusNotifierLeft == null){
-	// 		varusValgusNotifierLeft = Instantiate(varusValgusNotifierPrefab, LeftSideContents);
-	// 	}
-	// 	if(varusValgusNotifierRight == null){
-	// 		varusValgusNotifierRight = Instantiate(varusValgusNotifierPrefab, RightSideContents);
-	// 	}
-	// 	varusValgusNotifierLeft.gameObject.SetActive(true);
-	// 	varusValgusNotifierRight.gameObject.SetActive(true);
-
-	// 	varusValgusNotifierLeft.AngleValue.text = $"<size=20>Var/Val Dis</size> {angleLeft:N2}" ;
-	// 	varusValgusNotifierRight.AngleValue.text = $"<size=20>Var/Val Dis</size> {angleRight:N2}" ;
-	// }
 	public void CleareVarusValgus(bool value = false){
 		if (!value)
 		{
@@ -176,9 +155,6 @@ public class ReferenceManager : MonoBehaviour
 		}
 #endif
 	}
-	
-	
-	[ContextMenu("TestTime")]
 	public void SkipToVideo(float sliderValue){
 		videoPlayerView.OnSliderHandle();
 		
@@ -304,7 +280,7 @@ public class ReferenceManager : MonoBehaviour
 		// 	HeelPressDetectionBody videoAtSavedValue = heelPressDetectionBodies.FirstOrDefault(x => x.TimeOfHeelPressed == videoPlayerView.VideoPlayer.TimeElapsed.TotalSeconds.ToString());
 		// 	ResearchMeasurementManager.instance.PutGaitValuesInDetectedTime(videoAtSavedValue);
 		// }
-		if ((bool)(ResearchMeasurementManager.instance?.isStarted))
+		if ((bool)(ResearchMeasurementManager.instance?.isStarted) && angleManager._angles.ContainsKey(MeasurementType.HipKneeLeftDistance))
 		{
 			if (ShouldHideSkeleton)
 			{
@@ -511,6 +487,7 @@ public class ReferenceManager : MonoBehaviour
 	public void HideSkeleton()
 	{
 		ShouldHideSkeleton = true;
+		skeletonManager.Toggle(false);
 		// skeletonManager.Toggle(false);
 		// angleManager._angles[MeasurementType.HipKneeLeftDistance].gameObject.GetComponentInChildren<LineRenderer>().enabled = false;
 		// angleManager._angles[MeasurementType.HipKneeRightDistance].gameObject.GetComponentInChildren<LineRenderer>().enabled = false;
@@ -520,6 +497,7 @@ public class ReferenceManager : MonoBehaviour
 	public void ShowSkeleton()
 	{
 		ShouldHideSkeleton = false;
+		skeletonManager.Toggle(true);
 		// skeletonManager.Toggle(true);
 		// angleManager._angles[MeasurementType.HipKneeLeftDistance].gameObject.GetComponentInChildren<LineRenderer>().enabled = true;
 		// angleManager._angles[MeasurementType.HipKneeRightDistance].gameObject.GetComponentInChildren<LineRenderer>().enabled = true;
