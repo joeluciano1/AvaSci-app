@@ -316,6 +316,7 @@ public class ResearchMeasurementManager : MonoBehaviour
         DetectIfUserIsStanding();
         // FootFullyPressedNewDetection();
     }
+    public Button StopButon;
     public async void DetectIfUserIsStanding()
     {
         if (ReferenceManager.instance.videoPlayingCount == 3)
@@ -333,6 +334,15 @@ public class ResearchMeasurementManager : MonoBehaviour
             {
                 StandingDetectionCreatePutValues(ReferenceManager.instance.videoPlayerView.VideoPlayer.TimeElapsed.ToString(@"mm\:ss\:fff"));
             }
+        }
+        if(ReferenceManager.instance.videoPlayingCount == 4)
+        {
+            StopButon.onClick.Invoke();
+            ReferenceManager.instance.placeHeelDetectionValues = false;
+            processingNotifier.NotifierText.text = "Select An Option";
+            processingNotifier.gameObject.SetActive(true);
+            processingNotifier.LoadingFill.transform.parent.gameObject.SetActive(false);
+            processingNotifier.buttons.SetActive(true);
         }
     }
     public void DetectIfCubePassed(){
@@ -399,13 +409,13 @@ public class ResearchMeasurementManager : MonoBehaviour
            
             processingNotifier.gameObject.SetActive(true);
         }
-        if(ReferenceManager.instance.videoPlayingCount >3 &&footStrikeAtTimes.Count!=0)
-        {
+        // if(ReferenceManager.instance.videoPlayingCount >3 &&footStrikeAtTimes.Count!=0)
+        // {
             
-                processingNotifier.NotifierText.text = "";
-                ReferenceManager.instance.placeHeelDetectionValues = false;
-                processingNotifier.gameObject.SetActive(false);
-        }
+        //         processingNotifier.NotifierText.text = "";
+        //         ReferenceManager.instance.placeHeelDetectionValues = false;
+        //         processingNotifier.gameObject.SetActive(false);
+        // }
     }
     public GameObject cubePrefab;
     List<GameObject> cubes = new List<GameObject>();

@@ -100,6 +100,7 @@ public class CreateGaitReportBody
     public long? ReportsRecordId { get; set; }
     public string CreatedBy { get; set; }
     public string Subject { get; set; }
+    public float SubjectStandingAtTime { get; set; }
     public float FootStrikeAtTime { get; set; }
     public float HeelPassingAtTime { get; set; }
     public float AngleDifferenceAtTime { get; set; }

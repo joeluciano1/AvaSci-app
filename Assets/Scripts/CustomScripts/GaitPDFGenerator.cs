@@ -118,6 +118,7 @@ public class GaitPDFGenerator : MonoBehaviour
         string path = Path.Combine(Application.persistentDataPath, "Gait.pdf");
 
         ReferenceManager.instance.heelPressDetectionBodies.ForEach(x => x.added = false);
+        ReferenceManager.instance.standingDetectionBodies.ForEach(x => x.added = false);
         File.WriteAllBytes(path, stream.ToArray());
         await Task.Delay(1000);
 
@@ -138,6 +139,22 @@ public class GaitPDFGenerator : MonoBehaviour
     {
         for (int i = 0; i < ReferenceManager.instance.AngleAtFootStrikingTime.Count; i++)
         {
+            var item2 = ReferenceManager.instance.standingDetectionBodies.FirstOrDefault(x =>!x.added);
+            if (item2 != null)
+            {
+                item2.added = true;
+                 CreateGaitReportBody bodyStand = new CreateGaitReportBody()
+            {
+                ReportsRecordId = ReferenceManager.instance.SelectedVideoID,
+                CreatedBy = GeneralStaticManager.GlobalVar["UserName"],
+                Subject = GeneralStaticManager.GlobalVar["Subject"],
+                SubjectStandingAtTime = (float)TimeSpan.ParseExact(item2.TimeofStanding,@"mm\:ss\:fff", CultureInfo.InvariantCulture).TotalSeconds,
+                AngleDifferenceAtTime =item2.angleDifferenceValue,
+                MMDistaceAtTime = item2.distanceValue,
+                SelectedLeg = ResearchMeasurementManager.instance.leftLeg ? "Left Leg" : "Right Leg"
+            };
+            UploadGaitJson(i, bodyStand);
+            }
             CreateGaitReportBody body = new CreateGaitReportBody()
             {
                 ReportsRecordId = ReferenceManager.instance.SelectedVideoID,
@@ -181,6 +198,7 @@ public class GaitPDFGenerator : MonoBehaviour
             UploadGaitJson(i, bodyHeel);
         }
         ReferenceManager.instance.heelPressDetectionBodies.ForEach(x => x.added = false);
+        ReferenceManager.instance.standingDetectionBodies.ForEach(x => x.added = false);
     }
 
     private static void UploadGaitJson(int i, CreateGaitReportBody body)
