@@ -39,8 +39,8 @@ public class LoginManager : MonoBehaviour
         Application.runInBackground = true;
         if (string.IsNullOrWhiteSpace(PlayerPrefs.GetString(StringConstants.LOGINEMAIL)))
         {
-            ReferenceManager.instance.SignupPanel.SetActive(true);
-            ReferenceManager.instance.SigninPanel.SetActive(false);
+            // ReferenceManager.instance.SignupPanel.SetActive(true);
+            ReferenceManager.instance.SigninPanel.SetActive(true);
         }
         else
         {
