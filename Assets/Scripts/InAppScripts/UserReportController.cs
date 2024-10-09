@@ -142,7 +142,7 @@ public class UserReportController : MonoBehaviour
                             itemToSnapTo = userReportFromDB.transform;
                             RecentlyPlayedButton = userReportFromDB;
                             userReportFromDB.WatchBtn.onClick.AddListener(
-                                () => { CreateFileAndView(null, "", userReportFromDB.UserName.text); ReferenceManager.instance.SelectedVideoID = userReportFromDB.videoId; }
+                                () => { CreateFileAndView(null, "", userReportFromDB.UserId.Substring(userReportFromDB.UserId.Length-5)); ReferenceManager.instance.SelectedVideoID = userReportFromDB.videoId; }
                             );
                             if (!string.IsNullOrEmpty(item.ReportURL))
                             {

@@ -31,5 +31,9 @@ public class AnkleLeftAbduction : Measurement
         _angleStart = hip.Position2D;
         _angleCenter = ankle.Position2D;
         _angleEnd = new Vector2D(hip.Position2D.X, ankle.Position2D.Y);
+        if(ResearchMeasurementManager.instance.leftLeg)
+            ResearchMeasurementManager.instance.leftAnkleAbdValue = _value;
+        else
+            ResearchMeasurementManager.instance.rightAnkleAbdValue = _value;
     }
 }

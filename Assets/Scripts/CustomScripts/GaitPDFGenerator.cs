@@ -32,37 +32,43 @@ public class GaitPDFGenerator : MonoBehaviour
         
         
         table.Columns.Add("Subject");
-        table.Columns.Add("Standing at (time)");
+        // table.Columns.Add("Standing at (time)");
         table.Columns.Add("Foot Strike at (time)");
         table.Columns.Add("Foot Passing at (time)");
         table.Columns.Add("Hip/Knee ABD Angle Difference");
         table.Columns.Add("Var/Val Distance");
+        table.Columns.Add("Knee ABD at (time)");
+        table.Columns.Add("Ankle ABD at (time)");
+        table.Columns.Add("Pelvis Angle at (time)");
         table.Columns.Add("Leg in Question");
         //Include rows to the DataTable
         for (int i = 0; i < ReferenceManager.instance.AngleAtFootStrikingTime.Count; i++)
         {
-            var item1 = ReferenceManager.instance.standingDetectionBodies.FirstOrDefault(x=>x.angleDifferenceValue !=0 && x.distanceValue!=0&&!x.added);
-            if(item1 != null)
-            {
-                item1.added = true;
-                 table.Rows.Add(
-                new string[]
-                {
-                    GeneralStaticManager.GlobalVar["Subject"],
-                    item1.TimeofStanding,
-                    "",
-                    "",
-                    item1.angleDifferenceValue.ToString("0.00"),
-                    item1.distanceValue.ToString("0.00"),
-                    item1.nameOfTheFoot,
-                }
-            );
-            }
+            // var item1 = ReferenceManager.instance.standingDetectionBodies.FirstOrDefault(x=>x.angleDifferenceValue !=0 && x.distanceValue!=0&&!x.added);
+            // if(item1 != null)
+            // {
+            //     item1.added = true;
+            //      table.Rows.Add(
+            //     new string[]
+            //     {
+            //         GeneralStaticManager.GlobalVar["Subject"],
+            //         item1.TimeofStanding,
+            //         "",
+            //         "",
+            //         item1.angleDifferenceValue.ToString("0.00"),
+            //         item1.distanceValue.ToString("0.00"),
+            //         item1.kneeAbductionValue.ToString("0.00"),
+            //         item1.ankleAbductionValue.ToString("0.00"),
+            //         item1.pelvisAngleValue.ToString("0.00"),
+            //         item1.nameOfTheFoot,
+            //     }
+            // );
+            // }
             table.Rows.Add(
                 new string[]
                 {
                     GeneralStaticManager.GlobalVar["Subject"],
-                    "",
+                    // "",
                     ReferenceManager
                         .instance.AngleAtFootStrikingTime.ElementAt(i)
                         .Key,
@@ -73,6 +79,15 @@ public class GaitPDFGenerator : MonoBehaviour
                     ReferenceManager
                         .instance.DistanceAtFootStrikingTime.ElementAt(i)
                         .Value.ToString("0.00"),
+                        ReferenceManager
+                        .instance.KneeAbductionAtFootStrikingTime.ElementAt(i)
+                        .Value.ToString("0.00") + "º",
+                        ReferenceManager
+                        .instance.AnkleAbductionAtFootStrikingTime.ElementAt(i)
+                        .Value.ToString("0.00") + "º",
+                        ReferenceManager
+                        .instance.PelvisAngleAtFootStrikingTime.ElementAt(i)
+                        .Value.ToString("0.00") + "º",
                     ResearchMeasurementManager.instance.leftLeg ? "Left Leg":"Right Leg",    
                 }
             );
@@ -86,11 +101,14 @@ public class GaitPDFGenerator : MonoBehaviour
                 new string[]
                 {
                     GeneralStaticManager.GlobalVar["Subject"],
-                    "",
+                    // "",
                     "",
                     item.TimeOfHeelPressed,
                     item.angleDifferenceValue.ToString("0.00"),
                     item.distanceValue.ToString("0.00"),
+                    item.kneeAbductionValue.ToString("0.00"),
+                    item.ankleAbductionValue.ToString("0.00"),
+                    item.pelvisAngleValue.ToString("0.00"),
                     item.nameOfTheFoot,
                 }
             );
@@ -151,6 +169,9 @@ public class GaitPDFGenerator : MonoBehaviour
                 SubjectStandingAtTime = (float)TimeSpan.ParseExact(item2.TimeofStanding,@"mm\:ss\:fff", CultureInfo.InvariantCulture).TotalSeconds,
                 AngleDifferenceAtTime =item2.angleDifferenceValue,
                 MMDistaceAtTime = item2.distanceValue,
+                KneeAbductionAtTime = item2.kneeAbductionValue,
+                AnkleAbductionAtTime = item2.ankleAbductionValue,
+                PelvisAngleAtTime = item2.pelvisAngleValue,
                 SelectedLeg = ResearchMeasurementManager.instance.leftLeg ? "Left Leg" : "Right Leg"
             };
             UploadGaitJson(i, bodyStand);
@@ -175,6 +196,15 @@ public class GaitPDFGenerator : MonoBehaviour
                 MMDistaceAtTime = ReferenceManager
                     .instance.DistanceAtFootStrikingTime.ElementAt(i)
                     .Value,
+                KneeAbductionAtTime = ReferenceManager
+                    .instance.KneeAbductionAtFootStrikingTime.ElementAt(i)
+                    .Value,
+                AnkleAbductionAtTime = ReferenceManager
+                    .instance.AnkleAbductionAtFootStrikingTime.ElementAt(i)
+                    .Value,
+                PelvisAngleAtTime = ReferenceManager
+                    .instance.PelvisAngleAtFootStrikingTime.ElementAt(i)
+                    .Value,
                 SelectedLeg = ResearchMeasurementManager.instance.leftLeg ? "Left Leg" : "Right Leg"
             };
             UploadGaitJson(i, body);
@@ -193,6 +223,9 @@ public class GaitPDFGenerator : MonoBehaviour
                 HeelPassingAtTime = (float)TimeSpan.ParseExact(item.TimeOfHeelPressed,@"mm\:ss\:fff", CultureInfo.InvariantCulture).TotalSeconds,
                 AngleDifferenceAtTime =item.angleDifferenceValue,
                 MMDistaceAtTime = item.distanceValue,
+                KneeAbductionAtTime = item.kneeAbductionValue,
+                AnkleAbductionAtTime = item.ankleAbductionValue,
+                PelvisAngleAtTime = item.pelvisAngleValue,
                 SelectedLeg = ResearchMeasurementManager.instance.leftLeg ? "Left Leg" : "Right Leg"
             };
             UploadGaitJson(i, bodyHeel);

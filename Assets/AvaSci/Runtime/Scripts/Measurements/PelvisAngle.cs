@@ -29,6 +29,11 @@ namespace LightBuzz.AvaSci.Measurements
             _angleStart = nose.Position2D;
             _angleCenter = head.Position2D;
             _angleEnd = new Vector2D(head.Position2D.X, nose.Position2D.Y);
+
+            
+            ResearchMeasurementManager.instance.pelvisAngleValue = _value;
+        
+        
         }
     }
 }

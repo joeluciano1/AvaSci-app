@@ -107,6 +107,10 @@ public class CreateGaitReportBody
     public float MMDistaceAtTime { get; set; }
     public float MaxAngleDifference { get; set; }
     public float MaxmmDistance { get; set; }
+    public float KneeAbductionAtTime { get; set; }
+    public float PelvisAngleAtTime { get; set; }
+    public float AnkleAbductionAtTime { get; set; }
+    public float VarusValgusAtTime { get; set; }
     public string SelectedLeg { get; set; }
 }
 [System.Serializable]
@@ -117,6 +121,11 @@ public class HeelPressDetectionBody{
     public string nameOfTheFoot{ get; set; }
     public float distanceValue{ get; set; }
     public float angleDifferenceValue{ get; set; }
+    public float kneeAbductionValue { get; set; }
+    public float pelvisAngleValue{ get; set; }
+    public float ankleAbductionValue { get; set; }
+    public float varusValgusValue{ get; set; }
+    
 }
 
 [System.Serializable]
@@ -128,4 +137,8 @@ public class StandingDetectionBody
     public string nameOfTheFoot { get; set; }
     public float distanceValue{ get; set; }
     public float angleDifferenceValue{ get; set; }
+    public float kneeAbductionValue { get; set; }
+    public float pelvisAngleValue{ get; set; }
+    public float ankleAbductionValue { get; set; }
+    public float varusValgusValue{ get; set; }
 }

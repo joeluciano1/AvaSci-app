@@ -97,6 +97,10 @@ public class ReferenceManager : MonoBehaviour
 	public List<StandingDetectionBody> standingDetectionBodies = new List<StandingDetectionBody>();
 	public Dictionary<string, float> AngleAtFootStrikingTime = new Dictionary<string, float>();
 	public Dictionary<string, float> DistanceAtFootStrikingTime = new Dictionary<string, float>();
+	public Dictionary<string, float> KneeAbductionAtFootStrikingTime = new Dictionary<string, float>();
+	public Dictionary<string, float> PelvisAngleAtFootStrikingTime = new Dictionary<string, float>();
+	public Dictionary<string, float> AnkleAbductionAtFootStrikingTime = new Dictionary<string, float>();
+	public Dictionary<string, float> VarusValgusAtFootStrikingTime = new Dictionary<string, float>();
 	public AngleManager angleManager;
 	public Text TimeElapsedLightBuzz;
 	// [HideInInspector]
@@ -503,5 +507,10 @@ public class ReferenceManager : MonoBehaviour
 		// angleManager._angles[MeasurementType.HipKneeRightDistance].gameObject.GetComponentInChildren<LineRenderer>().enabled = true;
 		// angleManager._angles[MeasurementType.VarusValgusLeftAngleDistance].gameObject.GetComponentInChildren<LineRenderer>().enabled = true;
 		// angleManager._angles[MeasurementType.VarusValgusRightAngleDistance].gameObject.GetComponentInChildren<LineRenderer>().enabled = true;
+	}
+	public TMP_Dropdown speed_DropDown;
+	public void ChangeVideoSpeed()
+	{
+		videoPlayerView.VideoPlayer.Speed = float.Parse(speed_DropDown.captionText.text.Replace("x",""));
 	}
 }
