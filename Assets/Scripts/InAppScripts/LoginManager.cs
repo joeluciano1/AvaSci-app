@@ -342,7 +342,14 @@ public class LoginManager : MonoBehaviour
                   }
                   IOSNativeAlert.ShowAlertMessage("Success!", $"You have successfully signed in\n{signinResponse.result.SpecialMessage}");
                   StringConstants.TOKEN = signinResponse.result.token;
-                  GeneralStaticManager.GlobalVar.Add("UserName", signinResponse.result.UserName);
+                  if (string.IsNullOrEmpty(signinResponse.result.SubjectID))
+                  {
+                      GeneralStaticManager.GlobalVar.Add("UserName", signinResponse.result.UserName);
+                  }
+                  else
+                  {
+                      GeneralStaticManager.GlobalVar.Add("UserName", signinResponse.result.SubjectID);
+                  }
                   GeneralStaticManager.GlobalVar.Add("UserRoles", string.Join(',', signinResponse.result.Roles));
                   GeneralStaticManager.GlobalVar.Add("UserAge", signinResponse.result.Age);
                   GeneralStaticManager.GlobalVar.Add("UserCountry", signinResponse.result.CountryName);

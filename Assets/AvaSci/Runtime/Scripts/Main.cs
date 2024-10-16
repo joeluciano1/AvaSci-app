@@ -116,6 +116,7 @@ namespace LightBuzz.AvaSci
         /// </summary>
         public void OnRecordingStarted()
         {
+            ReferenceManager.instance.userReportController.ClearLastPlayedVideoData();
             _measurementSelector.SetEnable(false);
         }
 

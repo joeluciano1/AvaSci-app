@@ -116,7 +116,8 @@ public class ReferenceManager : MonoBehaviour
 	public VarusValgusNotifier varusValgusNotifierPrefab;
 	public int videoPlayingCount;
 	public bool placeHeelDetectionValues;
-	
+
+	public UserReportController userReportController;
 
 	private void Awake()
 	{

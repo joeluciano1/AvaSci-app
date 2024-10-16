@@ -55,6 +55,7 @@ public class AzureStorageManager : MonoBehaviour
             {
                 ReportDesc += ReferenceManager.instance.commentQuestionnaire.CommentInputField.text;
             }
+            PlayerPrefs.SetString("LastVidURL", uri);
             ReportRecordBody reportRecordBody = new ReportRecordBody()
             {
                 UserName = GeneralStaticManager.GlobalVar["UserName"],

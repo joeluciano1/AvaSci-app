@@ -72,6 +72,7 @@ public class SignInResult
     public string UserId { get; set; }
     public bool IsSubscribed { get; set; }
     public string Receipt { get; set; }
+    public string SubjectID { get; set; }
 }
 
 public class SignInResponse

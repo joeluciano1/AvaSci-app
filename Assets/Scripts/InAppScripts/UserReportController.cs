@@ -142,7 +142,8 @@ public class UserReportController : MonoBehaviour
                             itemToSnapTo = userReportFromDB.transform;
                             RecentlyPlayedButton = userReportFromDB;
                             userReportFromDB.WatchBtn.onClick.AddListener(
-                                () => { CreateFileAndView(null, "", userReportFromDB.UserId.Substring(userReportFromDB.UserId.Length-5)); ReferenceManager.instance.SelectedVideoID = userReportFromDB.videoId; }
+                                () => { CreateFileAndView(null, "", userReportFromDB.UserName.text); 
+                                ReferenceManager.instance.SelectedVideoID = userReportFromDB.videoId; }
                             );
                             if (!string.IsNullOrEmpty(item.ReportURL))
                             {
@@ -222,22 +223,7 @@ public class UserReportController : MonoBehaviour
 
     IEnumerator GetText(string url, Button btn, UserReportFromDB userReportFromDB)
     {
-        if (RecentlyPlayedButton != null)
-        {
-            RecentlyPlayedButton.WatchBtn.onClick.RemoveAllListeners();
-            RecentlyPlayedButton.WatchBtn.onClick.AddListener(
-                () =>
-                    StartCoroutine(
-                        GetText(
-                            PlayerPrefs.GetString("LastVidURL"),
-                            RecentlyPlayedButton.WatchBtn,
-                            RecentlyPlayedButton
-                        )
-                    )
-            );
-            RecentlyPlayedButton.ButtonText.text = "Download";
-            RecentlyPlayedButton.PreviewButton.gameObject.SetActive(false);
-        }
+        ClearLastPlayedVideoData();
         btn.interactable = false;
         UnityWebRequest request = UnityWebRequest.Get(url);
         userReportFromDB.request = request;
@@ -294,6 +280,27 @@ public class UserReportController : MonoBehaviour
 
             // Or retrieve results as binary data
             // byte[] results = www.downloadHandler.data;
+        }
+    }
+
+    public void ClearLastPlayedVideoData()
+    {
+        if (RecentlyPlayedButton != null)
+        {
+            RecentlyPlayedButton.WatchBtn.onClick.RemoveAllListeners();
+            RecentlyPlayedButton.WatchBtn.onClick.AddListener(
+                () =>
+                    StartCoroutine(
+                        GetText(
+                            PlayerPrefs.GetString("LastVidURL"),
+                            RecentlyPlayedButton.WatchBtn,
+                            RecentlyPlayedButton
+                        )
+                    )
+            );
+            RecentlyPlayedButton.ButtonText.text = "Download";
+            RecentlyPlayedButton.PreviewButton.gameObject.SetActive(false);
+            PlayerPrefs.SetString("LastVidURL", "None");
         }
     }
 
