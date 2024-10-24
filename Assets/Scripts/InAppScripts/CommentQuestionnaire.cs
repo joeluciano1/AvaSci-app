@@ -6,7 +6,7 @@ using UnityEngine.UI;
 public class CommentQuestionnaire : MonoBehaviour
 {
     public TMP_InputField CommentInputField;
-    public TMP_InputField PatientIdInputField;
+    public TMP_Dropdown PatientsDropDown;
     public Button DoneButton;
 
     public void AskToUpload(string path)

@@ -73,7 +73,14 @@ public class SignInResult
     public bool IsSubscribed { get; set; }
     public string Receipt { get; set; }
     public string SubjectID { get; set; }
+    public List<Patient> patients { get; set; }
 }
+public class Patient
+	{
+		public string PatientId { get; set; }
+		public string SubjectId { get; set; }
+        public string PatientName { get; set; }
+	}
 
 public class SignInResponse
 {

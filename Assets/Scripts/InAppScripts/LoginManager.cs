@@ -7,6 +7,7 @@ using System.Collections;
 using UnityEngine.SceneManagement;
 using UnityEngine.Events;
 using Nrjwolf.Tools;
+using System.Linq;
 
 public class LoginManager : MonoBehaviour
 {
@@ -33,6 +34,7 @@ public class LoginManager : MonoBehaviour
     /// </summary>
     public TMP_InputField LoginEmail_InputField;
     public TMP_InputField LoginPassword_InputField;
+    public SignInResponse signinResponse;
 
     private void Start()
     {
@@ -60,6 +62,7 @@ public class LoginManager : MonoBehaviour
         GeneralStaticManager.GlobalVar.Clear();
         GeneralStaticManager.GraphsReadings.Clear();
         SceneManager.LoadSceneAsync("Main");
+        ReferenceManager.instance.commentQuestionnaire.PatientsDropDown.options.Clear();
     }
     public void SetIsAdvancedSurvey(bool value)
     {
@@ -329,7 +332,7 @@ public class LoginManager : MonoBehaviour
           onSuccess: (response) =>
           {
 
-              SignInResponse signinResponse = JsonConvert.DeserializeObject<SignInResponse>(response);
+            signinResponse = JsonConvert.DeserializeObject<SignInResponse>(response);
               if (signinResponse.isSuccess)
               {
                   if (signinResponse.result.IsSubscribed && ReferenceManager.instance.iAPManager.m_StoreController != null && ReferenceManager.instance.iAPManager.m_StoreController.products.all.Length != 0)
@@ -342,7 +345,7 @@ public class LoginManager : MonoBehaviour
                   }
                   IOSNativeAlert.ShowAlertMessage("Success!", $"You have successfully signed in\n{signinResponse.result.SpecialMessage}");
                   StringConstants.TOKEN = signinResponse.result.token;
-                  
+                  Debug.Log("Iske Ander Patient: " + signinResponse.result.patients.Count);
                   GeneralStaticManager.GlobalVar.Add("UserName", signinResponse.result.UserName);
                   GeneralStaticManager.GlobalVar.Add("SubjectId", signinResponse.result.SubjectID);
                   GeneralStaticManager.GlobalVar.Add("UserRoles", string.Join(',', signinResponse.result.Roles));
@@ -356,6 +359,16 @@ public class LoginManager : MonoBehaviour
                   ReferenceManager.instance.UsernameText.text = signinResponse.result.UserName;
                   ReferenceManager.instance.Screen1.SetActive(true);
                   ReferenceManager.instance.uiManager.LogoutButton.SetActive(true);
+                  if(!string.IsNullOrEmpty(signinResponse.result.SubjectID))
+                  {
+                      signinResponse.result.patients.Add(new Patient { SubjectId = signinResponse.result.SubjectID, PatientId = signinResponse.result.UserId, });
+                  }
+                foreach (var item in signinResponse.result.patients) 
+                {
+                    // if(!ReferenceManager.instance.commentQuestionnaire.PatientsDropDown.options.Any(x=>x.text == item.SubjectId))
+                        ReferenceManager.instance.commentQuestionnaire.PatientsDropDown.options.Add(new TMP_Dropdown.OptionData(item.SubjectId));
+                }
+                
                   if (signinResponse.result.Roles.Contains("SuperUser"))
                   {
                       ReferenceManager.instance.uiManager.AdminButton.SetActive(true);

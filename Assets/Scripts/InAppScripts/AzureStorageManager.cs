@@ -6,6 +6,7 @@ using Newtonsoft.Json;
 using TMPro;
 using UnityEngine;
 using DG.Tweening;
+using System.Linq;
 public class AzureStorageManager : MonoBehaviour
 {
 
@@ -56,13 +57,14 @@ public class AzureStorageManager : MonoBehaviour
                 ReportDesc += ReferenceManager.instance.commentQuestionnaire.CommentInputField.text;
             }
             PlayerPrefs.SetString("LastVidURL", uri);
+            var selectedPatient = ReferenceManager.instance.LoginManager.signinResponse.result.patients.FirstOrDefault(x => x.SubjectId == ReferenceManager.instance.commentQuestionnaire.PatientsDropDown.captionText.text);
             ReportRecordBody reportRecordBody = new ReportRecordBody()
             {
-                UserName = GeneralStaticManager.GlobalVar["UserName"],
+                UserName = selectedPatient.PatientName,
                 VideoURL = uri,
                 ReportURL = reportURL,
                 ReportDescription = ReportDesc,
-                SubjectId = ReferenceManager.instance.commentQuestionnaire.PatientIdInputField.text
+                SubjectId = selectedPatient.SubjectId
             };
             string json = JsonConvert.SerializeObject(reportRecordBody);
             APIHandler.instance.Post("UserReport/PostReport", json, onSuccess: (response) =>
