@@ -377,6 +377,11 @@ public class ReferenceManager : MonoBehaviour
 		
 		if (videoRecorded)
 		{
+			if(!string.IsNullOrEmpty(GeneralStaticManager.GlobalVar["SubjectId"]))
+			{
+				commentQuestionnaire.PatientIdInputField.text = GeneralStaticManager.GlobalVar["SubjectId"];
+				commentQuestionnaire.PatientIdInputField.interactable = false;
+			}
 			commentQuestionnaire.AskToUpload(recorderPath);
 			videoRecorded = false;
 		}

@@ -77,7 +77,10 @@ public class UserReportController : MonoBehaviour
                         userReportFromDB.UserId = item.UserID;
                         userReportFromDB.VideoURL = item.VideoURL;
                         userReportFromDB.gameObject.SetActive(true);
+                        if(string.IsNullOrEmpty(item.SubjectId))
                         userReportFromDB.UserName.text = item.UserName;
+                        else
+                        userReportFromDB.UserName.text = item.SubjectId;
                         if (!string.IsNullOrEmpty(item.ReportDescription))
                             userReportFromDB.ReportDescription.text = item.ReportDescription;
                         DateTime serverTime;

@@ -172,6 +172,7 @@ public class UserReportData
     public string ReportURL { get; set; }
     public string CreatedOn { get; set; }
     public string ReportDescription { get; set; }
+    public string SubjectId { get; set; }
 }
 
 public class UserReportResponse

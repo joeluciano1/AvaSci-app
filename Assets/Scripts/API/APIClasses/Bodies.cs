@@ -70,6 +70,7 @@ public class ReportRecordBody
     public string VideoURL { get; set; }
     public string? ReportURL { get; set; }
     public string ReportDescription { get; set; }
+    public string SubjectId{ get; set; }
 }
 
 public class SubscriptionBody

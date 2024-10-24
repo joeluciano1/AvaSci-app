@@ -61,7 +61,8 @@ public class AzureStorageManager : MonoBehaviour
                 UserName = GeneralStaticManager.GlobalVar["UserName"],
                 VideoURL = uri,
                 ReportURL = reportURL,
-                ReportDescription = ReportDesc
+                ReportDescription = ReportDesc,
+                SubjectId = ReferenceManager.instance.commentQuestionnaire.PatientIdInputField.text
             };
             string json = JsonConvert.SerializeObject(reportRecordBody);
             APIHandler.instance.Post("UserReport/PostReport", json, onSuccess: (response) =>

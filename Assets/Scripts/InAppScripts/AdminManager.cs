@@ -27,6 +27,7 @@ public class AdminManager : MonoBehaviour
                 if (adminResponse.isSuccess)
                 {
                     Color bgColor = ReferenceManager.instance.uiManager.SelectedWindowColor;
+                    Debug.Log("Users Count: "+adminResponse.result.users.Count);
                     foreach (var item in adminResponse.result.users)
                     {
                         if (GeneratedUsers.FirstOrDefault(x => x.Email.text.Equals(item.Email)) != null)
