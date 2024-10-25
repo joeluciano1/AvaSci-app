@@ -20,7 +20,7 @@ public class PopupManager : MonoBehaviour
     public GameObject NoButton;
     public async void Show(string heading, string content, bool fade = false, System.Action okPressed = null, bool isAsking = false)
     {
-
+        Debug.Log("Popup Message: " + content);
         if (okPressed != null)
         {
             IOSNativeAlert.ShowAlertMessage(heading, content, new IOSNativeAlert.AlertButton("ok", () => { okPressed.Invoke(); }));
