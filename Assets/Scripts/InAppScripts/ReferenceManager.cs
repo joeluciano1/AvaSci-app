@@ -519,4 +519,5 @@ public class ReferenceManager : MonoBehaviour
 	{
 		videoPlayerView.VideoPlayer.Speed = float.Parse(speed_DropDown.captionText.text.Replace("x",""));
 	}
+	
 }

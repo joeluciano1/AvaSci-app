@@ -60,6 +60,7 @@ public class AzureStorageManager : MonoBehaviour
             var selectedPatient = ReferenceManager.instance.LoginManager.signinResponse.result.patients.FirstOrDefault(x => x.SubjectId == ReferenceManager.instance.commentQuestionnaire.PatientsDropDown.captionText.text);
             ReportRecordBody reportRecordBody = new ReportRecordBody()
             {
+                CreatedBy = GeneralStaticManager.GlobalVar["UserName"],
                 UserName = selectedPatient.PatientName,
                 VideoURL = uri,
                 ReportURL = reportURL,

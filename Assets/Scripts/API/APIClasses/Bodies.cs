@@ -66,6 +66,7 @@ public class VideoSaveBody
 
 public class ReportRecordBody
 {
+    public string CreatedBy { get; set; }
     public string UserName { get; set; }
     public string VideoURL { get; set; }
     public string? ReportURL { get; set; }
