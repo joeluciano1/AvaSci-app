@@ -74,14 +74,30 @@ public class SignInResult
     public string Receipt { get; set; }
     public string SubjectID { get; set; }
     public List<Patient> patients { get; set; }
+    public List<Clinic> clinics { get; set; }
+	public List<Doctor> doctors { get; set; }
 }
 public class Patient
 	{
 		public string PatientId { get; set; }
 		public string SubjectId { get; set; }
         public string PatientName { get; set; }
+        public long ClinicId { get; set; }
+		public string ClinicName { get; set; }
+		public string DoctorName { get; set; }
+	}
+public class Clinic
+	{
+		public string ClinicName { get; set; }
+		public long ClinicId { get; set; }
 	}
 
+	public class Doctor
+	{
+		public string DoctorName { get; set; }
+		public string DoctorId { get; set; }
+        public long DoctorClinicId { get; set; }
+	}
 public class SignInResponse
 {
     public bool isSuccess { get; set; }
@@ -196,3 +212,12 @@ public class Receipt
     public string Store { get; set; }
     public string TransactionID { get; set; }
 }
+
+ public class GenericStringResponse
+    {
+        public object result { get; set; }
+        public bool isOk { get; set; }
+        public bool isError { get; set; }
+        public int status { get; set; }
+        
+    }

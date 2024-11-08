@@ -144,3 +144,17 @@ public class StandingDetectionBody
     public float ankleAbductionValue { get; set; }
     public float varusValgusValue{ get; set; }
 }
+
+[System.Serializable]
+public class AddClinicPatientBody
+	{
+        public string SubjectId { get; set; }
+        public string Email { get; set; }
+        public string UserName { get; set; }
+        public string Password { get; set; }
+
+        public long ClinicId { get; set; }
+        public string AdminId { get; set; }
+        public string DoctorId { get; set; }
+        public string PatientId { get; set; }
+    }

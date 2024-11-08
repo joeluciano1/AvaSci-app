@@ -302,12 +302,12 @@ namespace LightBuzz.AvaSci.UI
             {
                 Sensor.Open();
             });
-            if (!string.IsNullOrEmpty(PlayerPrefs.GetString("OptimizationMode")))
-            {
-                int previousOptimizationMode = int.Parse(PlayerPrefs.GetString("OptimizationMode"));
-                Sensor.OptimizationMode = (OptimizationMode)previousOptimizationMode;
-                ReferenceManager.instance.OptimizationModeDropDown.SetValueWithoutNotify(previousOptimizationMode);
-            }
+            // if (!string.IsNullOrEmpty(PlayerPrefs.GetString("OptimizationMode")))
+            // {
+            //     int previousOptimizationMode = int.Parse(PlayerPrefs.GetString("OptimizationMode"));
+            //     Sensor.OptimizationMode = (OptimizationMode)previousOptimizationMode;
+            //     ReferenceManager.instance.OptimizationModeDropDown.SetValueWithoutNotify(previousOptimizationMode);
+            // }
             _loading.SetActive(false);
 
             if (!Sensor.IsOpen)

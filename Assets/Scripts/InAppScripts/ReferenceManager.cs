@@ -118,6 +118,12 @@ public class ReferenceManager : MonoBehaviour
 	public bool placeHeelDetectionValues;
 
 	public UserReportController userReportController;
+	public TMP_InputField EmailChangePass;
+	public TMP_InputField NewPassChangePass;
+	public GameObject ChangePassSection;
+	public GameObject ChangePassButton;
+	public GameObject AddNewPatientButton;
+	public CreatePatientQuestionnaire createPatientQuestionnaire;
 
 	private void Awake()
 	{
@@ -444,7 +450,7 @@ public class ReferenceManager : MonoBehaviour
 		if (videoRecordingView.Sensor != null)
 		{
 			videoRecordingView.Sensor.OptimizationMode = (OptimizationMode)value;
-			PlayerPrefs.SetString("OptimizationMode", value.ToString());
+			// PlayerPrefs.SetString("OptimizationMode", value.ToString());
 		}
 		else
 		{

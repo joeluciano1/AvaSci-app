@@ -32,7 +32,7 @@ public class UserReportController : MonoBehaviour
     UserReportFromDB RecentlyPlayedButton;
     public Button StopRecButton;
     public Button ResetButton;
-
+    public VerticalLayoutGroup ReportsLayoutGroup;
     // Start is called before the first frame update
     public void Start()
     {
@@ -218,6 +218,8 @@ public class UserReportController : MonoBehaviour
         ReferenceManager.instance.SelectedVideoID = null;
         ReferenceManager.instance.CleareVarusValgus();
         ReferenceManager.instance.videoPlayingCount = 0;
+        ReferenceManager.instance.videoRecordingView.Sensor.OptimizationMode = 0;
+        ReferenceManager.instance.sensorTypeDropDown.SetValueWithoutNotify(0);
         videoRecorderView.Show();
     }
 
@@ -497,5 +499,36 @@ public class UserReportController : MonoBehaviour
         endValue.y -= offset;
 
         _contentPanel.DOAnchorPos(endValue, 1f);
+    }
+
+    public void OrderBy(int order)
+    {
+        if(order == 1)
+        {
+            ReportsLayoutGroup.reverseArrangement = false;
+            userReportFromDBs = userReportFromDBs.OrderBy(x => x.UserName.text).ToList();
+            for(int i = 0;i<userReportFromDBs.Count;i++)
+            {
+                userReportFromDBs[i].transform.SetSiblingIndex(i);
+            }
+        }
+        if(order == 2)
+        {
+            userReportFromDBs = userReportFromDBs.OrderBy(x => DateTime.Parse(x.CreatedOn.text)).ToList();
+            for(int i = 0;i<userReportFromDBs.Count;i++)
+            {
+                userReportFromDBs[i].transform.SetSiblingIndex(i);
+            }
+            ReportsLayoutGroup.reverseArrangement = false;
+        }
+        if(order == 3)
+        {
+            userReportFromDBs = userReportFromDBs.OrderBy(x => DateTime.Parse(x.CreatedOn.text)).ToList();
+            for(int i = 0;i<userReportFromDBs.Count;i++)
+            {
+                userReportFromDBs[i].transform.SetSiblingIndex(i);
+            }
+            ReportsLayoutGroup.reverseArrangement = true;
+        }
     }
 }

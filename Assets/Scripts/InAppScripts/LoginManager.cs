@@ -362,20 +362,30 @@ public class LoginManager : MonoBehaviour
                   if(!string.IsNullOrEmpty(signinResponse.result.SubjectID))
                   {
                       signinResponse.result.patients.Add(new Patient { SubjectId = signinResponse.result.SubjectID, PatientId = signinResponse.result.UserId, });
+                      ReferenceManager.instance.AddNewPatientButton.SetActive(false);
                   }
                 foreach (var item in signinResponse.result.patients) 
                 {
-                    // if(!ReferenceManager.instance.commentQuestionnaire.PatientsDropDown.options.Any(x=>x.text == item.SubjectId))
-                        ReferenceManager.instance.commentQuestionnaire.PatientsDropDown.options.Add(new TMP_Dropdown.OptionData(item.SubjectId));
+                    ReferenceManager.instance.commentQuestionnaire.PatientsDropDown.options.Add(new TMP_Dropdown.OptionData(item.SubjectId));
                 }
+                foreach (var item in signinResponse.result.clinics){
+                    if(!ReferenceManager.instance.createPatientQuestionnaire.ClinicsDropDown.options.Select(x=>x.text).Contains(item.ClinicName))
+                    ReferenceManager.instance.createPatientQuestionnaire.ClinicsDropDown.options.Add(new TMP_Dropdown.OptionData(item.ClinicName));
+                }
+                // foreach (var item in signinResponse.result.doctors){
+                //     if(!ReferenceManager.instance.createPatientQuestionnaire.DoctorsDropDown.options.Select(x=>x.text).Contains(item.DoctorName))
+                //     ReferenceManager.instance.createPatientQuestionnaire.DoctorsDropDown.options.Add(new TMP_Dropdown.OptionData(item.DoctorName));
+                // }
                 
                   if (signinResponse.result.Roles.Contains("SuperUser"))
                   {
                       ReferenceManager.instance.uiManager.AdminButton.SetActive(true);
+                      ReferenceManager.instance.ChangePassButton.SetActive(true);
                   }
                   else
                   {
                       ReferenceManager.instance.uiManager.AdminButton.SetActive(false);
+                      ReferenceManager.instance.ChangePassButton.SetActive(false);
                   }
               }
               if (signinResponse.isError)
@@ -539,6 +549,43 @@ public class LoginManager : MonoBehaviour
         onError: (error) =>
         {
             IOSNativeAlert.ShowAlertMessage("Email Sending Failed!", $"Reasons are: {error}");
+            Debug.LogError($"Error: {error}");
+        }
+        );
+    }
+    public void ChangePassword()
+    {
+        ResetPasswordBody request = new ResetPasswordBody()
+        {
+            Email = ReferenceManager.instance.EmailChangePass.text,
+            NewPassword = ReferenceManager.instance.NewPassChangePass.text
+        };
+        string json = JsonConvert.SerializeObject(request);
+
+        APIHandler.instance.Post("Auth/UpdatePassword", json,
+        onSuccess: async (response) =>
+        {
+            ResponseWithNoObject codeValidateReponse = JsonConvert.DeserializeObject<ResponseWithNoObject>(response);
+            if (codeValidateReponse.isSuccess)
+            {
+                IOSNativeAlert.ShowAlertMessage("Password is Changed!", "Your Password Is Changed Successfully", new IOSNativeAlert.AlertButton("Thank You", () => { ReferenceManager.instance.ChangePassSection.gameObject.SetActive(false); }));
+            }
+            if (codeValidateReponse.isError)
+            {
+                string reasons = "";
+                foreach (var item in codeValidateReponse.serviceErrors)
+                {
+                    reasons += $"\n {item.code} {item.description}";
+                }
+                IOSNativeAlert.ShowAlertMessage("Failed!", $"Reasons are: {reasons}");
+                Debug.Log($"{codeValidateReponse.serviceErrors}");
+            }
+
+        },
+        onError: (error) =>
+        {
+            ReferenceManager.instance.ChangePassSection.gameObject.SetActive(false);
+            IOSNativeAlert.ShowAlertMessage("Failed!", $"Reasons are: {error}");
             Debug.LogError($"Error: {error}");
         }
         );
