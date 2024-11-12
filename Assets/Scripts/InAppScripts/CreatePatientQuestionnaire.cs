@@ -35,6 +35,15 @@ public class CreatePatientQuestionnaire : MonoBehaviour
             GenericStringResponse genericResponse = JsonConvert.DeserializeObject<GenericStringResponse>(response);
             if(genericResponse.isOk){
                 ReferenceManager.instance.commentQuestionnaire.PatientsDropDown.options.Add(new TMP_Dropdown.OptionData(EmailInputField.text.Split('@')[0]));
+                Patient patient = new() {
+                    DoctorName = selectedDoctor.DoctorName,
+                    PatientName = EmailInputField.text.Split('@')[0],
+                    SubjectId = SubjectNumberInputField.text,
+                    ClinicId = selectedClinic.ClinicId,
+                    ClinicName = selectedClinic.ClinicName,
+                };
+                ReferenceManager.instance.LoginManager.signinResponse.result.patients.Add(patient);
+                ReferenceManager.instance.reportSectionManager.FeedClinicData();
             }
             else{
                 IOSNativeAlert.ShowAlertMessage("Failed!", $"UnknownError");
@@ -55,7 +64,7 @@ public class CreatePatientQuestionnaire : MonoBehaviour
     public void UpdateAccoridngToSelectedClinic()
     {
         DoctorsDropDown.options.Clear();
-        var selectedClinic = ReferenceManager.instance.LoginManager.signinResponse.result.clinics.FirstOrDefault(x => x.ClinicName == ClinicsDropDown.captionText.text);
+        var selectedClinic = ReferenceManager.instance.LoginManager.signinResponse.result.clinics.FirstOrDefault(x => x.ClinicName == ClinicsDropDown.options[0].text);
         var doctorsInSelectedClinic = ReferenceManager.instance.LoginManager.signinResponse.result.doctors.Where(x => x.DoctorClinicId == selectedClinic.ClinicId).ToList();
         foreach(var doctor in doctorsInSelectedClinic){
             DoctorsDropDown.options.Add(new TMP_Dropdown.OptionData(doctor.DoctorName));

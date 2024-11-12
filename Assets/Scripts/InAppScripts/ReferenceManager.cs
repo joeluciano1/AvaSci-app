@@ -125,6 +125,7 @@ public class ReferenceManager : MonoBehaviour
 	public GameObject AddNewPatientButton;
 	public CreatePatientQuestionnaire createPatientQuestionnaire;
 	public GameObject clinicsButton;
+	public ReportSectionManager reportSectionManager;
 
 	private void Awake()
 	{

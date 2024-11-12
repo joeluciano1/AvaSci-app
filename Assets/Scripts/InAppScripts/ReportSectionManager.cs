@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
@@ -51,13 +52,19 @@ public class ReportSectionManager : MonoBehaviour
         ClinicsSection.SetActive(false);
         HeadingReports.SetActive(true);
     }
-
+    List<ClinicDataFromDB> clinicDataFromDBStored = new List<ClinicDataFromDB>();
     public void FeedClinicData()
     {
+        if(clinicDataFromDBStored.Count !=0)
+        {
+            clinicDataFromDBStored.ForEach(x => Destroy(x.gameObject));
+            clinicDataFromDBStored.Clear();
+        }
         clinicDataFilled = true;
         foreach(var item in ReferenceManager.instance.LoginManager.signinResponse.result.clinics)
         {
             ClinicDataFromDB dataFromDB = Instantiate(clinicDataFromDB, clinicDataFromDB.transform.parent);
+            clinicDataFromDBStored.Add(dataFromDB);
             dataFromDB.gameObject.SetActive(true);
             dataFromDB.ClinicName.text = "Clinic Name: "+item.ClinicName;
             var doctorsInThisClinic = ReferenceManager.instance.LoginManager.signinResponse.result.doctors.Where(x => x.DoctorClinicId == item.ClinicId).ToList();
