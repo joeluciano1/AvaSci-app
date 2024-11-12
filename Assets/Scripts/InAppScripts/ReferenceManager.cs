@@ -124,6 +124,7 @@ public class ReferenceManager : MonoBehaviour
 	public GameObject ChangePassButton;
 	public GameObject AddNewPatientButton;
 	public CreatePatientQuestionnaire createPatientQuestionnaire;
+	public GameObject clinicsButton;
 
 	private void Awake()
 	{

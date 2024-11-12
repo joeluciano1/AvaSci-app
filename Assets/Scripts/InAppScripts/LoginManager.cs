@@ -363,6 +363,7 @@ public class LoginManager : MonoBehaviour
                   {
                       signinResponse.result.patients.Add(new Patient { SubjectId = signinResponse.result.SubjectID, PatientId = signinResponse.result.UserId, });
                       ReferenceManager.instance.AddNewPatientButton.SetActive(false);
+                      ReferenceManager.instance.clinicsButton.SetActive(false);
                   }
                 foreach (var item in signinResponse.result.patients) 
                 {
