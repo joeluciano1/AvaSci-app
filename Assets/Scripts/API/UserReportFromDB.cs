@@ -12,6 +12,7 @@ using DG.Tweening;
 public class UserReportFromDB : MonoBehaviour
 {
     public long videoId;
+    public string UserNameOfSubject;
     public TMP_Text UserName;
     public TMP_Text CreatedOn;
     public TMP_Text ReportDescription;

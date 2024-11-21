@@ -50,10 +50,10 @@ public class ButtonHandler : MonoBehaviour
             ReferenceManager.instance.graphManagers[0].GetComponent<RectTransform>()
         );
     }
-
+    public List<GraphData> graphDatas = new List<GraphData>();
     public void GeneratePDFTest()
     {
-        List<GraphData> graphDatas = new List<GraphData>();
+        graphDatas.Clear();
         foreach (GraphManager MyGraphManager in ReferenceManager.instance.graphManagers)
         {
             string jointOne = Enum.GetName(typeof(MeasurementType), MyGraphManager.JointType);
@@ -103,7 +103,7 @@ public class ButtonHandler : MonoBehaviour
                 minJointTwo = jointTwoMinValue.ToString();
                 rangeJointTwo = Math.Abs(jointTwoMaxValue - jointTwoMinValue).ToString();
             }
-
+            var selectedPatient = ReferenceManager.instance.LoginManager.signinResponse.result.patients.FirstOrDefault(x => x.SubjectId == ReferenceManager.instance.commentQuestionnaire.PatientsDropDown.captionText.text || x.PatientName == ReferenceManager.instance.commentQuestionnaire.PatientsDropDown.captionText.text);
             GraphData graphData = new GraphData()
             {
                 Graph1Name = jointOne,
@@ -115,7 +115,7 @@ public class ButtonHandler : MonoBehaviour
                 MinGraph2Value = minJointTwo,
                 RangeGraph1Value = rangeJointOne,
                 RangeGraph2Value = rangeJointTwo,
-                Username = GeneralStaticManager.GlobalVar["UserName"]
+                Username = selectedPatient ==null || string.IsNullOrEmpty(selectedPatient.PatientName)? GeneralStaticManager.GlobalVar["UserName"] :selectedPatient.PatientName
             };
 
             graphDatas.Add(graphData);
@@ -398,6 +398,7 @@ public class ButtonHandler : MonoBehaviour
     }
 }
 
+[System.Serializable]
 public class GraphData
 {
     public string Username;

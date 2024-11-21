@@ -155,6 +155,10 @@ public class GaitPDFGenerator : MonoBehaviour
 
     public void UploadResults()
     {
+        if(ReferenceManager.instance.AngleAtFootStrikingTime.Count == 0){
+            ReferenceManager.instance.PopupManager.Show("No Detection!", "There were no steps taken by user");
+            return;
+        }
         for (int i = 0; i < ReferenceManager.instance.AngleAtFootStrikingTime.Count; i++)
         {
             var item2 = ReferenceManager.instance.standingDetectionBodies.FirstOrDefault(x =>!x.added);
@@ -168,10 +172,11 @@ public class GaitPDFGenerator : MonoBehaviour
                 Subject = GeneralStaticManager.GlobalVar["Subject"],
                 SubjectStandingAtTime = (float)TimeSpan.ParseExact(item2.TimeofStanding,@"mm\:ss\:fff", CultureInfo.InvariantCulture).TotalSeconds,
                 AngleDifferenceAtTime =item2.angleDifferenceValue,
-                MMDistaceAtTime = item2.distanceValue,
+                // MMDistaceAtTime = item2.distanceValue,
                 KneeAbductionAtTime = item2.kneeAbductionValue,
                 AnkleAbductionAtTime = item2.ankleAbductionValue,
                 PelvisAngleAtTime = item2.pelvisAngleValue,
+                VarusValgusAtTime = item2.distanceValue,
                 SelectedLeg = ResearchMeasurementManager.instance.leftLeg ? "Left Leg" : "Right Leg"
             };
             UploadGaitJson(i, bodyStand);
@@ -205,7 +210,8 @@ public class GaitPDFGenerator : MonoBehaviour
                 PelvisAngleAtTime = ReferenceManager
                     .instance.PelvisAngleAtFootStrikingTime.ElementAt(i)
                     .Value,
-                SelectedLeg = ResearchMeasurementManager.instance.leftLeg ? "Left Leg" : "Right Leg"
+                SelectedLeg = ResearchMeasurementManager.instance.leftLeg ? "Left Leg" : "Right Leg",
+                VarusValgusAtTime = ReferenceManager.instance.DistanceAtFootStrikingTime.ElementAt(i).Value
             };
             UploadGaitJson(i, body);
             var item = ReferenceManager.instance.heelPressDetectionBodies.FirstOrDefault(x => TimeSpan.ParseExact(x.TimeOfHeelPressed, @"mm\:ss\:fff", CultureInfo.InvariantCulture) > TimeSpan.ParseExact(ReferenceManager.instance.AngleAtFootStrikingTime.ElementAt(i).Key, @"mm\:ss\:fff", CultureInfo.InvariantCulture) && !x.added);
@@ -226,7 +232,8 @@ public class GaitPDFGenerator : MonoBehaviour
                 KneeAbductionAtTime = item.kneeAbductionValue,
                 AnkleAbductionAtTime = item.ankleAbductionValue,
                 PelvisAngleAtTime = item.pelvisAngleValue,
-                SelectedLeg = ResearchMeasurementManager.instance.leftLeg ? "Left Leg" : "Right Leg"
+                SelectedLeg = ResearchMeasurementManager.instance.leftLeg ? "Left Leg" : "Right Leg",
+                VarusValgusAtTime = item.distanceValue
             };
             UploadGaitJson(i, bodyHeel);
         }
@@ -258,8 +265,8 @@ public class GaitPDFGenerator : MonoBehaviour
                     {
                         reasons += $"\n {item.code} {item.description}";
                     }
-                    IOSNativeAlert.ShowAlertMessage(
-                        "Signin Failed!",
+                    ReferenceManager.instance.PopupManager.Show(
+                        "Failed!",
                         $"Reasons are: {reasons}"
                     );
                     Debug.Log($"{responseWithNoObject.serviceErrors}");
@@ -267,7 +274,7 @@ public class GaitPDFGenerator : MonoBehaviour
             },
             onError: (error) =>
             {
-                IOSNativeAlert.ShowAlertMessage("Signin Failed!", $"Reasons are: {error}");
+                ReferenceManager.instance.PopupManager.Show("Failed!", $"Reasons are: {error}");
                 Debug.LogError($"Error: {error} value was: {body.HeelPassingAtTime}");
             }
         );

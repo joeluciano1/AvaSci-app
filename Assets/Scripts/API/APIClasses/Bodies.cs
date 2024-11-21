@@ -72,8 +72,15 @@ public class ReportRecordBody
     public string? ReportURL { get; set; }
     public string ReportDescription { get; set; }
     public string SubjectId{ get; set; }
+    public List<JointReading> jointReadings { get; set; }=new List<JointReading>();
 }
-
+public class JointReading
+	{
+		public string NameOfReading { get; set; }
+		public float MinimumValue { get; set; }
+		public float MaximumValue { get; set; }
+		public float RangeValue { get; set; }
+	}
 public class SubscriptionBody
 {
     public string UserEmail { get; set; }

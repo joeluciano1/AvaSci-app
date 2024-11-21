@@ -75,6 +75,7 @@ public class UserReportController : MonoBehaviour
                         );
                         userReportFromDB.videoId = item.Id;
                         userReportFromDB.UserId = item.UserID;
+                        userReportFromDB.UserNameOfSubject = item.UserName;
                         userReportFromDB.VideoURL = item.VideoURL;
                         userReportFromDB.gameObject.SetActive(true);
                         if(string.IsNullOrEmpty(item.SubjectId))
@@ -145,7 +146,7 @@ public class UserReportController : MonoBehaviour
                             itemToSnapTo = userReportFromDB.transform;
                             RecentlyPlayedButton = userReportFromDB;
                             userReportFromDB.WatchBtn.onClick.AddListener(
-                                () => { CreateFileAndView(null, "", userReportFromDB.UserName.text); 
+                                () => { CreateFileAndView(null, "", userReportFromDB.UserNameOfSubject); 
                                 ReferenceManager.instance.SelectedVideoID = userReportFromDB.videoId; }
                             );
                             if (!string.IsNullOrEmpty(item.ReportURL))
@@ -257,7 +258,7 @@ public class UserReportController : MonoBehaviour
             var reportFile = videoSaveBodies.FirstOrDefault(x => x.FileName.Equals("Sample.pdf"));
             btn.onClick.RemoveAllListeners();
             btn.onClick.AddListener(
-                () => { CreateFileAndView(videoSaveBodies, url, userReportFromDB.UserName.text); ReferenceManager.instance.SelectedVideoID = userReportFromDB.videoId; }
+                () => { CreateFileAndView(videoSaveBodies, url, userReportFromDB.UserNameOfSubject); ReferenceManager.instance.SelectedVideoID = userReportFromDB.videoId; }
             );
             btn.interactable = true;
             userReportFromDB.ProgressImage.gameObject.SetActive(false);

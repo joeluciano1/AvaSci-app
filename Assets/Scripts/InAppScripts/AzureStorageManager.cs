@@ -57,7 +57,7 @@ public class AzureStorageManager : MonoBehaviour
                 ReportDesc += ReferenceManager.instance.commentQuestionnaire.CommentInputField.text;
             }
             PlayerPrefs.SetString("LastVidURL", uri);
-            var selectedPatient = ReferenceManager.instance.LoginManager.signinResponse.result.patients.FirstOrDefault(x => x.SubjectId == ReferenceManager.instance.commentQuestionnaire.PatientsDropDown.captionText.text);
+            var selectedPatient = ReferenceManager.instance.LoginManager.signinResponse.result.patients.FirstOrDefault(x => x.SubjectId == ReferenceManager.instance.commentQuestionnaire.PatientsDropDown.captionText.text || x.PatientName == ReferenceManager.instance.commentQuestionnaire.PatientsDropDown.captionText.text);
             ReportRecordBody reportRecordBody = new ReportRecordBody()
             {
                 CreatedBy = GeneralStaticManager.GlobalVar["UserName"],
@@ -67,7 +67,30 @@ public class AzureStorageManager : MonoBehaviour
                 ReportDescription = ReportDesc,
                 SubjectId = selectedPatient.SubjectId
             };
+            foreach(var item in ReferenceManager.instance.ButtonHandler.graphDatas)
+            {
+                JointReading jointReading = new JointReading()
+                {
+                    NameOfReading = item.Graph1Name,
+                    MinimumValue = float.Parse(item.MinGraph1Value),
+                    MaximumValue = float.Parse(item.MaxGraph1Value),
+                    RangeValue = float.Parse(item.RangeGraph1Value)
+                };
+                reportRecordBody.jointReadings.Add(jointReading);
+                if(string.IsNullOrEmpty(item.Graph2Name)){
+                    continue;
+                }
+                JointReading secondjointReading = new JointReading()
+                {
+                    NameOfReading = item.Graph2Name,
+                    MinimumValue = float.Parse(item.MinGraph2Value),
+                    MaximumValue = float.Parse(item.MaxGraph2Value),
+                    RangeValue = float.Parse(item.RangeGraph2Value)
+                };
+                reportRecordBody.jointReadings.Add(secondjointReading);
+            }
             string json = JsonConvert.SerializeObject(reportRecordBody);
+            Debug.Log(json);
             APIHandler.instance.Post("UserReport/PostReport", json, onSuccess: (response) =>
             {
                 ResponseWithNoObject responseWithNoObject = JsonConvert.DeserializeObject<ResponseWithNoObject>(response);

@@ -331,7 +331,6 @@ public class LoginManager : MonoBehaviour
         APIHandler.instance.Post("Auth/Login", jsonData,
           onSuccess: (response) =>
           {
-
             signinResponse = JsonConvert.DeserializeObject<SignInResponse>(response);
               if (signinResponse.isSuccess)
               {
@@ -361,7 +360,7 @@ public class LoginManager : MonoBehaviour
                   ReferenceManager.instance.uiManager.LogoutButton.SetActive(true);
                   if(!string.IsNullOrEmpty(signinResponse.result.SubjectID))
                   {
-                      signinResponse.result.patients.Add(new Patient { SubjectId = signinResponse.result.SubjectID, PatientId = signinResponse.result.UserId, });
+                      signinResponse.result.patients.Add(new Patient { SubjectId = signinResponse.result.SubjectID, PatientId = signinResponse.result.UserId, PatientName = signinResponse.result.UserName });
                       ReferenceManager.instance.AddNewPatientButton.SetActive(false);
                       ReferenceManager.instance.clinicsButton.SetActive(false);
                   }
