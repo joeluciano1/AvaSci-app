@@ -18,18 +18,18 @@ public class PopupManager : MonoBehaviour
     public UnityEvent onSuccess;
 
     public GameObject NoButton;
-    public async void Show(string heading, string content, bool fade = false, System.Action okPressed = null, bool isAsking = false)
+    public async void Show(string heading, string content, bool fade = false,  /*IOSNativeAlert.AlertButton okPressed = null,*/ bool isAsking = false)
     {
         Debug.Log("Popup Message: " + content);
-        if (okPressed != null)
-        {
-            IOSNativeAlert.ShowAlertMessage(heading, content, new IOSNativeAlert.AlertButton("ok", () => { okPressed.Invoke(); }));
+        // if (okPressed != null)
+        // {
+            // IOSNativeAlert.ShowAlertMessage(heading, content, new IOSNativeAlert.AlertButton("ok", () => { okPressed.Invoke(); }));
 
-        }
-        else
-        {
-            IOSNativeAlert.ShowAlertMessage(heading, content);
-        }
+        // }
+        // else
+        // {
+            // IOSNativeAlert.ShowAlertMessage(heading, content);
+        // }
 
     }
 
@@ -45,4 +45,5 @@ public class PopupManager : MonoBehaviour
     {
         Destroy(gameObject);
     }
+
 }

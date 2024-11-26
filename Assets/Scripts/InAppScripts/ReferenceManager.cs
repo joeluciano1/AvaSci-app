@@ -401,7 +401,7 @@ public class ReferenceManager : MonoBehaviour
 			"Save Video?",
 			"Would you like the video to be saved to be viewed Later?",
 			false,
-			okPressed: () => UploadVideo(path),
+			/*okPressed: () => UploadVideo(path),*/
 			true
 		);
 	}

@@ -78226,7 +78226,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _skeletonPrefab: {fileID: 4985703822292398465, guid: 1284ef6d1bbb23540bcb2400d289438e, type: 3}
   _image: {fileID: 3134691500222241872}
-  _space: 1
+  _space: 0
   _showInferredJoints: 0
   _showBoundingBox: 0
   _showUserID: 0
@@ -79209,7 +79209,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _configuration:
-    _sensorType: 0
+    _sensorType: 2
     _smoothingType: 0
     _smoothing: 0.15
     _threadingMode: 1

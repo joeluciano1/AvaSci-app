@@ -5,10 +5,14 @@ EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Scenes:
-  - enabled: 1
+  - enabled: 0
     path: Assets/Scenes/Splash.unity
     guid: 5a8f518a030ea4a53989c6f7dbc38a5a
-  - enabled: 1
+  - enabled: 0
     path: Assets/Scenes/Main.unity
     guid: 9fc0d4010bbf28b4594072e72b8655ab
+  - enabled: 0
+    path: Assets/Samples/LightBuzz Body Tracking/6.2.5/Intel RealSense/LightBuzz_BodyTracking_RealSense.unity
+    guid: 0a307c7417f446f4586032002939bee6
   m_configObjects: {}
+  m_UseUCBPForAssetBundles: 0

@@ -46,13 +46,13 @@ public class CreatePatientQuestionnaire : MonoBehaviour
                 ReferenceManager.instance.reportSectionManager.FeedClinicData();
             }
             else{
-                IOSNativeAlert.ShowAlertMessage("Failed!", $"UnknownError");
+                ReferenceManager.instance.PopupManager.Show("Failed!", $"UnknownError");
             }
 
         },
         onError: (error) =>
         {
-            IOSNativeAlert.ShowAlertMessage("Failed!", $"Reasons are: {error}");
+            ReferenceManager.instance.PopupManager.Show("Failed!", $"Reasons are: {error}");
             Debug.LogError($"Error: {error}");
         }
         );
