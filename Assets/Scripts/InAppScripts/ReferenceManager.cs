@@ -150,7 +150,7 @@ public class ReferenceManager : MonoBehaviour
 	}
 	public async void SwitchToLidar()
 	{
-#if !UNITY_EDITOR
+#if !UNITY_EDITOR && !UNITY_STANDALONE && !UNITY_STANDALONE_WIN
 		if (
 			ReferenceManager.instance.sensorTypeDropDown.value != 1
 			&& !isDone
@@ -379,6 +379,23 @@ public class ReferenceManager : MonoBehaviour
 	{
 		if(videoPlayerView.gameObject.activeSelf)
 		TimeElapsedLightBuzz.text = videoPlayerView.VideoPlayer.TimeElapsed.ToString(@"mm\:ss\:fff");
+
+		if(Input.GetKeyDown(KeyCode.A))
+		{
+			LightBuzzMain.OnSettingsClicked();
+		}
+		if(Input.GetKeyDown(KeyCode.Keypad0))
+		{
+			videoRecordingView._configuration.DeviceIndex = 0;
+		}
+		if(Input.GetKeyDown(KeyCode.Keypad1))
+		{
+			videoRecordingView._configuration.DeviceIndex = 1;
+		}
+		if(Input.GetKeyDown(KeyCode.Keypad2))
+		{
+			videoRecordingView._configuration.DeviceIndex = 2;
+		}
 	}
 	private void Update()
 	{

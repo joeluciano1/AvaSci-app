@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using LightBuzz.BodyTracking;
 using UnityEngine;
@@ -89,15 +90,17 @@ namespace LightBuzz.AvaSci.UI
         {
             int countWebcam = 0;
             int countLiDAR = 0;
-
+            int countRealSense = 0;
             await Task.Run(() =>
             {
                 countWebcam = Sensor.Count(SensorType.Webcam);
                 countLiDAR = Sensor.Count(SensorType.LiDAR);
+                countRealSense = Sensor.Count(SensorType.RealSense);
             });
 
             Debug.Log($"Found {countWebcam} RGB cameras.");
             Debug.Log($"Found {countLiDAR} LiDAR sensors.");
+            Debug.Log($"Found {countRealSense} RealSense sensors.");
             ReferenceManager.instance.LidarCount = countLiDAR;
 
             _loading.SetActive(false);
@@ -154,7 +157,7 @@ namespace LightBuzz.AvaSci.UI
         /// <param name="value">0 for the Webcam sensor type, 1 for the LiDAR sensor type.</param>
         public void OnSensorChange(int value)
         {
-            SensorType sensorType = value == 0 ? SensorType.Webcam : SensorType.LiDAR;
+            SensorType sensorType = (SensorType)Enum.Parse(typeof(SensorType), ReferenceManager.instance.sensorTypeDropDown.captionText.text);
 
             SensorChanged?.Invoke((int)sensorType);
         }

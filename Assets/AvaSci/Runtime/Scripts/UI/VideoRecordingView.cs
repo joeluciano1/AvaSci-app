@@ -309,9 +309,44 @@ namespace LightBuzz.AvaSci.UI
             //     ReferenceManager.instance.OptimizationModeDropDown.SetValueWithoutNotify(previousOptimizationMode);
             // }
             _loading.SetActive(false);
+            // if (_configuration == null)
+            // {
+            //     Debug.Log("Device configuration cannot be empty.");
+            // }
+
+            // if (_configuration.DeviceIndex < 0)
+            // {
+            //     Debug.Log("Device index cannot be negative.");
+            // }
+
+            // if (_configuration.Smoothing < 0f)
+            // {
+            //     Debug.Log("Smoothing factor cannot be negative.");
+            // }
+
+            // if (_configuration.Timeout < 0)
+            // {
+            //     Debug.Log("Timeout parameter cannot be negative.");
+            // }
+
+            // if (_configuration.RequestedFrameRate < 0)
+            // {
+            //     Debug.Log("Device frame rate cannot be negative.");
+            // }
+
+            // if (_configuration.RequestedColorResolution.Width < 0 || _configuration.RequestedColorResolution.Height < 0)
+            // {
+            //     Debug.Log("Device color resolution cannot have negative values.");
+            // }
+
+            // if (_configuration.RequestedDepthResolution.Width < 0 || _configuration.RequestedDepthResolution.Height < 0)
+            // {
+            //     Debug.Log("Device depth resolution cannot have negative values.");
+            // }
 
             if (!Sensor.IsOpen)
             {
+                
                 Debug.LogError("Could not open sensor. Check the configuration settings.");
                 OnRecordingReady?.Invoke(false);
 

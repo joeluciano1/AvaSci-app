@@ -221,7 +221,7 @@ public class UserReportController : MonoBehaviour
         ReferenceManager.instance.videoPlayingCount = 0;
         if(ReferenceManager.instance.videoRecordingView.Sensor !=null)
         ReferenceManager.instance.videoRecordingView.Sensor.OptimizationMode = 0;
-        ReferenceManager.instance.sensorTypeDropDown.SetValueWithoutNotify(0);
+        // ReferenceManager.instance.sensorTypeDropDown.SetValueWithoutNotify(0);
         videoRecorderView.Show();
     }
 

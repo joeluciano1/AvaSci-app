@@ -61024,9 +61024,11 @@ MonoBehaviour:
   m_Value: 0
   m_Options:
     m_Options:
-    - m_Text: Webcam (RGB)
+    - m_Text: Webcam
       m_Image: {fileID: 0}
-    - m_Text: LiDAR (RGBD)
+    - m_Text: LiDAR
+      m_Image: {fileID: 0}
+    - m_Text: RealSense
       m_Image: {fileID: 0}
   m_OnValueChanged:
     m_PersistentCalls:
@@ -78713,7 +78715,7 @@ MonoBehaviour:
     m_PressedTrigger: Pressed
     m_SelectedTrigger: Selected
     m_DisabledTrigger: Disabled
-  m_Interactable: 0
+  m_Interactable: 1
   m_TargetGraphic: {fileID: 5016625820691941163}
   m_OnClick:
     m_PersistentCalls:
@@ -79209,13 +79211,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _configuration:
-    _sensorType: 2
+    _sensorType: 0
     _smoothingType: 0
     _smoothing: 0.15
     _threadingMode: 1
     _timeout: 0
     _videoPath: /Users/vangos/Projects/AvaSci/Assets/StreamingAssets/LightBuzz/video.avi
-    _deviceIndex: 0
+    _deviceIndex: 1
     _requestedFrameRate: 60
     _requestedColorResolution:
       Width: 1280
