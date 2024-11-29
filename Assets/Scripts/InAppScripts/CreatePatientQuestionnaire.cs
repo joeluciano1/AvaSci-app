@@ -64,8 +64,11 @@ public class CreatePatientQuestionnaire : MonoBehaviour
     public void UpdateAccoridngToSelectedClinic()
     {
         DoctorsDropDown.options.Clear();
-        var selectedClinic = ReferenceManager.instance.LoginManager.signinResponse.result.clinics.FirstOrDefault(x => x.ClinicName == ClinicsDropDown.options[0].text);
+        var selectedClinic = ReferenceManager.instance.LoginManager.signinResponse.result.clinics.FirstOrDefault(x => x.ClinicName == ClinicsDropDown.options[ClinicsDropDown.value].text);
         var doctorsInSelectedClinic = ReferenceManager.instance.LoginManager.signinResponse.result.doctors.Where(x => x.DoctorClinicId == selectedClinic.ClinicId).ToList();
+        DoctorsDropDown.options.Clear();
+        DoctorsDropDown.captionText.text = $"Select Doctor of {selectedClinic.ClinicName}";
+        DoctorsDropDown.options.Add(new TMP_Dropdown.OptionData($"Select Doctor of {selectedClinic.ClinicName}"));
         foreach(var doctor in doctorsInSelectedClinic){
             DoctorsDropDown.options.Add(new TMP_Dropdown.OptionData(doctor.DoctorName));
         }
