@@ -50,6 +50,7 @@ public class ReferenceManager : MonoBehaviour
 	public GameObject Screen1;
 
 	public Main LightBuzzMain;
+	public bool Selected3D;
 
 	[HideInInspector]
 	public bool videoRecorded;

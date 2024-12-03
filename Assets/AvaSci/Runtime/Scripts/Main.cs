@@ -18,7 +18,7 @@ namespace LightBuzz.AvaSci
         private SettingsView _settingsView;
 
         [SerializeField]
-        private LightBuzzViewer _viewer;
+        public LightBuzzViewer _viewer;
 
         [SerializeField]
         private AngleManager _angles;
