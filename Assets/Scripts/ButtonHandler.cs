@@ -193,7 +193,10 @@ public class ButtonHandler : MonoBehaviour
                     graphData.JointThatIsReported.Split(',')[0].Equals(x.JointType.ToString())
                 )
                 .GraphImage;
-
+            if(GraphImage ==null)
+            {
+                return;
+            }
             byte[] graphImageBytes = GraphImage.EncodeToPNG();
             Stream graphImageStream = new MemoryStream(graphImageBytes);
             PdfBitmap graphImageBitMap = new PdfBitmap(graphImageStream);

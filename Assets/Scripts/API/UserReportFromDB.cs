@@ -31,8 +31,11 @@ public class UserReportFromDB : MonoBehaviour
     public Transform DropDownItems;
     public RectTransform Content;
     ContentSizeFitter ContentSizeFitter;
+    public Toggle CompareViewButton;
+    public List<JointReading> jointReadings = new List<JointReading>();
     private void Start()
     {
+        jointReadings.ForEach(x => x.VideoNameLink = ReportDescription.text.Replace("<b>Comment:</b>", ""));
         ContentSizeFitter = Content.GetComponent<ContentSizeFitter>();
         if (GeneralStaticManager.GlobalVar["UserRoles"].Contains("SuperUser"))
         {

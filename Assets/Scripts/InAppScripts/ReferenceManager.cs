@@ -126,7 +126,7 @@ public class ReferenceManager : MonoBehaviour
 	public CreatePatientQuestionnaire createPatientQuestionnaire;
 	public GameObject clinicsButton;
 	public ReportSectionManager reportSectionManager;
-
+	
 	private void Awake()
 	{
 		instance = this;
@@ -446,7 +446,11 @@ public class ReferenceManager : MonoBehaviour
 		string json = JsonConvert.SerializeObject(videoSaveBodies);
 		azureStorageManager.UploadVideo(json, $"{GeneralStaticManager.GlobalVar["UserName"]}_");
 	}
-
+	public void UpdateVideo()
+	{
+		ButtonHandler.GeneratePDFTest();
+		azureStorageManager.UploadTextCallback(true, "", azureStorageManager.selectedVideo.VideoURL);
+	}
 	public void SetSensor(int value)
 	{
 		if (videoRecordingView.Sensor != null)

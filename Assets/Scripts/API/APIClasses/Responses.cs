@@ -196,6 +196,7 @@ public class UserReportData
     public string CreatedOn { get; set; }
     public string ReportDescription { get; set; }
     public string SubjectId { get; set; }
+    public List<JointReading> JointReadings { get; set; } = new List<JointReading>();
 }
 
 public class UserReportResponse

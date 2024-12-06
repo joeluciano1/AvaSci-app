@@ -1,0 +1,4 @@
+Report generated successfully!
+CSV File: /Users/ehtisham/Documents/GitHub/AvaSci-app/Assets/ExportedData/stunner.ey_12-6-2024_JointReading.csv
+Plots generated: Mini Value, Max Value, Range
+Combined plot file: /Users/ehtisham/Documents/GitHub/AvaSci-app/Assets/ExportedData/RReports/combined_report_plots.png

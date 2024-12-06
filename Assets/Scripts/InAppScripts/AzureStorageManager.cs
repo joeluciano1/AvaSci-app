@@ -16,6 +16,7 @@ public class AzureStorageManager : MonoBehaviour
     public string container;
     public float delayBetweenCalls;
     public string reportURL;
+    public UserReportFromDB selectedVideo;
     // Start is called before the first frame update
     void Start()
     {
@@ -43,7 +44,7 @@ public class AzureStorageManager : MonoBehaviour
         AzureConnector.Instance.UploadText(json, container, fileName, true, UploadTextCallback);
 
     }
-    private void UploadTextCallback(bool success, string error, string uri)
+    public void UploadTextCallback(bool success, string error, string uri)
     {
         if (success)
         {
@@ -61,11 +62,11 @@ public class AzureStorageManager : MonoBehaviour
             ReportRecordBody reportRecordBody = new ReportRecordBody()
             {
                 CreatedBy = GeneralStaticManager.GlobalVar["UserName"],
-                UserName = selectedPatient.PatientName,
+                UserName = selectedPatient != null ? selectedPatient.PatientName : selectedVideo.UserNameOfSubject,
                 VideoURL = uri,
                 ReportURL = reportURL,
                 ReportDescription = ReportDesc,
-                SubjectId = selectedPatient.SubjectId
+                SubjectId = selectedPatient != null ? selectedPatient.SubjectId: selectedVideo.UserName.text
             };
             foreach(var item in ReferenceManager.instance.ButtonHandler.graphDatas)
             {
@@ -90,7 +91,7 @@ public class AzureStorageManager : MonoBehaviour
                 reportRecordBody.jointReadings.Add(secondjointReading);
             }
             string json = JsonConvert.SerializeObject(reportRecordBody);
-            Debug.Log(json);
+            Debug.Log("Upload json:" +json);
             APIHandler.instance.Post("UserReport/PostReport", json, onSuccess: (response) =>
             {
                 ResponseWithNoObject responseWithNoObject = JsonConvert.DeserializeObject<ResponseWithNoObject>(response);

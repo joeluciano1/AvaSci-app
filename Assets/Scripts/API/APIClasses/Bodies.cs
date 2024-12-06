@@ -76,10 +76,13 @@ public class ReportRecordBody
 }
 public class JointReading
 	{
+        public long? ReportId { get; set; }
 		public string NameOfReading { get; set; }
 		public float MinimumValue { get; set; }
 		public float MaximumValue { get; set; }
 		public float RangeValue { get; set; }
+        public DateTime CreatedOn{ get; set; }
+        public string VideoNameLink { get; set; }
 	}
 public class SubscriptionBody
 {
