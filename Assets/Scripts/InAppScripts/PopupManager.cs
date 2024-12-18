@@ -23,7 +23,7 @@ public class PopupManager : MonoBehaviour
         Debug.Log("Popup Message: " + content);
         if (okPressed != null)
         {
-            IOSNativeAlert.ShowAlertMessage(heading, content, new IOSNativeAlert.AlertButton("ok", () => { okPressed.Invoke(); }));
+            IOSNativeAlert.ShowAlertMessage(heading, content,new IOSNativeAlert.AlertButton("No", null, ButtonStyle.Cancel), new IOSNativeAlert.AlertButton("Yes", () => { okPressed.Invoke(); }));
 
         }
         else

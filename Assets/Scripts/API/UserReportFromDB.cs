@@ -33,6 +33,7 @@ public class UserReportFromDB : MonoBehaviour
     ContentSizeFitter ContentSizeFitter;
     public Toggle CompareViewButton;
     public List<JointReading> jointReadings = new List<JointReading>();
+    public List<TimeBasedReadingRequest> timeBasedReadings = new List<TimeBasedReadingRequest>();
     private void Start()
     {
         jointReadings.ForEach(x => x.VideoNameLink = ReportDescription.text.Replace("<b>Comment:</b>", ""));

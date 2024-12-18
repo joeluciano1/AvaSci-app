@@ -1,9 +1,9 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using DG.Tweening;
@@ -37,6 +37,7 @@ public class UserReportController : MonoBehaviour
     public Button ResetButton;
     public VerticalLayoutGroup ReportsLayoutGroup;
     public JointReadingFromDB jointReadingFromDBPrefab;
+    public TimeBasedReadingFromDB timeBasedReadingFromDBPrefab;
     public GameObject ReadingViewer;
     public Button CreateCSVButton;
     public List<UserReportFromDB> selectedReadings = new List<UserReportFromDB>();
@@ -80,6 +81,7 @@ public class UserReportController : MonoBehaviour
                                 user.CompareViewButton.interactable = true;
                                 user.CompareViewButton.gameObject.SetActive(true);
                                 user.jointReadings = item.JointReadings;
+                                user.timeBasedReadings = item.TimeBasedReadings;
                                 user.CompareViewButton.onValueChanged.RemoveAllListeners();
                                 user.CompareViewButton.onValueChanged.AddListener((value) => 
                                 {
@@ -112,6 +114,7 @@ public class UserReportController : MonoBehaviour
                         if(item.JointReadings!=null && item.JointReadings.Count > 0)
                         {
                             userReportFromDB.jointReadings = item.JointReadings;
+                            userReportFromDB.timeBasedReadings = item.TimeBasedReadings;
                             userReportFromDB.CompareViewButton.interactable = true;
                             userReportFromDB.CompareViewButton.gameObject.SetActive(true);
                              userReportFromDB.CompareViewButton.onValueChanged.RemoveAllListeners();
@@ -271,16 +274,86 @@ public class UserReportController : MonoBehaviour
         CreateCSVButton.onClick.RemoveAllListeners();
         CreateCSVButton.onClick.AddListener(() => CreateCSV($"{selectedReadings[0].UserName.text}_{DateTime.Now.ToShortDateString().Replace("/","-")}_JointReading.csv", jointReading));
     }
-     void CreateCSV(string fileName, List<JointReading> readings)
+    List<GameObject> addedTimeBasedReadings = new();
+    public void ShowTimeBasedReadingsFromDB(List<TimeBasedReadingRequest> timeBasedReadings)
+    {
+        ReadingViewer.SetActive(true);
+        addedTimeBasedReadings.ForEach(x => Destroy(x.gameObject));
+        addedTimeBasedReadings.Clear();
+        var jointsOnDifferentDates = timeBasedReadings.GroupBy(o =>
+            {
+                // Group by day and rounded timestamp ignoring seconds
+                DateTime rounded = new DateTime(o.CreatedOn.Year, o.CreatedOn.Month, o.CreatedOn.Day, o.CreatedOn.Hour, o.CreatedOn.Minute, 0);
+                return rounded.ToString("yyyy-MM-dd HH:mm"); // Grouping key
+            })
+            .ToList();
+        
+       foreach (IGrouping<string,TimeBasedReadingRequest> group in jointsOnDifferentDates)
+        {
+            TimeBasedReadingFromDB groupHeader = Instantiate(timeBasedReadingFromDBPrefab, timeBasedReadingFromDBPrefab.transform.parent);
+                groupHeader.gameObject.SetActive(true);
+                addedTimeBasedReadings.Add(groupHeader.gameObject);
+            int groupIndex = 0;
+            // Create a group header
+            foreach (var item in group)
+            {
+                
+                int itemIndex = 2;
+                PropertyInfo[] fields = item.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance);
+
+                foreach (var field in fields)
+                {
+                    string variableName = field.Name; // Get the variable name
+                    object fielValue = field.GetValue(item);
+                    if(variableName == "ReportsRecordId" || variableName == "CreatedOn")
+                    {
+                        continue;
+                    }
+                    if (fielValue != null && groupIndex == 0)
+                    {
+                        GameObject go = Instantiate(groupHeader.ReadingValuePrefab, groupHeader.ReadingValuePrefab.transform.parent);
+                        go.SetActive(true);
+                        go.transform.GetChild(0).GetComponent<TMP_Text>().text = variableName;
+                        groupHeader.Time.text = item.CreatedOn.ToString();
+                        Debug.Log($"Instantiated GameObject with name: {variableName}");
+                    }
+                    else if (fielValue != null)
+                    {
+                        GameObject go = Instantiate(groupHeader.timeBasedReadingInfoSection.gameObject, groupHeader.timeBasedReadingInfoSection.transform.parent);
+                        go.transform.GetChild(itemIndex).transform.GetChild(0).GetComponent<TMP_Text>().text = fielValue.ToString();
+                        itemIndex++;
+                    }
+                }
+                groupIndex++;
+            }
+            
+            // groupHeader.readingDate.text = $"{group.ElementAt(0).VideoNameLink} \nRecorded at: {group.Key}";
+            // groupHeader.readingValues.text = "<u>Name Of Reading</u>\t\t| <u>Mini Value</u>\t| <u>Max Value</u>\t| <u>Range</u>";
+            // // Create items for each object in the group
+            // foreach (var obj in group)
+            // {
+            //     JointReadingInfoSection jointReadingInfoSection = Instantiate(groupHeader.jointReadingInfoSectionPrefab, groupHeader.jointReadingInfoSectionPrefab.transform.parent);
+            //     jointReadingInfoSection.NameOfReading.text = obj.NameOfReading;
+            //     jointReadingInfoSection.MinValue.text = obj.MinimumValue.ToString();
+            //     jointReadingInfoSection.MaxValue.text = obj.MaximumValue.ToString();
+            //     jointReadingInfoSection.RangeValue.text = obj.RangeValue.ToString();
+            // }
+            // groupHeader.gameObject.SetActive(true);
+            // LayoutRebuilder.ForceRebuildLayoutImmediate(groupHeader.GetComponent<RectTransform>());
+        }
+        CreateCSVButton.onClick.RemoveAllListeners();
+        // CreateCSVButton.onClick.AddListener(() => CreateCSV($"{selectedReadings[0].UserName.text}_{DateTime.Now.ToShortDateString().Replace("/","-")}_JointReading.csv", timeBasedReadings));
+    }
+    void CreateCSV(string fileName, List<JointReading> readings)
     {
         // Path to save the file
-        string filePath = Path.Combine(Application.dataPath,"ExportedData", fileName);
+        string filePath = Path.Combine(Application.persistentDataPath, fileName);
 
         // Use StringBuilder for efficient CSV generation
         StringBuilder csvContent = new StringBuilder();
 
         // Add header row
-        csvContent.AppendLine("Name of Video,Name Of Reading,Mini Value,Max Value,Range,Readings Taken Date");
+        csvContent.AppendLine("Name_Of_Video,Name_Of_Reading,Min_Value,Max_Value,Range,Readings_Taken_Date");
 
         // Add data rows
         foreach (var reading in readings)
@@ -294,61 +367,114 @@ public class UserReportController : MonoBehaviour
         // Log the file path
         
         CSVManager.Export(filePath);
-        RunRScript(filePath);
+        RunRScript(filePath,fileName);
     }
-     public void RunRScript(string csvPath)
+     public void RunRScript(string csvPath,string fileName)
     {
          // Paths
-        string rScriptExecutable = "/usr/local/bin/Rscript"; // Full path to Rscript
-        string rScriptPath = Path.Combine(Application.dataPath, "Scripts/R/generate_report.R");
-        string outputPath = Path.Combine(Application.dataPath, "ExportedData/RReports");
-
-        // Ensure output directory exists
-        if (!Directory.Exists(outputPath))
+        string outputPath = Path.Combine(Application.persistentDataPath,"rfile.Rmd");
+        if(File.Exists(outputPath))
         {
-            Directory.CreateDirectory(outputPath);
+            File.Delete(outputPath);
         }
-
-        // Log paths
-        UnityEngine.Debug.Log($"R Script Path: {rScriptPath}");
-        UnityEngine.Debug.Log($"CSV Path: {csvPath}");
-        UnityEngine.Debug.Log($"Output Path: {outputPath}");
-
-        // Check if files exist
-        if (!File.Exists(rScriptExecutable))
+        GenerateRMarkdown(outputPath, csvPath,fileName);
+    }
+    public void GenerateRMarkdown(string OutputRmdPath,string CsvFilePath,string fileName)
+    {
+       try
         {
-            UnityEngine.Debug.LogError("Rscript not found at " + rScriptExecutable);
-            return;
-        }
+            // Ensure output directory exists
+            string outputDirectory = Path.GetDirectoryName(OutputRmdPath);
+            if (!Directory.Exists(outputDirectory))
+            {
+                Directory.CreateDirectory(outputDirectory);
+            }
 
-        if (!File.Exists(rScriptPath))
+            // Read CSV data
+            string[] csvLines = File.ReadAllLines(CsvFilePath);
+            if (csvLines.Length < 2)
+            {
+                Debug.LogError("CSV file is empty or missing data.");
+                return;
+            }
+
+            // Extract headers and identify columns
+            string[] headers = csvLines[0].Split(',');
+            int videoIndex = System.Array.IndexOf(headers, "Name_Of_Video");
+            int readingIndex = System.Array.IndexOf(headers, "Name_Of_Reading");
+            int minValueIndex = System.Array.IndexOf(headers, "Min_Value");
+            int maxValueIndex = System.Array.IndexOf(headers, "Max_Value");
+            int rangeValueIndex = System.Array.IndexOf(headers, "Range");
+
+            if (videoIndex == -1 || readingIndex == -1 || minValueIndex == -1 || maxValueIndex == -1 || rangeValueIndex == -1)
+            {
+                Debug.LogError("One or more required columns not found in the CSV headers.");
+                return;
+            }
+
+            // Define the R Markdown content
+            var rmdContent = new System.Text.StringBuilder();
+            rmdContent.AppendLine("---");
+            rmdContent.AppendLine("title: \"Generated Report\"");
+            rmdContent.AppendLine("output: html_document");
+            rmdContent.AppendLine("---");
+            rmdContent.AppendLine();
+            rmdContent.AppendLine("## Video-Based Report");
+            rmdContent.AppendLine("The following sections group data by `Name_Of_Video`.");
+            rmdContent.AppendLine();
+            rmdContent.AppendLine("```{r}");
+            rmdContent.AppendLine($"data <- read.csv('{fileName}')");
+            rmdContent.AppendLine("library(ggplot2)");
+            rmdContent.AppendLine("```");
+
+            // Process rows grouped by Name_Of_Video
+            var videoGroups = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.List<string>>();
+
+            foreach (string line in csvLines[1..])
+            {
+                string[] values = line.Split(',');
+                if (values.Length < headers.Length) continue;
+
+                string videoName = values[videoIndex].Trim();
+                if (!videoGroups.ContainsKey(videoName))
+                {
+                    videoGroups[videoName] = new System.Collections.Generic.List<string>();
+                }
+                videoGroups[videoName].Add(line);
+            }
+
+            foreach (var videoGroup in videoGroups)
+            {
+                string videoName = videoGroup.Key;
+                rmdContent.AppendLine($"## {videoName}");
+                rmdContent.AppendLine();
+
+                // Generate plots for Mini Value, Max Value, and Range
+                foreach (var column in new[] { ("Min_Value", "Min Value"), ("Max_Value", "Max Value"), ("Range", "Range Value") })
+                {
+                    rmdContent.AppendLine($"### {column.Item2}");
+                    rmdContent.AppendLine();
+                    rmdContent.AppendLine("```{r echo=FALSE, fig.show='hold'}");
+                    rmdContent.AppendLine($"ggplot(subset(data, Name_Of_Video == '{videoName}'), aes(x = Name_Of_Reading, y = {column.Item1})) +");
+                    rmdContent.AppendLine("  geom_bar(stat = 'identity', fill = 'blue') +");
+                    rmdContent.AppendLine($"  ggtitle('{column.Item2} of ({videoName})') +");
+                    rmdContent.AppendLine("  theme_minimal() +");
+                    rmdContent.AppendLine("  theme(axis.text.x = element_text(angle = 45, hjust = 1))");
+                    rmdContent.AppendLine("```");
+                    rmdContent.AppendLine();
+                }
+            }
+
+            // Write the R Markdown file
+            File.WriteAllText(OutputRmdPath, rmdContent.ToString());
+            Debug.Log($"R Markdown file generated successfully at: {OutputRmdPath}");
+
+        }
+        catch (System.Exception ex)
         {
-            UnityEngine.Debug.LogError("R script not found at " + rScriptPath);
-            return;
+            Debug.LogError($"Error generating R Markdown file: {ex.Message}");
         }
-
-        // Run R script
-        Process process = new Process();
-        process.StartInfo.FileName = rScriptExecutable; // Full path to Rscript
-        process.StartInfo.Arguments = $"\"{rScriptPath}\" \"{csvPath}\" \"{outputPath}\"";
-        process.StartInfo.UseShellExecute = false;
-        process.StartInfo.RedirectStandardOutput = true;
-        process.StartInfo.RedirectStandardError = true;
-        process.StartInfo.CreateNoWindow = true;
-
-        process.Start();
-
-        // Capture output and errors
-        string output = process.StandardOutput.ReadToEnd();
-        string errors = process.StandardError.ReadToEnd();
-        process.WaitForExit();
-
-        // Log output and errors
-        UnityEngine.Debug.Log("R script output: " + output);
-        if (!string.IsNullOrEmpty(errors))
-        {
-            UnityEngine.Debug.LogError("R script errors: " + errors);
-        }
+      
     }
     public void CompareSelectedReadings()
     {
@@ -358,7 +484,9 @@ public class UserReportController : MonoBehaviour
             return;
         }
         List<JointReading> listofJointReadings = selectedReadings.SelectMany(x=>x.jointReadings).ToList();
+        List<TimeBasedReadingRequest> timeBasedReadings = selectedReadings.SelectMany(x => x.timeBasedReadings).ToList();
         ShowJointReadingsFromDB(listofJointReadings);
+        ShowTimeBasedReadingsFromDB(timeBasedReadings);
     }
     public void CreateNew()
     {

@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using DG.Tweening;
 using LightBuzz.AvaSci;
+using LightBuzz.AvaSci.Csv;
 using LightBuzz.AvaSci.Measurements;
 using LightBuzz.AvaSci.UI;
 using LightBuzz.BodyTracking;
@@ -150,23 +151,23 @@ public class ReferenceManager : MonoBehaviour
 	}
 	public async void SwitchToLidar()
 	{
-#if !UNITY_EDITOR
+
 		if (
-			ReferenceManager.instance.sensorTypeDropDown.value != 1
+			sensorTypeDropDown.value != 1
 			&& !isDone
 			&& !isShowingRecording
 		)
 		{
-			ReferenceManager.instance.LoadingManager.Show("Setting Up Lidar Camera Please Wait...");
+			LoadingManager.Show("Setting Up Lidar Camera Please Wait...");
 			await System.Threading.Tasks.Task.Delay(2000);
 			if (LidarCount != 0)
 			{
-				ReferenceManager.instance.sensorTypeDropDown.value = 1;
+				PopupManager.Show("Lidar Detected","Would you like to switch to lidar camera?",false,okPressed:()=>{sensorTypeDropDown.value = 1;},true); 
 			}
 			isDone = true;
-			ReferenceManager.instance.LoadingManager.Hide();
+			LoadingManager.Hide();
 		}
-#endif
+
 	}
 	public void SkipToVideo(float sliderValue){
 		videoPlayerView.OnSliderHandle();
@@ -532,4 +533,10 @@ public class ReferenceManager : MonoBehaviour
 		videoPlayerView.VideoPlayer.Speed = float.Parse(speed_DropDown.captionText.text.Replace("x",""));
 	}
 	
+	[ContextMenu("Test CSV")]
+	public void TestString()
+	{
+		string waow = CSVManager.Create(System.IO.Path.Combine(Application.persistentDataPath, "Video"), LightBuzzMain._movement.MeasurementTypes);
+		Debug.Log(waow);
+	}
 }

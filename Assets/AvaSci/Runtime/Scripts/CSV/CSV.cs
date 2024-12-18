@@ -185,7 +185,7 @@ namespace LightBuzz.AvaSci.Csv
             return sb.ToString();
         }
 
-        private static List<Measurement> CreateMeasurements(List<MeasurementType> types)
+        public static List<Measurement> CreateMeasurements(List<MeasurementType> types)
         {
             List<Measurement> list = new List<Measurement>();
 

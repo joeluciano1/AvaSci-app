@@ -73,6 +73,7 @@ public class ReportRecordBody
     public string ReportDescription { get; set; }
     public string SubjectId{ get; set; }
     public List<JointReading> jointReadings { get; set; }=new List<JointReading>();
+    public List<TimeBasedReadingRequest> TimeBasedReadings { get; set; } = new List<TimeBasedReadingRequest>();
 }
 public class JointReading
 	{
@@ -84,6 +85,40 @@ public class JointReading
         public DateTime CreatedOn{ get; set; }
         public string VideoNameLink { get; set; }
 	}
+    public class TimeBasedReadingRequest
+	{
+        public long? ReportsRecordId { get; set; }
+        public string UserName { get; set; }
+        public string TimeOfReading { get; set; }
+        public float? KneeLeftAbduction { get; set; }
+        public float? KneeRightAbduction { get; set; }
+        public float? PelvisAngle { get; set; }
+        public float? AnkleHipLeftAbductionDifference { get; set; }
+        public float? AnkleHipRightAbductionDifference { get; set; }
+        public float? HipKneeRightDistance { get; set; }
+        public float? HipKneeLeftDistance { get; set; }
+        public float? NeckLeteralFlexion { get; set; }
+        public float? NeckRotation { get; set; }
+        public float? ElbowLeftFlexion { get; set; }
+        public float? ElbowRightFlexion { get; set; }
+        public float? ShoulderLeftAbduction { get; set; }
+        public float? ShoulderLeftRotation { get; set; }
+        public float? ShoulderRightAbduction { get; set; }
+        public float? ShoulderRightRotation { get; set; }
+        public float? ShoulderLeftFlexion { get; set; }
+        public float? ShoulderRightFlexion { get; set; }
+        public float? HipLeftAbduction { get; set; }
+        public float? HipLeftFlexion { get; set; }
+        public float? HipRightAbduction { get; set; }
+        public float? HipRightFlexion { get; set; }
+        public float? KneeLeftFlexion { get; set; }
+        public float? KneeRightFlexion { get; set; }
+        public float? AnkleLeftAbduction { get; set; }
+        public float? AnkleRightAbduction { get; set; }
+        public float? VarusValgusRight { get; set; }
+        public float? VarusValgusLeft { get; set; }
+        public DateTime CreatedOn { get; set; }
+    }
 public class SubscriptionBody
 {
     public string UserEmail { get; set; }

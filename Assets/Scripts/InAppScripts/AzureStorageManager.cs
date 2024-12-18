@@ -7,6 +7,10 @@ using TMPro;
 using UnityEngine;
 using DG.Tweening;
 using System.Linq;
+using System.IO;
+using LightBuzz.BodyTracking.Video;
+using LightBuzz.AvaSci.Measurements;
+using LightBuzz.AvaSci.Csv;
 public class AzureStorageManager : MonoBehaviour
 {
 
@@ -90,6 +94,58 @@ public class AzureStorageManager : MonoBehaviour
                 };
                 reportRecordBody.jointReadings.Add(secondjointReading);
             }
+            //////////////// TimeBasedReadingThing ////////////////////////////
+            ///// Helper function to fetch values safely
+                float? GetMeasurementValue(string key, int index)
+                {
+                    var kvp = GeneralStaticManager.GraphsReadings
+                        .FirstOrDefault(x => x.Key == key);
+                    return kvp.Value != null && kvp.Value.Count > index ? kvp.Value[index] : (float?)null;
+                }
+
+                int indexCount = 0;
+                float timeCount = 0;
+            foreach (var item in GeneralStaticManager.GraphsReadings.ElementAt(0).Value)
+            {
+
+                TimeBasedReadingRequest timeBasedReadingRequest = new TimeBasedReadingRequest();
+
+                // Assigning values
+                timeBasedReadingRequest.KneeLeftAbduction = GetMeasurementValue(MeasurementType.KneeLeftAbduction.ToString(), indexCount);
+                timeBasedReadingRequest.KneeRightAbduction = GetMeasurementValue(MeasurementType.KneeRightAbduction.ToString(), indexCount);
+                timeBasedReadingRequest.PelvisAngle = GetMeasurementValue(MeasurementType.PelvisAngle.ToString(), indexCount);
+                timeBasedReadingRequest.AnkleHipLeftAbductionDifference = GetMeasurementValue(MeasurementType.HipAnkleHipKneeLeftAbductionDifference.ToString(), indexCount);
+                timeBasedReadingRequest.AnkleHipRightAbductionDifference = GetMeasurementValue(MeasurementType.HipAnkleHipKneeRightAbductionDifference.ToString(), indexCount);
+                timeBasedReadingRequest.HipKneeRightDistance = GetMeasurementValue(MeasurementType.HipKneeRightDistance.ToString(), indexCount);
+                timeBasedReadingRequest.HipKneeLeftDistance = GetMeasurementValue(MeasurementType.HipKneeLeftDistance.ToString(), indexCount);
+                timeBasedReadingRequest.NeckLeteralFlexion = GetMeasurementValue(MeasurementType.NeckLateralFlexion.ToString(), indexCount);
+                timeBasedReadingRequest.NeckRotation = GetMeasurementValue(MeasurementType.NeckRotation.ToString(), indexCount);
+                timeBasedReadingRequest.ElbowLeftFlexion = GetMeasurementValue(MeasurementType.ElbowLeftFlexion.ToString(), indexCount);
+                timeBasedReadingRequest.ElbowRightFlexion = GetMeasurementValue(MeasurementType.ElbowRightFlexion.ToString(), indexCount);
+                timeBasedReadingRequest.ShoulderLeftAbduction = GetMeasurementValue(MeasurementType.ShoulderLeftAbduction.ToString(), indexCount);
+                timeBasedReadingRequest.ShoulderLeftRotation = GetMeasurementValue(MeasurementType.ShoulderLeftRotation.ToString(), indexCount);
+                timeBasedReadingRequest.ShoulderRightAbduction = GetMeasurementValue(MeasurementType.ShoulderRightAbduction.ToString(), indexCount);
+                timeBasedReadingRequest.ShoulderRightRotation = GetMeasurementValue(MeasurementType.ShoulderRightRotation.ToString(), indexCount);
+                timeBasedReadingRequest.ShoulderLeftFlexion = GetMeasurementValue(MeasurementType.ShoulderLeftFlexion.ToString(), indexCount);
+                timeBasedReadingRequest.ShoulderRightFlexion = GetMeasurementValue(MeasurementType.ShoulderRightFlexion.ToString(), indexCount);
+                timeBasedReadingRequest.HipLeftAbduction = GetMeasurementValue(MeasurementType.HipLeftAbduction.ToString(), indexCount);
+                timeBasedReadingRequest.HipLeftFlexion = GetMeasurementValue(MeasurementType.HipLeftFlexion.ToString(), indexCount);
+                timeBasedReadingRequest.HipRightAbduction = GetMeasurementValue(MeasurementType.HipRightAbduction.ToString(), indexCount);
+                timeBasedReadingRequest.HipRightFlexion = GetMeasurementValue(MeasurementType.HipRightFlexion.ToString(), indexCount);
+                timeBasedReadingRequest.KneeLeftFlexion = GetMeasurementValue(MeasurementType.KneeLeftFlexion.ToString(), indexCount);
+                timeBasedReadingRequest.KneeRightFlexion = GetMeasurementValue(MeasurementType.KneeRightFlexion.ToString(), indexCount);
+                timeBasedReadingRequest.AnkleLeftAbduction = GetMeasurementValue(MeasurementType.AnkleLeftAbduction.ToString(), indexCount);
+                timeBasedReadingRequest.AnkleRightAbduction = GetMeasurementValue(MeasurementType.AnkleRightAbduction.ToString(), indexCount);
+                timeBasedReadingRequest.VarusValgusLeft = GetMeasurementValue(MeasurementType.VarusValgusLeftAngleDistance.ToString(), indexCount);
+                timeBasedReadingRequest.VarusValgusRight = GetMeasurementValue(MeasurementType.VarusValgusRightAngleDistance.ToString(), indexCount);
+                timeBasedReadingRequest.TimeOfReading = timeCount.ToString(@"mm\:ss\:fff");
+                timeBasedReadingRequest.UserName = selectedPatient != null ? selectedPatient.PatientName : selectedVideo.UserNameOfSubject;
+                indexCount += 1;
+                timeCount += 0.1f;
+
+                reportRecordBody.TimeBasedReadings.Add(timeBasedReadingRequest);
+            }
+        //////////////// TimeBasedReadingThing ////////////////////////////
             string json = JsonConvert.SerializeObject(reportRecordBody);
             Debug.Log("Upload json:" +json);
             APIHandler.instance.Post("UserReport/PostReport", json, onSuccess: (response) =>
