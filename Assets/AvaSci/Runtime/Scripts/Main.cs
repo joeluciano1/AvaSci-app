@@ -159,7 +159,13 @@ namespace LightBuzz.AvaSci
         {
             CSVManager.CreateSaveExport(_videoRecorderView.VideoPath, _movement.MeasurementTypes);
         }
-
+        [ContextMenu("GenerateString")]
+        public string GenerateCSVString()
+        {
+            string output = CSVManager.Create(_videoRecorderView.VideoPath, _movement.MeasurementTypes);
+            Debug.Log(GeneralStaticManager.ConvertCsvStringToJson(output));
+            return output;
+        }
         #region Settings
 
         /// <summary>

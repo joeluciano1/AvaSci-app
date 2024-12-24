@@ -1,10 +1,12 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using LightBuzz.AvaSci.Measurements;
+using Newtonsoft.Json;
 using UnityEngine;
 
 public static class GeneralStaticManager
@@ -51,7 +53,51 @@ public static class GeneralStaticManager
         return Enum.GetName(typeof(MeasurementType), value);
     }
     public static float ClosestTo(this IEnumerable<float> collection, float target)
-{
+    {
     return collection.OrderBy(x => Math.Abs(target - x)).First();
-}
+    }
+public static string ConvertCsvStringToJson(string csvString)
+    {
+        csvString = csvString.Replace(";", ",");
+        csvString = csvString.Replace("Timestamp", "TimeOfReading");
+        csvString = csvString.Replace("VarusValgusLeftAngleDistance", "VarusValgusLeft");
+        csvString = csvString.Replace("VarusValgusRightAngleDistance", "VarusValgusRight");
+        csvString = csvString.Replace("HipAnkleHipKneeLeftAbductionDifference", "AnkleHipLeftAbductionDifference");
+        csvString = csvString.Replace("HipAnkleHipKneeRightAbductionDifference", "AnkleHipRightAbductionDifference");
+        var rows = new List<Dictionary<string, string>>();
+
+        // Use StringReader to process the CSV string line by line
+        using (var reader = new StringReader(csvString))
+        {
+            // Read the header line
+            string headerLine = reader.ReadLine();
+            if (string.IsNullOrEmpty(headerLine))
+                throw new InvalidOperationException("CSV string is empty or invalid.");
+
+            string[] headers = headerLine.Split(',');
+
+            // Process each data row
+            string line;
+            while ((line = reader.ReadLine()) != null)
+            {
+                if (string.IsNullOrWhiteSpace(line)) continue;
+
+                string[] values = line.Split(',');
+
+                var row = new Dictionary<string, string>();
+
+                for (int i = 0; i < headers.Length; i++)
+                {
+                    string key = headers[i].Trim();
+                    string value = i < values.Length ? values[i].Trim() : "";
+                    row[key] = value;
+                }
+
+                rows.Add(row);
+            }
+        }
+
+        // Convert the rows list to JSON
+        return JsonConvert.SerializeObject(rows, Formatting.Indented);
+    }
 }

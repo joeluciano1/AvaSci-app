@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using JetBrains.Annotations;
 using LightBuzz.BodyTracking;
 
 public class Bodies { }
@@ -85,6 +86,7 @@ public class JointReading
         public DateTime CreatedOn{ get; set; }
         public string VideoNameLink { get; set; }
 	}
+    [System.Serializable]
     public class TimeBasedReadingRequest
 	{
         public long? ReportsRecordId { get; set; }
@@ -97,7 +99,7 @@ public class JointReading
         public float? AnkleHipRightAbductionDifference { get; set; }
         public float? HipKneeRightDistance { get; set; }
         public float? HipKneeLeftDistance { get; set; }
-        public float? NeckLeteralFlexion { get; set; }
+        public float? NeckLateralFlexion { get; set; }
         public float? NeckRotation { get; set; }
         public float? ElbowLeftFlexion { get; set; }
         public float? ElbowRightFlexion { get; set; }
@@ -117,6 +119,7 @@ public class JointReading
         public float? AnkleRightAbduction { get; set; }
         public float? VarusValgusRight { get; set; }
         public float? VarusValgusLeft { get; set; }
+        [CanBeNull] public string VideoName { get; set; }
         public DateTime CreatedOn { get; set; }
     }
 public class SubscriptionBody

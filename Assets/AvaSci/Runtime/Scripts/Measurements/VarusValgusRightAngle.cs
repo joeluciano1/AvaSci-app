@@ -18,25 +18,20 @@ public class VarusValgusRightAngle : Measurement
   }
     public override void Update(Body body)
     {
-        base.Update(body);
-        float myval = 0;
-        if (ReferenceManager.instance.RightAngleDifference == null || ReferenceManager.instance.RightDistance == null)
-        {
-            myval = 0;
-            UnityEngine.Debug.Log("Right is null");
-        }
-        else
-        {
-            myval = (float)(ReferenceManager.instance.RightDistance?.Angle * Math.Sin((double)ReferenceManager.instance.RightAngleDifference?.Angle*3.14159/180));
-
-        }
-        _value = myval;
+        // base.Update(body);
+        
+        HipKneeRightDistance hipKneeRightDistance = new HipKneeRightDistance();
+            hipKneeRightDistance.Update(body);
+            HipKneeRightDifference hipKneeRightDifference = new HipKneeRightDifference();
+            hipKneeRightDifference.Update(body);
+        _value = (float)(hipKneeRightDistance.Value * Math.Sin((double)hipKneeRightDifference.Value*3.14159/180));
+        
     Joint hipLeft = body.Joints[KeyJoint1];
     Joint kneeLeft = body.Joints[KeyJoint2];
     _angleStart = hipLeft.Position2D;
     _angleCenter = kneeLeft.Position2D;
     _angleEnd = kneeLeft.Position2D;
     
-    ResearchMeasurementManager.instance.rightDisValue = myval;
+    ResearchMeasurementManager.instance.rightDisValue = _value;
     }
 }
