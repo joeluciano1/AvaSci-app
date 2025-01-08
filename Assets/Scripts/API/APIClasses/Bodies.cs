@@ -122,6 +122,10 @@ public class JointReading
         [CanBeNull] public string VideoName { get; set; }
         public DateTime CreatedOn { get; set; }
     }
+    public class RReportGenerateRequest
+    {
+        public string Rmd { get; set; }
+    }
 public class SubscriptionBody
 {
     public string UserEmail { get; set; }

@@ -77,16 +77,21 @@ public class UserReportController : MonoBehaviour
                                 );
                                 user.ButtonText.text = "Download";
                             }
-                            if(item.TimeBasedReadings!=null && item.TimeBasedReadings.Count > 0)
+                            if(item.TimeBasedReadings!=null)
                             {
-                                user.CompareViewButton.transform.GetChild(0).GetComponent<TMP_Text>().text = "Select To Compare";
-                                user.CompareViewButton.interactable = true;
-                                user.CompareViewButton.gameObject.SetActive(true);
+                                user.CompareViewToggle.transform.GetChild(0).GetComponent<TMP_Text>().text = "Select To Compare";
+                                user.CompareViewToggle.interactable = true;
+                                user.CompareViewToggle.gameObject.SetActive(true);
                                 user.jointReadings = item.JointReadings;
                                 user.timeBasedReadings = item.TimeBasedReadings;
-                                user.timeBasedReadings.ForEach(x=>x.VideoName = item.ReportDescription);
-                                user.CompareViewButton.onValueChanged.RemoveAllListeners();
-                                user.CompareViewButton.onValueChanged.AddListener((value) => 
+                                user.timeBasedReadings.ForEach(x=>
+                                {
+                                    x.VideoName = item.ReportDescription;
+                                    
+                                });
+                                
+                                user.CompareViewToggle.onValueChanged.RemoveAllListeners();
+                                user.CompareViewToggle.onValueChanged.AddListener((value) => 
                                 {
                                     if(value)
                                     {
@@ -98,10 +103,10 @@ public class UserReportController : MonoBehaviour
                                 });
                                 // user.CompareViewButton.onClick.AddListener(() => { ShowJointReadingsFromDB(item.JointReadings); ReferenceManager.instance.CompareReadingSelected = user; });
                             }
-                            else
+                            else if(item.TimeBasedReadings ==null)
                             {
-                                user.CompareViewButton.transform.GetChild(0).GetComponent<TMP_Text>().text = "No Reading Exists";
-                                user.CompareViewButton.interactable = false;
+                                user.CompareViewToggle.transform.GetChild(0).GetComponent<TMP_Text>().text = "No Reading Exists";
+                                user.CompareViewToggle.interactable = false;
                             }
                             continue;
                         }
@@ -114,15 +119,24 @@ public class UserReportController : MonoBehaviour
                         userReportFromDB.UserNameOfSubject = item.UserName;
                         userReportFromDB.VideoURL = item.VideoURL;
                         userReportFromDB.gameObject.SetActive(true);
-                        if(item.TimeBasedReadings!=null && item.TimeBasedReadings.Count > 0)
+                        
+                        if(item.TimeBasedReadings!=null)
                         {
-                            userReportFromDB.jointReadings = item.JointReadings;
-                            userReportFromDB.timeBasedReadings = item.TimeBasedReadings;
-                            userReportFromDB.timeBasedReadings.ForEach(x=>x.VideoName = item.ReportDescription);
-                            userReportFromDB.CompareViewButton.interactable = true;
-                            userReportFromDB.CompareViewButton.gameObject.SetActive(true);
-                             userReportFromDB.CompareViewButton.onValueChanged.RemoveAllListeners();
-                                userReportFromDB.CompareViewButton.onValueChanged.AddListener((value) => 
+                            userReportFromDB.timeBasedReadings = item.TimeBasedReadings.ToList();
+                            userReportFromDB.CompareViewToggle.transform.GetChild(0).GetComponent<TMP_Text>().text = "Select To Compare";
+                            userReportFromDB.timeBasedReadings.ForEach(x=>
+                            {
+                                x.VideoName = item.ReportDescription;
+                                
+                            });
+                            userReportFromDB.CompareViewToggle.interactable = true;
+                            if (item.Id == 235)
+                            {
+                                Debug.Log("Got true");
+                            }
+                            userReportFromDB.CompareViewToggle.gameObject.SetActive(true);
+                            userReportFromDB.CompareViewToggle.onValueChanged.RemoveAllListeners();
+                                userReportFromDB.CompareViewToggle.onValueChanged.AddListener((value) => 
                                 {
                                     if(value)
                                     {
@@ -135,10 +149,10 @@ public class UserReportController : MonoBehaviour
                             // userReportFromDB.CompareViewButton.onClick.RemoveAllListeners();
                             // userReportFromDB.CompareViewButton.onClick.AddListener(() => { ShowJointReadingsFromDB(item.JointReadings); ReferenceManager.instance.CompareReadingSelected = userReportFromDB; });
                         }
-                        else
+                        else if(item.TimeBasedReadings ==null)
                         {
-                            userReportFromDB.CompareViewButton.transform.GetChild(0).GetComponent<TMP_Text>().text = "No Reading Exists";
-                            userReportFromDB.CompareViewButton.interactable = false;
+                            userReportFromDB.CompareViewToggle.transform.GetChild(0).GetComponent<TMP_Text>().text = "No Reading Exists";
+                            userReportFromDB.CompareViewToggle.interactable = false;
                         }
                         if(string.IsNullOrEmpty(item.SubjectId))
                         userReportFromDB.UserName.text = item.UserName;
@@ -196,7 +210,8 @@ public class UserReportController : MonoBehaviour
                             RecentlyPlayedButton = userReportFromDB;
                             userReportFromDB.WatchBtn.onClick.AddListener(
                                 () => { CreateFileAndView(null, "", userReportFromDB.UserNameOfSubject); 
-                                ReferenceManager.instance.SelectedVideoID = userReportFromDB.videoId;ReferenceManager.instance.azureStorageManager.selectedVideo = userReportFromDB; }
+                                ReferenceManager.instance.SelectedVideoID = userReportFromDB.videoId;
+                                ReferenceManager.instance.azureStorageManager.selectedVideo = userReportFromDB; }
                             );
                             if (!string.IsNullOrEmpty(item.ReportURL))
                             {
@@ -214,6 +229,7 @@ public class UserReportController : MonoBehaviour
 
                         userReportFromDBs.Add(userReportFromDB);
                     }
+                    userReportFromDBs.ForEach(x=>x.CheckIfItContainsTimeBasedReadings());
                     if (itemToSnapTo != null)
                         SnapToChild(itemToSnapTo);
                 }
@@ -288,13 +304,8 @@ public class UserReportController : MonoBehaviour
         addedTimeBasedReadings.Clear();
         toggleGroups.ForEach(x => Destroy(x.gameObject));
         toggleGroups.Clear();
-        var jointsOnDifferentDates = timeBasedReadings.GroupBy(o =>
-            {
-                // Group by day and rounded timestamp ignoring seconds
-                DateTime rounded = new DateTime(o.CreatedOn.Year, o.CreatedOn.Month, o.CreatedOn.Day, o.CreatedOn.Hour, o.CreatedOn.Minute, 0);
-                return rounded.ToString("yyyy-MM-dd HH:mm"); // Grouping key
-            })
-            .ToList();
+        toggles.Clear();
+        var jointsOnDifferentDates = timeBasedReadings.GroupBy(x => x.ReportsRecordId.ToString());
         createdCsvCount = 0;
         timeBasedReadingFromDBPrefab.CSVButton.onClick.RemoveAllListeners();
        foreach (IGrouping<string,TimeBasedReadingRequest> group in jointsOnDifferentDates)
@@ -318,7 +329,7 @@ public class UserReportController : MonoBehaviour
                     {
                         string variableName = field.Name; // Get the variable name
                         object fielValue = field.GetValue(item);
-                        if (variableName == "ReportsRecordId" || variableName == "CreatedOn")
+                        if (variableName == "ReportsRecordId" || variableName == "CreatedOn" ||variableName == "VideoName")
                         {
                             continue;
                         }
@@ -331,9 +342,9 @@ public class UserReportController : MonoBehaviour
                             go.GetComponent<Toggle>().onValueChanged.AddListener((value)=>
                             {
                                 groupHeader.SelectValue(variableName, go.GetComponent<Toggle>());
-                                InvokeOtherToggles(variableName, go.GetComponent<Toggle>());
+                                InvokeOtherToggles(variableName, go.GetComponent<Toggle>().isOn);
                             });
-                            if (variableName == "UserName" || variableName == "TimeOfReading" || variableName == "CreatedOn")
+                            if (variableName == "UserName" || variableName == "TimeOfReading" || variableName == "CreatedOn" || variableName == "VideoName")
                             {
                                 go.SetActive(false);
                                 if (variableName == "TimeOfReading")
@@ -452,158 +463,181 @@ public class UserReportController : MonoBehaviour
             GenerateRMarkdownForTimeBased(outputPath, csvPath);
         }
     }
-    public void GenerateRMarkdownForTimeBased(string OutputRmdPath,List<string> CsvFilePaths)
+public void GenerateRMarkdownForTimeBased(string outputRmdPath, List<string> csvFilePaths)
+{
+    try
     {
-        try
+        // Ensure the output directory exists
+        string outputDirectory = Path.GetDirectoryName(outputRmdPath);
+        if (!Directory.Exists(outputDirectory))
+            Directory.CreateDirectory(outputDirectory);
+
+        // Build R Markdown content
+        var rmdContent = new System.Text.StringBuilder();
+        rmdContent.AppendLine("---");
+        rmdContent.AppendLine("title: \"Comparison Report\"");
+        rmdContent.AppendLine("output: html_document");
+        rmdContent.AppendLine("---\n");
+
+        rmdContent.AppendLine("## Comparison of Multiple Datasets");
+        rmdContent.AppendLine("This report compares data from multiple datasets.\n");
+
+        int datasetIndex = 1;
+
+        // Include datasets as inline R data.frames
+        foreach (var csvPath in csvFilePaths)
         {
-            // Ensure the output directory exists
-            string outputDirectory = Path.GetDirectoryName(OutputRmdPath);
-            if (!Directory.Exists(outputDirectory))
-                Directory.CreateDirectory(outputDirectory);
-
-            // Build R Markdown content
-            var rmdContent = new System.Text.StringBuilder();
-            rmdContent.AppendLine("---");
-            rmdContent.AppendLine("title: \"Comparison Report\"");
-            rmdContent.AppendLine("output: html_document");
-            rmdContent.AppendLine("---\n");
-
-            rmdContent.AppendLine("## Comparison of Multiple Datasets");
-            rmdContent.AppendLine("This report compares data from multiple datasets.\n");
-
-            int datasetIndex = 1;
-
-            // Include datasets as inline R data.frames
-            foreach (var csvPath in CsvFilePaths)
+            string[] csvLines = File.ReadAllLines(csvPath);
+            if (csvLines.Length < 2)
             {
-                string[] csvLines = File.ReadAllLines(csvPath);
-                if (csvLines.Length < 2)
-                {
-                    Debug.LogError($"CSV file '{csvPath}' is empty or missing data.");
-                    continue;
-                }
-
-                string[] headers = csvLines[0].Split(',');
-                var rDataFrame = new System.Text.StringBuilder();
-                rDataFrame.AppendLine($"data{datasetIndex} <- data.frame(");
-
-                for (int i = 0; i < headers.Length; i++)
-                {
-                    string header = headers[i].Trim(); // Trim whitespace around headers
-                    rDataFrame.Append($"  {header} = c(");
-
-                    for (int j = 1; j < csvLines.Length; j++)
-                    {
-                        string[] rowValues = csvLines[j].Split(',');
-                        string value = i < rowValues.Length ? rowValues[i].Trim() : "NA"; // Handle missing values with "NA"
-                        rDataFrame.Append(value);
-
-                        if (j < csvLines.Length - 1)
-                            rDataFrame.Append(", ");
-                    }
-
-                    if (i < headers.Length - 1)
-                        rDataFrame.AppendLine("),");
-                    else
-                        rDataFrame.AppendLine(")");
-                }
-
-                rDataFrame.AppendLine(")");
-
-                // Add dataset to R Markdown content
-                rmdContent.AppendLine($"### Dataset {datasetIndex}");
-                rmdContent.AppendLine($"The raw data for Dataset {datasetIndex} is shown below:\n");
-                rmdContent.AppendLine("```{r echo=FALSE, results='asis'}");
-                rmdContent.AppendLine(rDataFrame.ToString());
-                rmdContent.AppendLine("library(knitr)");
-                rmdContent.AppendLine("cat('<div style=\"max-height: 300px; overflow-y: auto; border: 1px solid #ccc; padding: 10px;\">')");
-                rmdContent.AppendLine($"print(kable(data{datasetIndex}, caption = \"Dataset {datasetIndex} Table\", format = \"html\", table.attr = \"class='table table-striped'\"))");
-                rmdContent.AppendLine("cat('</div>')");
-                rmdContent.AppendLine("```\n");
-
-                datasetIndex++;
+                Debug.LogError($"CSV file '{csvPath}' is empty or missing data.");
+                continue;
             }
 
-            // Add comparison graphs
-            rmdContent.AppendLine("## Joint Comparison Across Datasets");
-            rmdContent.AppendLine("The following graphs compare joint readings across the datasets.\n");
+            string[] headers = csvLines[0].Split(',');
+            var rDataFrame = new System.Text.StringBuilder();
+            rDataFrame.AppendLine($"data{datasetIndex} <- data.frame(");
 
-            rmdContent.AppendLine("```{r echo=FALSE}");
-            rmdContent.AppendLine("```{r echo=FALSE, warning=FALSE, message=FALSE}");
-            rmdContent.AppendLine("library(ggplot2)");
-
-            rmdContent.AppendLine("# Label datasets");
-            for (int i = 1; i < datasetIndex; i++)
+            for (int i = 0; i < headers.Length; i++)
             {
-                rmdContent.AppendLine($"data{i}$Dataset <- 'Dataset {i}'");
+                string header = headers[i].Trim(); // Trim whitespace around headers
+                rDataFrame.Append($"  {header} = c(");
+
+                for (int j = 1; j < csvLines.Length; j++)
+                {
+                    string[] rowValues = csvLines[j].Split(',');
+                    string value = i < rowValues.Length ? rowValues[i].Trim() : "NA"; // Handle missing values with "NA"
+                    rDataFrame.Append(value);
+
+                    if (j < csvLines.Length - 1)
+                        rDataFrame.Append(", ");
+                }
+
+                if (i < headers.Length - 1)
+                    rDataFrame.AppendLine("),");
+                else
+                    rDataFrame.AppendLine(")");
             }
 
-            rmdContent.AppendLine("# Combine datasets");
-            rmdContent.AppendLine("combined_data <- rbind(data1, data2)");
-            rmdContent.AppendLine("joint_columns <- names(data1)");
+            rDataFrame.AppendLine(")");
 
-            rmdContent.AppendLine("# Check if there are 'Left' and 'Right' pairs");
-            rmdContent.AppendLine("joint_pairs <- list()");
-            rmdContent.AppendLine("for (name in joint_columns) {");
-            rmdContent.AppendLine("  if (grepl(\"Left\", name)) {");
-            rmdContent.AppendLine("    right_name <- sub(\"Left\", \"Right\", name)");
-            rmdContent.AppendLine("    if (right_name %in% joint_columns) {");
-            rmdContent.AppendLine("      joint_pairs[[name]] <- right_name");
-            rmdContent.AppendLine("    }");
-            rmdContent.AppendLine("  }");
-            rmdContent.AppendLine("}");
-
-            rmdContent.AppendLine("# If no Left/Right pairs are found, plot available columns");
-            rmdContent.AppendLine("if (length(joint_pairs) == 0) {");
-            rmdContent.AppendLine("  cat('### Generic Graph for Available Data\\n\\n')");
-            rmdContent.AppendLine("  available_columns <- setdiff(joint_columns, c('TimeOfReading', 'Dataset'))");
-            rmdContent.AppendLine("  for (col in available_columns) {");
-            rmdContent.AppendLine("    cat(paste0('### ', col, ' Across Datasets\\n\\n'))");
-            rmdContent.AppendLine("    print(ggplot(combined_data, aes(x = TimeOfReading, y = get(col), color = Dataset, group = Dataset)) +");
-            rmdContent.AppendLine("          geom_line(size = 1) +");
-            rmdContent.AppendLine("          ggtitle(paste(col, 'Comparison Across Datasets')) +");
-            rmdContent.AppendLine("          xlab('Time of Reading') + ylab(col) +");
-            rmdContent.AppendLine("          theme_minimal() +");
-            rmdContent.AppendLine("          theme(axis.text.x = element_text(angle = 45, hjust = 1)))");
-            rmdContent.AppendLine("  }");
-            rmdContent.AppendLine("} else {");
-            rmdContent.AppendLine("  # Plot comparisons for Left and Right pairs");
-            rmdContent.AppendLine("  for (left_joint in names(joint_pairs)) {");
-            rmdContent.AppendLine("    right_joint <- joint_pairs[[left_joint]]");
-
-            rmdContent.AppendLine("    # Plot Left joint comparison");
-            rmdContent.AppendLine("    cat(paste0('### Comparison of ', left_joint, ' Across Datasets\\n\\n'))");
-            rmdContent.AppendLine("    print(ggplot(combined_data, aes(x = TimeOfReading, y = get(left_joint), color = Dataset, group = Dataset)) +");
-            rmdContent.AppendLine("          geom_line(size = 1) +");
-            rmdContent.AppendLine("          ggtitle(paste(left_joint, 'Comparison Across Datasets')) +");
-            rmdContent.AppendLine("          xlab('Time of Reading') + ylab('Joint Values') +");
-            rmdContent.AppendLine("          theme_minimal() +");
-            rmdContent.AppendLine("          theme(axis.text.x = element_text(angle = 45, hjust = 1)))");
-
-            rmdContent.AppendLine("    # Plot Right joint comparison");
-            rmdContent.AppendLine("    cat(paste0('### Comparison of ', right_joint, ' Across Datasets\\n\\n'))");
-            rmdContent.AppendLine("    print(ggplot(combined_data, aes(x = TimeOfReading, y = get(right_joint), color = Dataset, group = Dataset)) +");
-            rmdContent.AppendLine("          geom_line(size = 1) +");
-            rmdContent.AppendLine("          ggtitle(paste(right_joint, 'Comparison Across Datasets')) +");
-            rmdContent.AppendLine("          xlab('Time of Reading') + ylab('Joint Values') +");
-            rmdContent.AppendLine("          theme_minimal() +");
-            rmdContent.AppendLine("          theme(axis.text.x = element_text(angle = 45, hjust = 1)))");
-            rmdContent.AppendLine("  }");
-            rmdContent.AppendLine("}");
+            // Add dataset to R Markdown content
+            rmdContent.AppendLine($"### Readings Of Subject {selectedReadings[datasetIndex-1].UserNameOfSubject}, {selectedReadings[datasetIndex-1].ReportDescription.text.Replace("<b>Comment:</b>\n","")}");
+            rmdContent.AppendLine($"The raw data for Dataset {datasetIndex} is shown below:\n");
+            rmdContent.AppendLine("```{r echo=FALSE, results='asis'}");
+            rmdContent.AppendLine(rDataFrame.ToString());
+            rmdContent.AppendLine("library(knitr)");
+            rmdContent.AppendLine("cat('<div style=\"max-height: 300px; overflow-y: auto; border: 1px solid #ccc; padding: 10px;\">')");
+            rmdContent.AppendLine($"print(kable(data{datasetIndex}, caption = \"Dataset {datasetIndex} Table\", format = \"html\", table.attr = \"class='table table-striped'\"))");
+            rmdContent.AppendLine("cat('</div>')");
             rmdContent.AppendLine("```");
 
-
-
-            // Write the RMD file
-            File.WriteAllText(OutputRmdPath, rmdContent.ToString());
-            CSVManager.Export(OutputRmdPath);
-            Debug.Log($"R Markdown file generated successfully at: {OutputRmdPath}");
+            datasetIndex++;
         }
-        catch (System.Exception ex)
+
+        // Add comparison graphs
+        rmdContent.AppendLine("## Joint Comparison Across Datasets");
+        rmdContent.AppendLine("The following graphs compare joint readings across the datasets.\n");
+
+        rmdContent.AppendLine("```{r echo=FALSE, warning=FALSE, message=FALSE}");
+        rmdContent.AppendLine("library(ggplot2)");
+        rmdContent.AppendLine("library(svglite)");
+
+        rmdContent.AppendLine("# Label datasets");
+        for (int i = 1; i < datasetIndex; i++)
         {
-            Debug.LogError($"Error generating R Markdown file: {ex.Message}");
+            rmdContent.AppendLine($"data{i}$Dataset <- 'Dataset {i}'");
         }
+
+        rmdContent.AppendLine("# Combine datasets");
+        rmdContent.AppendLine("combined_data <- rbind(" + string.Join(", ", Enumerable.Range(1, datasetIndex - 1).Select(i => $"data{i}")) + ")");
+        rmdContent.AppendLine("plot_vars <- names(data1)[2:length(names(data1))] # Columns to plot");
+        
+        rmdContent.AppendLine("# Generate and embed inline SVG plots");
+        rmdContent.AppendLine("for (var_name in plot_vars) {");
+        rmdContent.AppendLine("  if (var_name == 'Dataset') next # Skip the graph titled 'Dataset Comparison Across Datasets'");
+
+        rmdContent.AppendLine("  cat(paste0('### Comparison of ', var_name, ' Across Datasets\n\n'))");
+        
+        rmdContent.AppendLine("  # Create the plot and save as SVG content");
+        rmdContent.AppendLine("  svg_file <- tempfile()");
+        rmdContent.AppendLine("  svglite::svglite(svg_file, width = 8, height = 6)");
+        rmdContent.AppendLine("  print(ggplot(combined_data, aes(x = TimeOfReading, y = .data[[var_name]], color = Dataset, group = Dataset)) +");
+        rmdContent.AppendLine("          geom_line(linewidth = 1) +");
+        rmdContent.AppendLine("          ggtitle(paste(var_name, 'Comparison Across Datasets')) +");
+        rmdContent.AppendLine("          xlab('Time of Reading') + ylab(var_name) +");
+        rmdContent.AppendLine("          theme_minimal() +");
+        rmdContent.AppendLine("          theme(axis.text.x = element_text(angle = 45, hjust = 1)))");
+        rmdContent.AppendLine("  dev.off()");
+        
+        rmdContent.AppendLine("  # Embed SVG content directly in the HTML");
+        rmdContent.AppendLine("  svg_content <- paste(readLines(svg_file), collapse = '\n')");
+        rmdContent.AppendLine("  cat(svg_content)"); // Embed raw SVG content directly
+        rmdContent.AppendLine("}");
+        rmdContent.AppendLine("```");
+
+        // Write the RMD file
+        File.WriteAllText(outputRmdPath, rmdContent.ToString());
+        RReportGenerateRequest rr = new RReportGenerateRequest()
+        {
+            Rmd = "@"+rmdContent.ToString(),
+        };
+        string json = JsonConvert.SerializeObject(rr);
+        APIHandler.instance.Post("UserReport/GetRReport",json,onSuccess: (response) =>
+        {
+            Debug.Log(response);
+            RReportResponse rrr = JsonConvert.DeserializeObject<RReportResponse>(response);
+            rrr.result.HtmlResponse = rrr.result.HtmlResponse.Replace("&lt;", "<").Replace("&gt;", ">").Replace("&#39;","\"").Replace("##","");
+            string path = Path.Combine(Application.persistentDataPath, "report.html");
+            File.WriteAllText(path, rrr.result.HtmlResponse);
+            // CSVManager.Export(path);
+#if UNITY_EDITOR
+            System.Diagnostics.Process.Start(path);
+            Debug.Log("Is Editor");
+
+#else
+
+            string url = "file://" + path.Replace(" ", "%20");
+            Debug.Log("URL = " + url);
+            Debug.Log("Persistance = " + path);
+            GeneralStaticManager.OpenFile(path);
+#endif    
+        },onError: (error) =>
+        {
+            Debug.LogError(error);
+        });
+        Debug.Log($"R Markdown file generated successfully at: {outputRmdPath}");
     }
+    catch (System.Exception ex)
+    {
+        Debug.LogError($"Error generating R Markdown file: {ex.Message}");
+    }
+}
+
+
+
+
+
+// RReportGenerateRequest rr = new RReportGenerateRequest()
+    // {
+    //     Rmd = "@"+rmdContent.ToString(),
+    // };
+    // string json = JsonConvert.SerializeObject(rr);
+    // APIHandler.instance.Post("UserReport/GetRReport",json,onSuccess: (response) =>
+    // {
+    //     Debug.Log(response);
+    //     RReportResponse rrr = JsonConvert.DeserializeObject<RReportResponse>(response);
+    //     rrr.result.HtmlResponse = rrr.result.HtmlResponse.Replace("&lt;", "<").Replace("&gt;", ">").Replace("&#39;","\"").Replace("##","");
+    //     string path = Path.Combine(Application.persistentDataPath, "report.html");
+    //     File.WriteAllText(path, rrr.result.HtmlResponse);
+    //     CSVManager.Export(path);
+    //         
+    // },onError: (error) =>
+    // {
+    //     Debug.LogError(error);
+    // });
+
+
     public void GenerateRMarkdown(string OutputRmdPath,string CsvFilePath,string fileName)
     {
         try
@@ -725,8 +759,7 @@ public class UserReportController : MonoBehaviour
         List<JointReading> listofJointReadings = selectedReadings.Where(x=>x.jointReadings!=null).SelectMany(x=>x.jointReadings).ToList();
         
         // ShowJointReadingsFromDB(listofJointReadings);
-        
-        List<TimeBasedReadingRequest> timeBasedReadings = selectedReadings.Where(x=>x.timeBasedReadings!=null).SelectMany(x => x.timeBasedReadings)?.ToList();
+        List<TimeBasedReadingRequest> timeBasedReadings = selectedReadings.SelectMany(x => x.timeBasedReadings)?.ToList();
         ShowTimeBasedReadingsFromDB(timeBasedReadings);
         
 
@@ -783,7 +816,10 @@ public class UserReportController : MonoBehaviour
             requests.Remove(request);
             userReportFromDB.request.Dispose();
             userReportFromDB.request = null;
-            btn.onClick.AddListener(() => StartCoroutine(GetText(url, btn, userReportFromDB)));
+            btn.onClick.AddListener(() =>
+            {
+                StartCoroutine(GetText(url, btn, userReportFromDB));
+            });
             btn.interactable = true;
             // ReferenceManager.instance.LoadingManager.Hide();
         }

@@ -43,7 +43,7 @@ public class ReferenceManager : MonoBehaviour
     public List<Angle2D> AnglesAdded = new List<Angle2D>();
     public ButtonHandler ButtonHandler;
     public CommentQuestionnaire commentQuestionnaire;
-
+    
     /// <summary>
     /// Screens
     /// </summary>
@@ -137,7 +137,7 @@ public class ReferenceManager : MonoBehaviour
     public CreatePatientQuestionnaire createPatientQuestionnaire;
     public GameObject clinicsButton;
     public ReportSectionManager reportSectionManager;
-
+    public List<UIDragger> UIDraggers=new List<UIDragger>();
     private void Awake()
     {
         instance = this;
@@ -601,13 +601,23 @@ public class ReferenceManager : MonoBehaviour
         );
     }
 
-    [ContextMenu("Test CSV")]
-    public void TestString()
+    public async void ArrangeNotifiers()
     {
-        string waow = CSVManager.Create(
-            System.IO.Path.Combine(Application.persistentDataPath, "Video"),
-            LightBuzzMain._movement.MeasurementTypes
-        );
-        Debug.Log(waow);
+        foreach (var item in UIDraggers)
+        {
+            while (item.isInside && item.UIDraggersNearMe.Count!=0)
+            {
+                if (item.transform.parent.name.Contains("Right"))
+                {
+                    item._rect.anchoredPosition -= new Vector2(item.offsetFromJoint.x,-item.offsetFromJoint.y);
+                }
+                else
+                {
+                    item._rect.anchoredPosition += item.offsetFromJoint;
+                }
+
+                await Task.Delay(10);
+            }
+        }
     }
 }

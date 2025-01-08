@@ -31,12 +31,12 @@ public class UserReportFromDB : MonoBehaviour
     public Transform DropDownItems;
     public RectTransform Content;
     ContentSizeFitter ContentSizeFitter;
-    public Toggle CompareViewButton;
+    public Toggle CompareViewToggle;
     public List<JointReading> jointReadings = new List<JointReading>();
     public List<TimeBasedReadingRequest> timeBasedReadings = new List<TimeBasedReadingRequest>();
     private void Start()
     {
-        jointReadings.ForEach(x => x.VideoNameLink = ReportDescription.text.Replace("<b>Comment:</b>", ""));
+        // jointReadings.ForEach(x => x.VideoNameLink = ReportDescription.text.Replace("<b>Comment:</b>", ""));
         ContentSizeFitter = Content.GetComponent<ContentSizeFitter>();
         if (GeneralStaticManager.GlobalVar["UserRoles"].Contains("SuperUser"))
         {
@@ -47,6 +47,31 @@ public class UserReportFromDB : MonoBehaviour
             DeleteButton.SetActive(false);
         }
     }
+
+    public void CheckIfItContainsTimeBasedReadings()
+    {
+        if (timeBasedReadings != null && timeBasedReadings.Count > 0)
+        {
+            CompareViewToggle.interactable = true;
+            CompareViewToggle.transform.GetChild(0).GetComponent<TMP_Text>().text = "Select To Compare";
+        }
+    }
+    // bool check;
+    // private void Update()
+    // {
+    //     
+    //     if (timeBasedReadings != null)
+    //     {
+    //         if (check && timeBasedReadings[0].ReportsRecordId == 235)
+    //         {
+    //             if (CompareViewButton.interactable == false)
+    //             {
+    //                 Debug.Log("Toggle falsed");
+    //                 check = true;
+    //             }
+    //         }
+    //     }
+    // }
 
     public void DeleteVide()
     {

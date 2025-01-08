@@ -1,7 +1,10 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using Random = UnityEngine.Random;
 
 public class UIDragger : MonoBehaviour, IDragHandler
 {
@@ -10,10 +13,19 @@ public class UIDragger : MonoBehaviour, IDragHandler
     public RectTransform _rect;
     private static bool isMoving = false;
     public float offset = 100;
-
+    public Vector2 offsetFromJoint;
+    public bool isMoved;
+    public bool isInside;
+    public List<UIDragger> UIDraggersNearMe = new List<UIDragger>();
     void Start()
     {
         _rect = GetComponent<RectTransform>();
+        if (!ReferenceManager.instance.UIDraggers.Contains(this))
+        {
+            ReferenceManager.instance.UIDraggers.Add(this);
+        }
+
+        UIDraggersNearMe = ReferenceManager.instance.UIDraggers.Where(x=>x.transform.position == gameObject.transform.position && x !=this && x.transform.parent.transform.parent.name == "AngleManager").ToList();
     }
 
     // Update is called once per frame
@@ -113,9 +125,27 @@ public class UIDragger : MonoBehaviour, IDragHandler
         isDragging = false;
     }
 
-    private void OnTriggerEnter2D(Collider2D other)
-    {
+    private void OnTriggerExit2D(Collider2D other)
+    {   
+        var draggerInother = other.gameObject.GetComponent<UIDragger>();
+        if(draggerInother !=null && UIDraggersNearMe.Contains(draggerInother) || UIDraggersNearMe.Count==0)
+            isInside = false;
+    }
 
+    private void OnTriggerStay2D(Collider2D other)
+    {
+        var draggerInother = other.gameObject.GetComponent<UIDragger>();
+        if (draggerInother != null && UIDraggersNearMe.Contains(draggerInother))
+        {
+            isInside = true;
+            
+        }
+        else
+        {
+            return;
+        }
+        Debug.Log("Staying");
+        // ReferenceManager.instance.ArrangeNotifiers();
         if (!isMoving)
         {
             var uiElement1 = GetComponent<RectTransform>();
@@ -123,21 +153,21 @@ public class UIDragger : MonoBehaviour, IDragHandler
             // Calculate the differences in positions
             float deltaX = otherElement.localPosition.x - transform.localPosition.x;
             float deltaY = otherElement.localPosition.y - transform.localPosition.y;
-
+        
             // Determine if the collision is more horizontal or vertical
             bool horizontalCollision = Mathf.Abs(deltaX) > Mathf.Abs(deltaY);
-
+        
             if (horizontalCollision)
             {
                 // Move elements along the x-axis
                 float midpointX = (transform.localPosition.x + otherElement.localPosition.x) / 2f;
                 transform.localPosition = new Vector3(
-                    midpointX - 20 / 2f,
+                    midpointX - 100 / 2f,
                     transform.localPosition.y,
                     transform.localPosition.z
                 );
                 otherElement.localPosition = new Vector3(
-                    midpointX + 20 / 2f,
+                    midpointX + 100 / 2f,
                     otherElement.localPosition.y,
                     otherElement.localPosition.z
                 );
@@ -145,21 +175,38 @@ public class UIDragger : MonoBehaviour, IDragHandler
             else
             {
                 // Move elements along the y-axis
-                float midpointY = (transform.localPosition.y + otherElement.localPosition.y) / 2f;
+                float midpointX = (transform.localPosition.x + otherElement.localPosition.x) / 2f;
                 transform.localPosition = new Vector3(
-                    transform.localPosition.x,
-                    midpointY - 20 / 2f,
+                    midpointX - 100 / 2f,
+                    transform.localPosition.y,
                     transform.localPosition.z
                 );
                 otherElement.localPosition = new Vector3(
-                    otherElement.localPosition.x,
-                    midpointY + 20 / 2f,
+                    midpointX + 100 / 2f,
+                    otherElement.localPosition.y,
                     otherElement.localPosition.z
                 );
+                // float midpointY = (transform.localPosition.y + otherElement.localPosition.y) / 2f;
+                // transform.localPosition = new Vector3(
+                //     transform.localPosition.x,
+                //     midpointY - 100 / 2f,
+                //     transform.localPosition.z
+                // );
+                // otherElement.localPosition = new Vector3(
+                //     otherElement.localPosition.x,
+                //     midpointY + 100 / 2f,
+                //     otherElement.localPosition.z
+                // );
             }
-
+        
             // Reset the flag after moving
             isMoving = false;
         }
+    }
+
+    private void OnDestroy()
+    {
+        ReferenceManager.instance.UIDraggers.ForEach(x=>x.UIDraggersNearMe.Remove(this));
+        ReferenceManager.instance.UIDraggers.Remove(this);
     }
 }

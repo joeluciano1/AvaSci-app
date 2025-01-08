@@ -5,7 +5,19 @@ public class Responses
 
 }
 
+public class RReportResponse
+{
+    public bool isSuccess { get; set; }
+    public bool isError { get; set; }
+    public int status { get; set; }
+    public BaseRResponse result { get; set; }
+    public List<ServiceError> serviceErrors { get; set; }
+}
 
+public class BaseRResponse
+{
+    public string HtmlResponse { get; set; }
+}
 public class CountryData
 {
     public int id { get; set; }

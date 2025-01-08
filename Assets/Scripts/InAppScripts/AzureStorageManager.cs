@@ -98,7 +98,13 @@ public class AzureStorageManager : MonoBehaviour
             ///// Helper function to fetch values safely
             ///
             reportRecordBody.TimeBasedReadings = JsonConvert.DeserializeObject<List<TimeBasedReadingRequest>>(GeneralStaticManager.ConvertCsvStringToJson(ReferenceManager.instance.LightBuzzMain.GenerateCSVString()));
-            reportRecordBody.TimeBasedReadings.ForEach(x => x.UserName = selectedPatient != null ? selectedPatient.PatientName : selectedVideo.UserNameOfSubject);
+            reportRecordBody.TimeBasedReadings.ForEach(x =>
+            {
+                x.UserName = selectedPatient != null
+                    ? selectedPatient.PatientName
+                    : selectedVideo.UserNameOfSubject;
+                x.ReportsRecordId = ReferenceManager.instance.SelectedVideoID;
+            });
             //     float? GetMeasurementValue(string key, int index)
             //     {
             //         var kvp = GeneralStaticManager.GraphsReadings
