@@ -173,6 +173,8 @@ public class ReferenceManager : MonoBehaviour
         graphManagers.ForEach(x => x.MySineWave.Start());
     }
     bool ready;
+    public long? SelectedVideoID;
+
     public async void PlayAllGraphs()
     {
         graphManagers.ForEach(x => x.MySineWave.isReading = false);
