@@ -14,6 +14,7 @@ using LightBuzz.AvaSci.Csv;
 using LightBuzz.AvaSci.UI;
 using LightBuzz.BodyTracking;
 using Newtonsoft.Json;
+using Nrjwolf.Tools;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -43,6 +44,7 @@ public class UserReportController : MonoBehaviour
     public GameObject ReadingViewer;
     public Button CreateCSVButton;
     public List<UserReportFromDB> selectedReadings = new List<UserReportFromDB>();
+    public List<UserReportFromDB> selectedGaitReadings = new List<UserReportFromDB>();
     // Start is called before the first frame update
     public void Start()
     {
@@ -77,12 +79,11 @@ public class UserReportController : MonoBehaviour
                                 );
                                 user.ButtonText.text = "Download";
                             }
-                            if(item.TimeBasedReadings!=null)
+                            if(item.TimeBasedReadings!=null && item.TimeBasedReadings.Count > 0)
                             {
                                 user.CompareViewToggle.transform.GetChild(0).GetComponent<TMP_Text>().text = "Select To Compare";
                                 user.CompareViewToggle.interactable = true;
-                                user.CompareViewToggle.gameObject.SetActive(true);
-                                user.jointReadings = item.JointReadings;
+                                // user.jointReadings = item.JointReadings;
                                 user.timeBasedReadings = item.TimeBasedReadings;
                                 user.timeBasedReadings.ForEach(x=>
                                 {
@@ -103,10 +104,35 @@ public class UserReportController : MonoBehaviour
                                 });
                                 // user.CompareViewButton.onClick.AddListener(() => { ShowJointReadingsFromDB(item.JointReadings); ReferenceManager.instance.CompareReadingSelected = user; });
                             }
-                            else if(item.TimeBasedReadings ==null)
+                            else
                             {
                                 user.CompareViewToggle.transform.GetChild(0).GetComponent<TMP_Text>().text = "No Reading Exists";
                                 user.CompareViewToggle.interactable = false;
+                            }
+
+                            if (item.GaitReports != null && item.GaitReports.Count > 0)
+                            {
+                                user.CompareGaitToggle.transform.GetChild(0).GetComponent<TMP_Text>().text = "Select To Compare Gait";
+                                user.CompareGaitToggle.interactable = true;
+                                user.gaitReports = item.GaitReports.ToList();
+                                user.gaitReports.ForEach(x=>x.VideoName = item.ReportDescription);
+                                user.CompareGaitToggle.onValueChanged.RemoveAllListeners();
+                                user.CompareGaitToggle.onValueChanged.AddListener((value) =>
+                                {
+                                    if (value)
+                                    {
+                                        selectedGaitReadings.Add(user);
+                                    }
+                                    else
+                                    {
+                                        selectedGaitReadings.Remove(user);
+                                    }
+                                });
+                            }
+                            else
+                            {
+                                user.CompareGaitToggle.transform.GetChild(0).GetComponent<TMP_Text>().text = "No Gait Reading Exists";
+                                user.CompareGaitToggle.interactable = false;
                             }
                             continue;
                         }
@@ -120,7 +146,7 @@ public class UserReportController : MonoBehaviour
                         userReportFromDB.VideoURL = item.VideoURL;
                         userReportFromDB.gameObject.SetActive(true);
                         
-                        if(item.TimeBasedReadings!=null)
+                        if(item.TimeBasedReadings!=null && item.TimeBasedReadings.Count > 0)
                         {
                             userReportFromDB.timeBasedReadings = item.TimeBasedReadings.ToList();
                             userReportFromDB.CompareViewToggle.transform.GetChild(0).GetComponent<TMP_Text>().text = "Select To Compare";
@@ -149,15 +175,40 @@ public class UserReportController : MonoBehaviour
                             // userReportFromDB.CompareViewButton.onClick.RemoveAllListeners();
                             // userReportFromDB.CompareViewButton.onClick.AddListener(() => { ShowJointReadingsFromDB(item.JointReadings); ReferenceManager.instance.CompareReadingSelected = userReportFromDB; });
                         }
-                        else if(item.TimeBasedReadings ==null)
+                        else
                         {
                             userReportFromDB.CompareViewToggle.transform.GetChild(0).GetComponent<TMP_Text>().text = "No Reading Exists";
                             userReportFromDB.CompareViewToggle.interactable = false;
                         }
-                        if(string.IsNullOrEmpty(item.SubjectId))
-                        userReportFromDB.UserName.text = item.UserName;
+                        if (item.GaitReports != null && item.GaitReports.Count > 0)
+                        {
+                            // item.GaitReports = item.GaitReports.OrderBy(x => x.FootStrikeAtTime).ToList();
+                            userReportFromDB.CompareGaitToggle.transform.GetChild(0).GetComponent<TMP_Text>().text = "Select To Compare Gait";
+                            userReportFromDB.CompareGaitToggle.interactable = true;
+                            userReportFromDB.gaitReports = item.GaitReports.ToList();
+                            userReportFromDB.gaitReports.ForEach(x=>x.VideoName = item.ReportDescription);
+                            userReportFromDB.CompareGaitToggle.onValueChanged.RemoveAllListeners();
+                            userReportFromDB.CompareGaitToggle.onValueChanged.AddListener((value) =>
+                            {
+                                if (value)
+                                {
+                                    selectedGaitReadings.Add(userReportFromDB);
+                                }
+                                else
+                                {
+                                    selectedGaitReadings.Remove(userReportFromDB);
+                                }
+                            });
+                        }
                         else
-                        userReportFromDB.UserName.text = item.SubjectId;
+                        {
+                            userReportFromDB.CompareGaitToggle.transform.GetChild(0).GetComponent<TMP_Text>().text = "No Gait Reading Exists";
+                            userReportFromDB.CompareGaitToggle.interactable = false;
+                        }
+                        if(string.IsNullOrEmpty(item.SubjectId))
+                            userReportFromDB.UserName.text = item.UserName;
+                        else
+                            userReportFromDB.UserName.text = item.SubjectId;
                         if (!string.IsNullOrEmpty(item.ReportDescription))
                             userReportFromDB.ReportDescription.text = item.ReportDescription;
                         DateTime serverTime;
@@ -365,7 +416,127 @@ public class UserReportController : MonoBehaviour
                     }
                     
                     
-                    timeBasedReadingFromDBPrefab.CSVButton.onClick.AddListener(() => CreateTimeBasedCSV($"{selectedReadings[0].UserName.text}_{DateTime.Now.ToShortDateString().Replace("/","-")}_TimeBasedReadings_{createdCsvCount}.csv", groupHeader.timeBasedReadings,groupHeader.timeBasedReadingInfoSection.addedColumns.Select(x=>x.gameObject.name).ToList()));
+                    timeBasedReadingFromDBPrefab.CSVButton.onClick.AddListener(() => CreateTimeBasedCSV($"{selectedReadings[0].UserName.text}_{DateTime.Now.ToShortDateString().Replace("/","-")}_TimeBasedReadings_{createdCsvCount}.csv", groupHeader.timeBasedReadings,null,groupHeader.timeBasedReadingInfoSection.addedColumns.Select(x=>x.gameObject.name).ToList()));
+                    headingadded = true;
+                }
+            }
+            groupHeader.gameObject.SetActive(true);
+           LayoutRebuilder.ForceRebuildLayoutImmediate(groupHeader.Content);
+        }
+        
+        
+    }
+    
+    public void ShowGaitReadingsFromDB(List<GetGaitReportResponse> timeBasedReadings)
+    {
+        ReadingViewer.SetActive(true);
+        addedTimeBasedReadings.ForEach(x => Destroy(x.gameObject));
+        addedTimeBasedReadings.Clear();
+        toggleGroups.ForEach(x => Destroy(x.gameObject));
+        toggleGroups.Clear();
+        toggles.Clear();
+        var jointsOnDifferentDates = timeBasedReadings.GroupBy(x => x.ReportsRecordId.ToString());
+        createdCsvCount = 0;
+        timeBasedReadingFromDBPrefab.CSVButton.onClick.RemoveAllListeners();
+       foreach (IGrouping<string,GetGaitReportResponse> group in jointsOnDifferentDates)
+        {
+            TimeBasedReadingFromDB groupHeader = Instantiate(timeBasedReadingFromDBPrefab, timeBasedReadingFromDBPrefab.transform.parent);
+                addedTimeBasedReadings.Add(groupHeader);
+            groupHeader.gaitReportReadings = group.ToList();
+            int fieldIndex = 0;
+            bool headingadded = false;
+            
+            // Create a group header
+            foreach (var item in group)
+            {
+                
+                int itemIndex = 0;
+                
+                PropertyInfo[] fields = item.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance);
+                if (!headingadded)
+                {
+                    foreach (var field in fields)
+                    {
+                        string variableName = field.Name; // Get the variable name
+                        object fielValue = field.GetValue(item);
+                        if (variableName == "ReportsRecordId" || variableName == "CreatedOn" ||variableName == "VideoName")
+                        {
+                            continue;
+                        }
+                        if (fielValue != null)
+                        {
+                            GameObject go = Instantiate(groupHeader.ReadingValuePrefab, groupHeader.ReadingValuePrefab.transform.parent);
+                            go.SetActive(true);
+                            go.GetComponent<Toggle>().onValueChanged.RemoveAllListeners();
+                            toggles.Add(go.GetComponent<Toggle>());
+                            go.GetComponent<Toggle>().onValueChanged.AddListener((value)=>
+                            {
+                                groupHeader.SelectValue(variableName, go.GetComponent<Toggle>());
+                                InvokeOtherToggles(variableName, go.GetComponent<Toggle>().isOn);
+                            });
+                            if (variableName == "UserName" || variableName == "TimeOfReading" || variableName == "CreatedOn" || variableName == "VideoName" || variableName == "SubjectStandingAtTime" || variableName == "SelectedLeg" || variableName == "FootStrikeAtTime" || variableName == "HeelPassingAtTime")
+                            {
+                                go.SetActive(false);
+                                if (variableName == "TimeOfReading" || variableName == "FootStrikeAtTime" || variableName == "HeelPassingAtTime")
+                                {
+                                    groupHeader.timeBasedReadingInfoSection.addedColumns.Insert(0, go);
+                                    GaitColumnOfTimeName.Add(variableName);
+                                }
+                            }
+                            else
+                            {
+                                groupHeader.SelectAllToggle.onValueChanged.AddListener((value) => go.GetComponent<Toggle>().isOn = value);
+                            }
+                            go.name = variableName;
+                            go.transform.GetChild(0).GetComponent<TMP_Text>().text = variableName;
+                            groupHeader.Time.text = "Select Readings to Compare from "+item.VideoName;
+                            // groupHeader.timeBasedReadingInfoSection.addedColumns.Add(go);
+                            Debug.Log($"Instantiated GameObject with name: {variableName}");
+                        }
+                    }
+
+                    if (selectedReadings.Count != 0)
+                    {
+                        timeBasedReadingFromDBPrefab.CSVButton.onClick.AddListener(() =>
+                            CreateTimeBasedCSV(
+                                $"{selectedReadings[0].UserName.text}_{DateTime.Now.ToShortDateString().Replace("/", "-")}_TimeBasedReadings_{createdCsvCount}.csv",
+                                groupHeader.timeBasedReadings, null,
+                                groupHeader.timeBasedReadingInfoSection.addedColumns.Select(x => x.gameObject.name)
+                                    .ToList()));
+                    }
+
+                    if (selectedGaitReadings.Count != 0)
+                    {
+#if UNITY_EDITOR
+                        timeBasedReadingFromDBPrefab.CSVButton.onClick.AddListener(() => CreateTimeBasedCSV(
+                            $"{selectedGaitReadings[0].UserName.text}_{DateTime.Now.ToShortDateString().Replace("/", "-")}_TimeBasedReadings_{createdCsvCount}.csv",
+                            null, groupHeader.gaitReportReadings,
+                            groupHeader.timeBasedReadingInfoSection.addedColumns.Select(x => x.gameObject.name)
+                                .ToList()));
+#else
+                        timeBasedReadingFromDBPrefab.CSVButton.onClick.AddListener(() =>
+                                IOSNativeAlert.ShowAlertMessage("Select Plot Type","Which one you like to generate report in?",new IOSNativeAlert.AlertButton("Line Graph",
+                                    () =>
+                                    {
+                                        lineGraph = true;
+                                        CreateTimeBasedCSV(
+                                            $"{selectedGaitReadings[0].UserName.text}_{DateTime.Now.ToShortDateString().Replace("/", "-")}_TimeBasedReadings_{createdCsvCount}.csv",
+                                            null, groupHeader.gaitReportReadings,
+                                            groupHeader.timeBasedReadingInfoSection.addedColumns.Select(x => x.gameObject.name)
+                                                .ToList());
+                                    }), new IOSNativeAlert.AlertButton("Bar Graph", () =>
+                                {
+                                    lineGraph = false;
+                                    CreateTimeBasedCSV(
+                                        $"{selectedGaitReadings[0].UserName.text}_{DateTime.Now.ToShortDateString().Replace("/", "-")}_TimeBasedReadings_{createdCsvCount}.csv",
+                                        null, groupHeader.gaitReportReadings,
+                                        groupHeader.timeBasedReadingInfoSection.addedColumns.Select(x => x.gameObject.name)
+                                            .ToList());
+                                }))
+                           );
+#endif
+                    }
+
                     headingadded = true;
                 }
             }
@@ -376,6 +547,7 @@ public class UserReportController : MonoBehaviour
         
     }
 
+    private bool lineGraph;
     void InvokeOtherToggles(string name, bool value)
     {
         toggles.Where(x=>x.isOn !=value && x.gameObject.name == name).ToList().ForEach(x=>x.isOn = value);
@@ -407,22 +579,63 @@ public class UserReportController : MonoBehaviour
         CSVManager.Export(filePath);
         // RunRScript(filePath,fileName);
     }
-    void CreateTimeBasedCSV(string fileName, List<TimeBasedReadingRequest> readings,List<string> columnNames)
+
+    public List<string> GaitColumnOfTimeName;
+    void CreateTimeBasedCSV(string fileName, List<TimeBasedReadingRequest> readings, List<GetGaitReportResponse> gaitReadings,List<string> columnNames)
     {
         // Path to save the file
+        
         string filePath = Path.Combine(Application.persistentDataPath, fileName);
 
         // Use StringBuilder for efficient CSV generation
         StringBuilder csvContent = new StringBuilder();
 
         // Add header row
+        // if (selectedGaitReadings.Count != 0)
+        // {
+        //     int index = 0;
+        //     if (columnNames.Contains("SubjectStandingAtTime"))
+        //     {
+        //         index = columnNames.IndexOf(columnNames.FirstOrDefault(x => x.Contains("SubjectStandingAtTime")));
+        //         GaitColumnOfTimeName = columnNames[index];
+        //     }
+        //
+        //     if (columnNames.Contains("FootStrikeAtTime"))
+        //     {
+        //         index = columnNames.IndexOf(columnNames.FirstOrDefault(x => x.Contains("FootStrikeAtTime")));
+        //         GaitColumnOfTimeName = columnNames[index];
+        //     }
+        //
+        //     if (columnNames.Contains("HeelPassingAtTime"))
+        //     {
+        //         index = columnNames.IndexOf(columnNames.FirstOrDefault(x => x.Contains("HeelPassingAtTime")));
+        //         GaitColumnOfTimeName = columnNames[index];
+        //     }
+        // }
         csvContent.AppendLine($"{string.Join(",",columnNames)}");
 
         // Add data rows
-        foreach (var reading in readings)
+        if (readings != null)
         {
-            PropertyInfo[] fields = reading.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance).Where(x=>x.GetValue(reading)!=null && x.Name!="ReportsRecordId" && columnNames.Contains(x.Name)).ToArray();
-            csvContent.AppendLine($"{string.Join(",", fields.Select(x=>x.GetValue(reading).ToString()) )}");
+            foreach (var reading in readings)
+            {
+                PropertyInfo[] fields = reading.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                    .Where(x => x.GetValue(reading) != null && x.Name != "ReportsRecordId" &&
+                                columnNames.Contains(x.Name)).ToArray();
+                csvContent.AppendLine($"{string.Join(",", fields.Select(x => x.GetValue(reading).ToString()))}");
+            }
+        }
+
+        if (gaitReadings != null)
+        {
+            foreach (var reading in gaitReadings)
+            {
+                PropertyInfo[] fields = reading.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                    .Where(x => x.GetValue(reading) != null && x.Name != "ReportsRecordId" &&
+                                columnNames.Contains(x.Name)).ToArray();
+                  
+                csvContent.AppendLine($"{string.Join(",", fields.Select(x => x.GetValue(reading).ToString()))}");
+            }
         }
 
         // Write the CSV content to the file
@@ -467,133 +680,145 @@ public void GenerateRMarkdownForTimeBased(string outputRmdPath, List<string> csv
 {
     try
     {
-        // Ensure the output directory exists
-        string outputDirectory = Path.GetDirectoryName(outputRmdPath);
-        if (!Directory.Exists(outputDirectory))
-            Directory.CreateDirectory(outputDirectory);
-
-        // Build R Markdown content
-        var rmdContent = new System.Text.StringBuilder();
-        rmdContent.AppendLine("---");
-        rmdContent.AppendLine("title: \"Comparison Report\"");
-        rmdContent.AppendLine("output: html_document");
-        rmdContent.AppendLine("---\n");
-
-        rmdContent.AppendLine("## Comparison of Multiple Datasets");
-        rmdContent.AppendLine("This report compares data from multiple datasets.\n");
-
-        int datasetIndex = 1;
-
-        // Include datasets as inline R data.frames
-        foreach (var csvPath in csvFilePaths)
+        if (selectedReadings.Count != 0)
         {
-            string[] csvLines = File.ReadAllLines(csvPath);
-            if (csvLines.Length < 2)
+            // Ensure the output directory exists
+            string outputDirectory = Path.GetDirectoryName(outputRmdPath);
+            if (!Directory.Exists(outputDirectory))
+                Directory.CreateDirectory(outputDirectory);
+
+            // Build R Markdown content
+            var rmdContent = new System.Text.StringBuilder();
+            rmdContent.AppendLine("---");
+            rmdContent.AppendLine("title: \"Comparison Report\"");
+            rmdContent.AppendLine("output: html_document");
+            rmdContent.AppendLine("---\n");
+
+            rmdContent.AppendLine("## Comparison of Multiple Datasets");
+            rmdContent.AppendLine("This report compares data from multiple datasets.\n");
+
+            int datasetIndex = 1;
+
+            // Include datasets as inline R data.frames
+            foreach (var csvPath in csvFilePaths)
             {
-                Debug.LogError($"CSV file '{csvPath}' is empty or missing data.");
-                continue;
-            }
-
-            string[] headers = csvLines[0].Split(',');
-            var rDataFrame = new System.Text.StringBuilder();
-            rDataFrame.AppendLine($"data{datasetIndex} <- data.frame(");
-
-            for (int i = 0; i < headers.Length; i++)
-            {
-                string header = headers[i].Trim(); // Trim whitespace around headers
-                rDataFrame.Append($"  {header} = c(");
-
-                for (int j = 1; j < csvLines.Length; j++)
+                string[] csvLines = File.ReadAllLines(csvPath);
+                if (csvLines.Length < 2)
                 {
-                    string[] rowValues = csvLines[j].Split(',');
-                    string value = i < rowValues.Length ? rowValues[i].Trim() : "NA"; // Handle missing values with "NA"
-                    rDataFrame.Append(value);
-
-                    if (j < csvLines.Length - 1)
-                        rDataFrame.Append(", ");
+                    Debug.LogError($"CSV file '{csvPath}' is empty or missing data.");
+                    continue;
                 }
 
-                if (i < headers.Length - 1)
-                    rDataFrame.AppendLine("),");
-                else
-                    rDataFrame.AppendLine(")");
+                string[] headers = csvLines[0].Split(',');
+                var rDataFrame = new System.Text.StringBuilder();
+                rDataFrame.AppendLine($"data{datasetIndex} <- data.frame(");
+
+                for (int i = 0; i < headers.Length; i++)
+                {
+                    string header = headers[i].Trim(); // Trim whitespace around headers
+                    rDataFrame.Append($"  {header} = c(");
+
+                    for (int j = 1; j < csvLines.Length; j++)
+                    {
+                        string[] rowValues = csvLines[j].Split(',');
+                        string value =
+                            i < rowValues.Length ? rowValues[i].Trim() : "NA"; // Handle missing values with "NA"
+                        rDataFrame.Append(value);
+
+                        if (j < csvLines.Length - 1)
+                            rDataFrame.Append(", ");
+                    }
+
+                    if (i < headers.Length - 1)
+                        rDataFrame.AppendLine("),");
+                    else
+                        rDataFrame.AppendLine(")");
+                }
+
+                rDataFrame.AppendLine(")");
+
+                // Add dataset to R Markdown content
+                var dateTime = EscapeMarkdown(selectedReadings[datasetIndex - 1].CreatedOn.text);
+                rmdContent.AppendLine($"### Capture '{dateTime}', {selectedReadings[datasetIndex - 1].UserNameOfSubject}, {selectedReadings[datasetIndex - 1].ReportDescription.text.Replace("<b>Comment:</b>\n", "")}");
+                rmdContent.AppendLine($"#The raw data for Dataset {datasetIndex} is shown below:\n");
+                rmdContent.AppendLine("```{r echo=FALSE, results='asis'}");
+                rmdContent.AppendLine(rDataFrame.ToString());
+                rmdContent.AppendLine("library(knitr)");
+                rmdContent.AppendLine(
+                    "cat('<div style=\"max-height: 300px; overflow-y: auto; border: 1px solid #ccc; padding: 10px;\">')");
+                rmdContent.AppendLine(
+                    $"print(kable(data{datasetIndex}, caption = \"Dataset {datasetIndex} Table\", format = \"html\", table.attr = \"class='table table-striped'\"))");
+                rmdContent.AppendLine("cat('</div>')");
+                rmdContent.AppendLine("```");
+
+                datasetIndex++;
             }
 
-            rDataFrame.AppendLine(")");
+            // Add comparison graphs
+            rmdContent.AppendLine("## Joint Comparison Across Datasets");
+            rmdContent.AppendLine("The following graphs compare joint readings across the datasets.\n");
 
-            // Add dataset to R Markdown content
-            rmdContent.AppendLine($"### Readings Of Subject {selectedReadings[datasetIndex-1].UserNameOfSubject}, {selectedReadings[datasetIndex-1].ReportDescription.text.Replace("<b>Comment:</b>\n","")}");
-            rmdContent.AppendLine($"The raw data for Dataset {datasetIndex} is shown below:\n");
-            rmdContent.AppendLine("```{r echo=FALSE, results='asis'}");
-            rmdContent.AppendLine(rDataFrame.ToString());
-            rmdContent.AppendLine("library(knitr)");
-            rmdContent.AppendLine("cat('<div style=\"max-height: 300px; overflow-y: auto; border: 1px solid #ccc; padding: 10px;\">')");
-            rmdContent.AppendLine($"print(kable(data{datasetIndex}, caption = \"Dataset {datasetIndex} Table\", format = \"html\", table.attr = \"class='table table-striped'\"))");
-            rmdContent.AppendLine("cat('</div>')");
+            rmdContent.AppendLine("```{r echo=FALSE, warning=FALSE, message=FALSE}");
+            rmdContent.AppendLine("library(ggplot2)");
+            rmdContent.AppendLine("library(svglite)");
+
+            rmdContent.AppendLine("# Label datasets");
+            for (int i = 1; i < datasetIndex; i++)
+            {
+                rmdContent.AppendLine($"data{i}$Dataset <- 'Dataset {i}'");
+            }
+
+            rmdContent.AppendLine("# Combine datasets");
+            rmdContent.AppendLine("combined_data <- rbind(" +
+                                  string.Join(", ", Enumerable.Range(1, datasetIndex - 1).Select(i => $"data{i}")) +
+                                  ")");
+            rmdContent.AppendLine("plot_vars <- names(data1)[2:length(names(data1))] # Columns to plot");
+
+            rmdContent.AppendLine("# Generate and embed inline SVG plots");
+            rmdContent.AppendLine("for (var_name in plot_vars) {");
+            rmdContent.AppendLine(
+                "  if (var_name == 'Dataset') next # Skip the graph titled 'Dataset Comparison Across Datasets'");
+
+            rmdContent.AppendLine("  cat(paste0('### Comparison of ', var_name, ' Across Datasets\n\n'))");
+
+            rmdContent.AppendLine("  # Create the plot and save as SVG content");
+            rmdContent.AppendLine("  svg_file <- tempfile()");
+            rmdContent.AppendLine("  svglite::svglite(svg_file, width = 8, height = 6)");
+            
+            rmdContent.AppendLine("  print(ggplot(combined_data, aes(x = TimeOfReading, y = .data[[var_name]], color = Dataset, group = Dataset)) +");
+            
+            rmdContent.AppendLine("          geom_line(linewidth = 1) +");
+            rmdContent.AppendLine("          ggtitle(paste(var_name, 'Comparison Across Datasets')) +");
+            rmdContent.AppendLine("          xlab('Time of Reading') + ylab(var_name) +");
+            rmdContent.AppendLine("          theme_minimal() +");
+            rmdContent.AppendLine("          theme(axis.text.x = element_text(angle = 45, hjust = 1)))");
+            rmdContent.AppendLine("  dev.off()");
+
+            rmdContent.AppendLine("  # Embed SVG content directly in the HTML");
+            rmdContent.AppendLine("  svg_content <- paste(readLines(svg_file), collapse = '\n')");
+            rmdContent.AppendLine("  cat(svg_content)"); // Embed raw SVG content directly
+            rmdContent.AppendLine("}");
             rmdContent.AppendLine("```");
 
-            datasetIndex++;
-        }
-
-        // Add comparison graphs
-        rmdContent.AppendLine("## Joint Comparison Across Datasets");
-        rmdContent.AppendLine("The following graphs compare joint readings across the datasets.\n");
-
-        rmdContent.AppendLine("```{r echo=FALSE, warning=FALSE, message=FALSE}");
-        rmdContent.AppendLine("library(ggplot2)");
-        rmdContent.AppendLine("library(svglite)");
-
-        rmdContent.AppendLine("# Label datasets");
-        for (int i = 1; i < datasetIndex; i++)
-        {
-            rmdContent.AppendLine($"data{i}$Dataset <- 'Dataset {i}'");
-        }
-
-        rmdContent.AppendLine("# Combine datasets");
-        rmdContent.AppendLine("combined_data <- rbind(" + string.Join(", ", Enumerable.Range(1, datasetIndex - 1).Select(i => $"data{i}")) + ")");
-        rmdContent.AppendLine("plot_vars <- names(data1)[2:length(names(data1))] # Columns to plot");
-        
-        rmdContent.AppendLine("# Generate and embed inline SVG plots");
-        rmdContent.AppendLine("for (var_name in plot_vars) {");
-        rmdContent.AppendLine("  if (var_name == 'Dataset') next # Skip the graph titled 'Dataset Comparison Across Datasets'");
-
-        rmdContent.AppendLine("  cat(paste0('### Comparison of ', var_name, ' Across Datasets\n\n'))");
-        
-        rmdContent.AppendLine("  # Create the plot and save as SVG content");
-        rmdContent.AppendLine("  svg_file <- tempfile()");
-        rmdContent.AppendLine("  svglite::svglite(svg_file, width = 8, height = 6)");
-        rmdContent.AppendLine("  print(ggplot(combined_data, aes(x = TimeOfReading, y = .data[[var_name]], color = Dataset, group = Dataset)) +");
-        rmdContent.AppendLine("          geom_line(linewidth = 1) +");
-        rmdContent.AppendLine("          ggtitle(paste(var_name, 'Comparison Across Datasets')) +");
-        rmdContent.AppendLine("          xlab('Time of Reading') + ylab(var_name) +");
-        rmdContent.AppendLine("          theme_minimal() +");
-        rmdContent.AppendLine("          theme(axis.text.x = element_text(angle = 45, hjust = 1)))");
-        rmdContent.AppendLine("  dev.off()");
-        
-        rmdContent.AppendLine("  # Embed SVG content directly in the HTML");
-        rmdContent.AppendLine("  svg_content <- paste(readLines(svg_file), collapse = '\n')");
-        rmdContent.AppendLine("  cat(svg_content)"); // Embed raw SVG content directly
-        rmdContent.AppendLine("}");
-        rmdContent.AppendLine("```");
-
-        // Write the RMD file
-        File.WriteAllText(outputRmdPath, rmdContent.ToString());
-        RReportGenerateRequest rr = new RReportGenerateRequest()
-        {
-            Rmd = "@"+rmdContent.ToString(),
-        };
-        string json = JsonConvert.SerializeObject(rr);
-        APIHandler.instance.Post("UserReport/GetRReport",json,onSuccess: (response) =>
-        {
-            Debug.Log(response);
-            RReportResponse rrr = JsonConvert.DeserializeObject<RReportResponse>(response);
-            rrr.result.HtmlResponse = rrr.result.HtmlResponse.Replace("&lt;", "<").Replace("&gt;", ">").Replace("&#39;","\"").Replace("##","");
-            string path = Path.Combine(Application.persistentDataPath, "report.html");
-            File.WriteAllText(path, rrr.result.HtmlResponse);
-            // CSVManager.Export(path);
+            // Write the RMD file
+            File.WriteAllText(outputRmdPath, rmdContent.ToString());
+            RReportGenerateRequest rr = new RReportGenerateRequest()
+            {
+                Rmd = "@" + rmdContent.ToString(),
+            };
+            string json = JsonConvert.SerializeObject(rr);
+            APIHandler.instance.Post("UserReport/GetRReport", json, onSuccess: (response) =>
+            {
+                Debug.Log(response);
+                RReportResponse rrr = JsonConvert.DeserializeObject<RReportResponse>(response);
+                rrr.result.HtmlResponse = rrr.result.HtmlResponse.Replace("&lt;", "<").Replace("&gt;", ">")
+                    .Replace("&#39;", "\"").Replace("##", "");
+                string path = Path.Combine(Application.persistentDataPath, "report.html");
+                File.WriteAllText(path, rrr.result.HtmlResponse);
+                // CSVManager.Export(path);
 #if UNITY_EDITOR
-            System.Diagnostics.Process.Start(path);
-            Debug.Log("Is Editor");
+                System.Diagnostics.Process.Start(path);
+                Debug.Log("Is Editor");
 
 #else
 
@@ -601,12 +826,206 @@ public void GenerateRMarkdownForTimeBased(string outputRmdPath, List<string> csv
             Debug.Log("URL = " + url);
             Debug.Log("Persistance = " + path);
             GeneralStaticManager.OpenFile(path);
-#endif    
-        },onError: (error) =>
+#endif
+            }, onError: (error) => { Debug.LogError(error); });
+            Debug.Log($"R Markdown file generated successfully at: {outputRmdPath}");
+        }
+        else
         {
-            Debug.LogError(error);
-        });
-        Debug.Log($"R Markdown file generated successfully at: {outputRmdPath}");
+          // Ensure the output directory exists
+    string outputDirectory = Path.GetDirectoryName(outputRmdPath);
+    if (!Directory.Exists(outputDirectory))
+        Directory.CreateDirectory(outputDirectory);
+
+    // Build R Markdown content
+    var rmdContent = new System.Text.StringBuilder();
+    rmdContent.AppendLine("---");
+    rmdContent.AppendLine("title: \"Comparison Report\"");
+    rmdContent.AppendLine("output: html_document");
+    rmdContent.AppendLine("---\n");
+
+    rmdContent.AppendLine("## Comparison of Multiple Datasets");
+    rmdContent.AppendLine("This report compares data from multiple datasets.\n");
+
+    // Add setup chunk
+    rmdContent.AppendLine("```{r setup, include=FALSE}");
+    rmdContent.AppendLine("# Install and load required packages");
+    rmdContent.AppendLine("required_packages <- c(\"ggplot2\", \"svglite\", \"knitr\", \"tidyr\")");
+    rmdContent.AppendLine("new_packages <- required_packages[!(required_packages %in% installed.packages()[,\"Package\"])]");
+    rmdContent.AppendLine("if(length(new_packages)) install.packages(new_packages, repos = \"https://cran.rstudio.com\")");
+    rmdContent.AppendLine("library(ggplot2)");
+    rmdContent.AppendLine("library(svglite)");
+    rmdContent.AppendLine("library(knitr)");
+    rmdContent.AppendLine("library(tidyr)");
+    rmdContent.AppendLine("```");
+
+    int datasetIndex = 1;
+
+    // Include datasets as inline R data.frames
+    foreach (var csvPath in csvFilePaths)
+    {
+        string[] csvLines = File.ReadAllLines(csvPath);
+        if (csvLines.Length < 2)
+        {
+            Debug.LogError($"CSV file '{csvPath}' is empty or missing data.");
+            continue;
+        }
+
+        string[] headers = csvLines[0].Split(',');
+        var rDataFrame = new System.Text.StringBuilder();
+        rDataFrame.AppendLine($"data{datasetIndex} <- data.frame(");
+
+        for (int i = 0; i < headers.Length; i++)
+        {
+            string header = headers[i].Trim(); // Trim whitespace around headers
+            rDataFrame.Append($"  {header} = c(");
+
+            for (int j = 1; j < csvLines.Length; j++)
+            {
+                string[] rowValues = csvLines[j].Split(',');
+                string value = i < rowValues.Length ? rowValues[i].Trim() : "NA"; // Handle missing values with "NA"
+                rDataFrame.Append(value);
+
+                if (j < csvLines.Length - 1)
+                    rDataFrame.Append(", ");
+            }
+
+            if (i < headers.Length - 1)
+                rDataFrame.AppendLine("),");
+            else
+                rDataFrame.AppendLine(")");
+        }
+
+        rDataFrame.AppendLine(")");
+
+        // Add dataset to R Markdown content
+        rmdContent.AppendLine($"### Dataset {datasetIndex}");
+        rmdContent.AppendLine($"The raw data for Dataset {datasetIndex} is shown below:\n");
+        rmdContent.AppendLine("```{r echo=FALSE, results='asis'}");
+        rmdContent.AppendLine(rDataFrame.ToString());
+        rmdContent.AppendLine($"data{datasetIndex}$Dataset <- 'Dataset {datasetIndex}'"); // Add Dataset column
+        rmdContent.AppendLine($"kable(data{datasetIndex}, caption = \"Dataset {datasetIndex} Table\", format = \"html\", table.attr = \"class='table table-striped'\")");
+        rmdContent.AppendLine("```");
+
+        datasetIndex++;
+    }
+
+    // Combine datasets
+    rmdContent.AppendLine("```{r echo=FALSE, warning=FALSE, message=FALSE}");
+    rmdContent.AppendLine("# Combine datasets");
+    rmdContent.AppendLine("combined_data <- rbind(" +
+                          string.Join(", ", Enumerable.Range(1, datasetIndex - 1).Select(i => $"data{i}")) +
+                          ")");
+    rmdContent.AppendLine("# Identify numeric columns for plotting");
+    rmdContent.AppendLine("numeric_columns <- names(combined_data)[sapply(combined_data, is.numeric)]");
+    rmdContent.AppendLine("time_columns <- c(\"FootStrikeAtTime\", \"HeelPassingAtTime\")");
+    rmdContent.AppendLine("value_columns <- setdiff(numeric_columns, time_columns)");
+    rmdContent.AppendLine("# Pivot data to long format");
+    rmdContent.AppendLine("long_data <- combined_data %>% pivot_longer(-c(Dataset, FootStrikeAtTime, HeelPassingAtTime), names_to = 'Variable', values_to = 'Value')");
+    rmdContent.AppendLine("```");
+
+    // Generate two graphs: one for FootStrikeAtTime, one for HeelPassingAtTime
+    if (lineGraph)
+    {
+        foreach (var timeColumn in new[] { "FootStrikeAtTime", "HeelPassingAtTime" })
+        {
+            rmdContent.AppendLine($"## Comparison for {timeColumn}");
+            rmdContent.AppendLine($"The following graph compares all variables with respect to `{timeColumn}`.\n");
+
+            rmdContent.AppendLine("```{r echo=FALSE, warning=FALSE, message=FALSE}");
+            rmdContent.AppendLine("svg_file <- tempfile(fileext = '.svg')"); // Save graph as SVG
+            rmdContent.AppendLine("svglite::svglite(svg_file, width = 8, height = 6)");
+            rmdContent.AppendLine(
+                $"p <- ggplot(long_data, aes(x = .data[[\"{timeColumn}\"]], y = Value, color = Variable, group = Variable)) +");
+            rmdContent.AppendLine("  geom_line(size = 1) +");
+            rmdContent.AppendLine("  geom_point(size = 2) +");
+            rmdContent.AppendLine($"  labs(title = 'Comparison of All Variables Across Datasets ({timeColumn})',");
+            rmdContent.AppendLine($"       x = '{timeColumn}',");
+            rmdContent.AppendLine("       y = 'Value') +");
+            rmdContent.AppendLine("  theme_minimal()");
+            rmdContent.AppendLine("print(p)");
+            rmdContent.AppendLine("dev.off()");
+            rmdContent.AppendLine("svg_content <- paste(readLines(svg_file), collapse = '\\n')");
+            rmdContent.AppendLine("cat(svg_content)");
+            rmdContent.AppendLine("```");
+        }
+    }
+    // Generate two bar graphs: one for FootStrikeAtTime, one for HeelPassingAtTime
+    else
+    {
+        foreach (var timeColumn in new[] { "FootStrikeAtTime", "HeelPassingAtTime" })
+
+        {
+
+            rmdContent.AppendLine($"## Comparison for {timeColumn}");
+
+            rmdContent.AppendLine(
+                $"The following graph compares all variables with respect to `{timeColumn}` using bar graphs.\n");
+
+
+
+            rmdContent.AppendLine("```{r echo=FALSE, warning=FALSE, message=FALSE}");
+
+            rmdContent.AppendLine("svg_file <- tempfile(fileext = '.svg')"); // Save graph as SVG
+
+            rmdContent.AppendLine("svglite::svglite(svg_file, width = 8, height = 6)");
+
+            rmdContent.AppendLine(
+                $"p <- ggplot(long_data, aes(x = .data[[\"{timeColumn}\"]], y = Value, fill = Variable)) +");
+
+            rmdContent.AppendLine("  geom_bar(stat = 'identity', position = 'dodge') +");
+
+            rmdContent.AppendLine($"  labs(title = 'Comparison of All Variables Across Datasets ({timeColumn})',");
+
+            rmdContent.AppendLine($"       x = '{timeColumn}',");
+
+            rmdContent.AppendLine("       y = 'Value') +");
+
+            rmdContent.AppendLine("  theme_minimal()");
+
+            rmdContent.AppendLine("print(p)");
+
+            rmdContent.AppendLine("dev.off()");
+
+            rmdContent.AppendLine("svg_content <- paste(readLines(svg_file), collapse = '\\n')");
+
+            rmdContent.AppendLine("cat(svg_content)");
+
+            rmdContent.AppendLine("```");
+
+        }
+    } // Write the RMD file
+
+    File.WriteAllText(outputRmdPath, rmdContent.ToString());
+                RReportGenerateRequest rr = new RReportGenerateRequest()
+                {
+                    Rmd = "@" + rmdContent.ToString(),
+                };
+                string json = JsonConvert.SerializeObject(rr);
+                APIHandler.instance.Post("UserReport/GetRReport", json, onSuccess: (response) =>
+                {
+                    Debug.Log(response);
+                    RReportResponse rrr = JsonConvert.DeserializeObject<RReportResponse>(response);
+                    rrr.result.HtmlResponse = rrr.result.HtmlResponse.Replace("&lt;", "<").Replace("&gt;", ">")
+                        .Replace("&#39;", "\"").Replace("##", "");
+                    string path = Path.Combine(Application.persistentDataPath, "report.html");
+                    File.WriteAllText(path, rrr.result.HtmlResponse);
+                    // CSVManager.Export(path);
+#if UNITY_EDITOR
+                    System.Diagnostics.Process.Start(path);
+                    Debug.Log("Is Editor");
+
+#else
+
+            string url = "file://" + path.Replace(" ", "%20");
+            Debug.Log("URL = " + url);
+            Debug.Log("Persistance = " + path);
+            GeneralStaticManager.OpenFile(path);
+#endif
+                }, onError: (error) => { Debug.LogError(error); });
+                Debug.Log($"R Markdown file generated successfully at: {outputRmdPath}");
+            }
+        
     }
     catch (System.Exception ex)
     {
@@ -614,7 +1033,16 @@ public void GenerateRMarkdownForTimeBased(string outputRmdPath, List<string> csv
     }
 }
 
-
+string EscapeMarkdown(string input)
+{
+    return input.Replace("\\", "\\\\")
+        .Replace("`", "\\`")
+        .Replace("_", "\\_")
+        .Replace("*", "\\*")
+        .Replace("#", "\\#")
+        .Replace("<", "&lt;")
+        .Replace(">", "&gt;");
+}
 
 
 
@@ -751,17 +1179,32 @@ public void GenerateRMarkdownForTimeBased(string outputRmdPath, List<string> csv
     }
     public void CompareSelectedReadings()
     {
-        if(selectedReadings.Count == 0)
+        if(selectedReadings.Count == 0 && selectedGaitReadings.Count == 0)
         {
             ReferenceManager.instance.PopupManager.Show("No Reading Selected", "Please select a reading or multiple readings from the reports section to compare them");
             return;
         }
-        List<JointReading> listofJointReadings = selectedReadings.Where(x=>x.jointReadings!=null).SelectMany(x=>x.jointReadings).ToList();
-        
+
+        if (selectedReadings.Count > 0 && selectedGaitReadings.Count > 0)
+        {
+            ReferenceManager.instance.PopupManager.Show("Report Category Not Matching", "Please Select Gait Or Per Frame Readings");
+            return;
+        }
+        // List<JointReading> listofJointReadings = selectedReadings.Where(x=>x.jointReadings!=null).SelectMany(x=>x.jointReadings).ToList();
+        if (selectedGaitReadings.Count > 0)
+        {
+            List<GetGaitReportResponse> listOfGaitReadings = selectedGaitReadings.Where(x => x.gaitReports != null).SelectMany(x => x.gaitReports).ToList();
+            ShowGaitReadingsFromDB(listOfGaitReadings);
+        }
+
         // ShowJointReadingsFromDB(listofJointReadings);
-        List<TimeBasedReadingRequest> timeBasedReadings = selectedReadings.SelectMany(x => x.timeBasedReadings)?.ToList();
-        ShowTimeBasedReadingsFromDB(timeBasedReadings);
-        
+        if (selectedReadings.Count > 0)
+        {
+            List<TimeBasedReadingRequest> timeBasedReadings =
+                selectedReadings.SelectMany(x => x.timeBasedReadings)?.ToList();
+            ShowTimeBasedReadingsFromDB(timeBasedReadings);
+        }
+
 
     }
     public void CreateNew()

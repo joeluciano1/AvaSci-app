@@ -17,6 +17,7 @@ public class TimeBasedReadingFromDB : MonoBehaviour
     public Toggle SelectAllToggle;
     public List<TimeBasedReadingRequest> timeBasedReadings = new List<TimeBasedReadingRequest>();
     public List<TimeBasedReadingRequest> selectedTimeBasedReadings = new List<TimeBasedReadingRequest>();
+    public List<GetGaitReportResponse> gaitReportReadings = new List<GetGaitReportResponse>();
     public void ExpandAndCollapse(bool value)
     {
         if(value)

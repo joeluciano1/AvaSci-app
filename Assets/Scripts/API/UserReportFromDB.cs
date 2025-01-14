@@ -6,6 +6,7 @@ using UnityEngine.Networking;
 using UnityEngine.UI;
 using FastForward.CAS;
 using System;
+using System.Linq;
 using Newtonsoft.Json;
 using DG.Tweening;
 
@@ -32,8 +33,10 @@ public class UserReportFromDB : MonoBehaviour
     public RectTransform Content;
     ContentSizeFitter ContentSizeFitter;
     public Toggle CompareViewToggle;
+    public Toggle CompareGaitToggle;
     public List<JointReading> jointReadings = new List<JointReading>();
     public List<TimeBasedReadingRequest> timeBasedReadings = new List<TimeBasedReadingRequest>();
+    public List<GetGaitReportResponse> gaitReports = new List<GetGaitReportResponse>();
     private void Start()
     {
         // jointReadings.ForEach(x => x.VideoNameLink = ReportDescription.text.Replace("<b>Comment:</b>", ""));
@@ -54,6 +57,12 @@ public class UserReportFromDB : MonoBehaviour
         {
             CompareViewToggle.interactable = true;
             CompareViewToggle.transform.GetChild(0).GetComponent<TMP_Text>().text = "Select To Compare";
+        }
+
+        if (gaitReports != null && gaitReports.Count > 0)
+        {
+            CompareGaitToggle.interactable = true;
+            CompareGaitToggle.transform.GetChild(0).GetComponent<TMP_Text>().text = "Select To Compare Gait";
         }
     }
     // bool check;

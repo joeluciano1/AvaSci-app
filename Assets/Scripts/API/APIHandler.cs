@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Networking;
-
+using DG.Tweening;
 public class APIHandler : MonoBehaviour
 {
     public static APIHandler instance;
@@ -26,8 +26,13 @@ public class APIHandler : MonoBehaviour
 
         using (UnityWebRequest www = UnityWebRequest.Get(url))
         {
-            yield return www.SendWebRequest();
-
+            www.SendWebRequest();
+            while (!www.isDone)
+            {
+                if(ReferenceManager.instance.LoadingManager.LoadingImage.fillAmount < www.downloadProgress)
+                    ReferenceManager.instance.LoadingManager.LoadingImage.DOFillAmount(www.downloadProgress,0.5f);
+                yield return null;
+            }
             if (www.result == UnityWebRequest.Result.ConnectionError || www.result == UnityWebRequest.Result.ProtocolError)
             {
                 onError?.Invoke(www.error);
@@ -55,8 +60,13 @@ public class APIHandler : MonoBehaviour
         request.downloadHandler = (DownloadHandler)new DownloadHandlerBuffer();
         request.SetRequestHeader("Content-Type", "application/json");
 
-        yield return request.SendWebRequest();
-
+        request.SendWebRequest();
+        while (!request.isDone)
+        {
+            if(ReferenceManager.instance.LoadingManager.LoadingImage.fillAmount < request.downloadProgress)
+                ReferenceManager.instance.LoadingManager.LoadingImage.DOFillAmount(request.downloadProgress,0.5f);
+            yield return null;
+        }
         if (request.result == UnityWebRequest.Result.ConnectionError || request.result == UnityWebRequest.Result.ProtocolError)
         {
             onError?.Invoke(request.error);

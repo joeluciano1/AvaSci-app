@@ -210,8 +210,28 @@ public class UserReportData
     public string SubjectId { get; set; }
     public List<JointReading> JointReadings { get; set; } = new List<JointReading>();
     public List<TimeBasedReadingRequest> TimeBasedReadings { get; set; } = new List<TimeBasedReadingRequest>();
+    public List<GetGaitReportResponse> GaitReports { get; set; } = new List<GetGaitReportResponse>();
 }
+public class GetGaitReportResponse
+{
+    public long? ReportsRecordId { get; set; }
+    public string CreatedBy { get; set; }
+    public string Subject { get; set; }
+    public float SubjectStandingAtTime { get; set; }
+    public float FootStrikeAtTime { get; set; }
+    public float HeelPassingAtTime { get; set; }
+    public float AngleDifferenceAtTime { get; set; }
+    public float MMDistaceAtTime { get; set; }
+    public float MaxAngleDifference { get; set; }
+    public float MaxmmDistance { get; set; }
 
+    public float KneeAbductionAtTime { get; set; }
+    public float PelvisAngleAtTime { get; set; }
+    public float AnkleAbductionAtTime { get; set; }
+    public float VarusValgusAtTime { get; set; }
+    public string SelectedLeg { get; set; }
+    public string VideoName { get; set; }
+}
 public class UserReportResponse
 {
     public bool isSuccess { get; set; }
