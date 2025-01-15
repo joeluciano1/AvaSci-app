@@ -14,6 +14,7 @@ using LightBuzz.BodyTracking;
 using Newtonsoft.Json;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.UI;
 
 public class ReferenceManager : MonoBehaviour
@@ -500,9 +501,27 @@ public class ReferenceManager : MonoBehaviour
             }
         }
         string json = JsonConvert.SerializeObject(videoSaveBodies);
-        azureStorageManager.UploadVideo(json, $"{GeneralStaticManager.GlobalVar["UserName"]}_");
+        isUploadingVideo = true;
+        persistantCount = 1;
+        uploadVideoEvent.AddListener(()=> azureStorageManager.UploadVideo(json, $"{GeneralStaticManager.GlobalVar["UserName"]}_"));
+        uploadVideoEvent.Invoke();
     }
 
+    public int persistantCount;
+    private void OnApplicationFocus(bool hasFocus)
+    {
+        if (hasFocus)
+        {
+            if (isUploadingVideo && persistantCount!=0)
+            {
+                ReferenceManager.instance.PopupManager.Show("UploadResumed","Your upload is resumed");
+                uploadVideoEvent.Invoke();
+            }
+        }
+    }
+
+    public bool isUploadingVideo;
+    public UnityEvent uploadVideoEvent;
     public void UpdateVideo()
     {
         ButtonHandler.GeneratePDFTest();

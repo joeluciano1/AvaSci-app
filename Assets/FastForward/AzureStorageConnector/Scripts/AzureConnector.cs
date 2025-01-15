@@ -9,6 +9,7 @@ using System.Web;
 
 using TMPro;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.Networking;
 
 //-----------------------------------------------------------------------------
@@ -131,6 +132,8 @@ namespace FastForward.CAS
         /// <param name="fileName">The desired file name (without file extension).  File name should abide by the following rules: https://learn.microsoft.com/en-us/rest/api/storageservices/naming-and-referencing-containers--blobs--and-metadata#blob-names</param>
         /// <param name="useMillis">Optional: If true the upload time in milliseconds will appended to the filename in the form {fileName}-{milliseconds}.jpg</param>
         /// <param name="uploadCallback">Optional: AzureUploadCallback which will be called when the process completes.</param>
+        
+        
         public void UploadText(string text, string containerName, string fileName, bool useMillis = false, AzureUploadCallback uploadCallback = null)
         {
             if (_isInit)
@@ -388,6 +391,10 @@ namespace FastForward.CAS
                     uploadCallback?.Invoke(true, request.error, uri);
                 }
             }
+
+            ReferenceManager.instance.isUploadingVideo = false;
+            ReferenceManager.instance.uploadVideoEvent.RemoveAllListeners();
+            ReferenceManager.instance.persistantCount = 0;
         }
 
         #endregion
