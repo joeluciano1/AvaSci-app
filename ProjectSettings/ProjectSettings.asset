@@ -602,7 +602,7 @@ PlayerSettings:
   enableCrashReportAPI: 0
   cameraUsageDescription: Camera required for body-tracking
   locationUsageDescription: 
-  microphoneUsageDescription: 
+  microphoneUsageDescription: Microhphone required for voice to text
   bluetoothUsageDescription: 
   macOSTargetOSVersion: 11.0
   switchNMETAOverride: 

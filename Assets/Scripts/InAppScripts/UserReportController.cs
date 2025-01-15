@@ -438,6 +438,11 @@ public class UserReportController : MonoBehaviour
         var jointsOnDifferentDates = timeBasedReadings.GroupBy(x => x.ReportsRecordId.ToString());
         createdCsvCount = 0;
         timeBasedReadingFromDBPrefab.CSVButton.onClick.RemoveAllListeners();
+        timeBasedReadingFromDBPrefab.CSVButton.onClick.AddListener(() =>
+        {
+            timeBasedReadingFromDBPrefab.RecordingPanel.SetActive(false);
+            timeBasedReadingFromDBPrefab.streamingSampleMic.microphoneRecord.StopRecord();
+        });
        foreach (IGrouping<string,GetGaitReportResponse> group in jointsOnDifferentDates)
         {
             TimeBasedReadingFromDB groupHeader = Instantiate(timeBasedReadingFromDBPrefab, timeBasedReadingFromDBPrefab.transform.parent);
@@ -497,44 +502,29 @@ public class UserReportController : MonoBehaviour
 
                     if (selectedReadings.Count != 0)
                     {
+                        lineGraph = true;
                         timeBasedReadingFromDBPrefab.CSVButton.onClick.AddListener(() =>
+                        {
                             CreateTimeBasedCSV(
                                 $"{selectedReadings[0].UserName.text}_{DateTime.Now.ToShortDateString().Replace("/", "-")}_TimeBasedReadings_{createdCsvCount}.csv",
                                 groupHeader.timeBasedReadings, null,
                                 groupHeader.timeBasedReadingInfoSection.addedColumns.Select(x => x.gameObject.name)
-                                    .ToList()));
+                                    .ToList());
+                        });
                     }
 
                     if (selectedGaitReadings.Count != 0)
                     {
-#if UNITY_EDITOR
-                        timeBasedReadingFromDBPrefab.CSVButton.onClick.AddListener(() => CreateTimeBasedCSV(
-                            $"{selectedGaitReadings[0].UserName.text}_{DateTime.Now.ToShortDateString().Replace("/", "-")}_TimeBasedReadings_{createdCsvCount}.csv",
-                            null, groupHeader.gaitReportReadings,
-                            groupHeader.timeBasedReadingInfoSection.addedColumns.Select(x => x.gameObject.name)
-                                .ToList()));
-#else
+                        lineGraph = false;
                         timeBasedReadingFromDBPrefab.CSVButton.onClick.AddListener(() =>
-                                IOSNativeAlert.ShowAlertMessage("Select Plot Type","Which one you like to generate report in?",new IOSNativeAlert.AlertButton("Line Graph",
-                                    () =>
-                                    {
-                                        lineGraph = true;
-                                        CreateTimeBasedCSV(
-                                            $"{selectedGaitReadings[0].UserName.text}_{DateTime.Now.ToShortDateString().Replace("/", "-")}_TimeBasedReadings_{createdCsvCount}.csv",
-                                            null, groupHeader.gaitReportReadings,
-                                            groupHeader.timeBasedReadingInfoSection.addedColumns.Select(x => x.gameObject.name)
-                                                .ToList());
-                                    }), new IOSNativeAlert.AlertButton("Bar Graph", () =>
-                                {
-                                    lineGraph = false;
-                                    CreateTimeBasedCSV(
-                                        $"{selectedGaitReadings[0].UserName.text}_{DateTime.Now.ToShortDateString().Replace("/", "-")}_TimeBasedReadings_{createdCsvCount}.csv",
-                                        null, groupHeader.gaitReportReadings,
-                                        groupHeader.timeBasedReadingInfoSection.addedColumns.Select(x => x.gameObject.name)
-                                            .ToList());
-                                }))
-                           );
-#endif
+                        {
+                            CreateTimeBasedCSV(
+                                $"{selectedGaitReadings[0].UserName.text}_{DateTime.Now.ToShortDateString().Replace("/", "-")}_TimeBasedReadings_{createdCsvCount}.csv",
+                                null, groupHeader.gaitReportReadings,
+                                groupHeader.timeBasedReadingInfoSection.addedColumns.Select(x => x.gameObject.name)
+                                    .ToList());
+                        });
+
                     }
 
                     headingadded = true;
@@ -583,6 +573,7 @@ public class UserReportController : MonoBehaviour
     public List<string> GaitColumnOfTimeName;
     void CreateTimeBasedCSV(string fileName, List<TimeBasedReadingRequest> readings, List<GetGaitReportResponse> gaitReadings,List<string> columnNames)
     {
+        Debug.Log("Itnni bar");
         // Path to save the file
         
         string filePath = Path.Combine(Application.persistentDataPath, fileName);
@@ -799,7 +790,7 @@ public void GenerateRMarkdownForTimeBased(string outputRmdPath, List<string> csv
             rmdContent.AppendLine("  cat(svg_content)"); // Embed raw SVG content directly
             rmdContent.AppendLine("}");
             rmdContent.AppendLine("```");
-
+            rmdContent.AppendLine("\n <b>Note:</b> "+timeBasedReadingFromDBPrefab.RecordedText.text);
             // Write the RMD file
             File.WriteAllText(outputRmdPath, rmdContent.ToString());
             RReportGenerateRequest rr = new RReportGenerateRequest()
@@ -948,7 +939,9 @@ public void GenerateRMarkdownForTimeBased(string outputRmdPath, List<string> csv
             rmdContent.AppendLine("svg_content <- paste(readLines(svg_file), collapse = '\\n')");
             rmdContent.AppendLine("cat(svg_content)");
             rmdContent.AppendLine("```");
+            
         }
+        rmdContent.AppendLine("\n <b>Note:</b> "+timeBasedReadingFromDBPrefab.RecordedText.text);
     }
     // Generate two bar graphs: one for FootStrikeAtTime, one for HeelPassingAtTime
     else
@@ -990,10 +983,11 @@ public void GenerateRMarkdownForTimeBased(string outputRmdPath, List<string> csv
             rmdContent.AppendLine("svg_content <- paste(readLines(svg_file), collapse = '\\n')");
 
             rmdContent.AppendLine("cat(svg_content)");
-
             rmdContent.AppendLine("```");
+            
 
         }
+        rmdContent.AppendLine("\n <b>Note:</b> "+timeBasedReadingFromDBPrefab.RecordedText.text);
     } // Write the RMD file
 
     File.WriteAllText(outputRmdPath, rmdContent.ToString());
@@ -1064,8 +1058,41 @@ string EscapeMarkdown(string input)
     // {
     //     Debug.LogError(error);
     // });
+    public TMP_InputField CustomRContent;
 
+    public void PasteContent()
+    {
+        CustomRContent.text = UniClipboard.GetText();
+    }
+    public void GenerateCustomRReport()
+    {
+        RReportGenerateRequest rr = new RReportGenerateRequest()
+        {
+            Rmd = "@" + CustomRContent.text.ToString(),
+        };
+        string json = JsonConvert.SerializeObject(rr);
+        APIHandler.instance.Post("UserReport/GetRReport", json, onSuccess: (response) =>
+        {
+            Debug.Log(response);
+            RReportResponse rrr = JsonConvert.DeserializeObject<RReportResponse>(response);
+            rrr.result.HtmlResponse = rrr.result.HtmlResponse.Replace("&lt;", "<").Replace("&gt;", ">")
+                .Replace("&#39;", "\"").Replace("##", "");
+            string path = Path.Combine(Application.persistentDataPath, "CustomReport.html");
+            File.WriteAllText(path, rrr.result.HtmlResponse);
+            // CSVManager.Export(path);
+#if UNITY_EDITOR
+            System.Diagnostics.Process.Start(path);
+            Debug.Log("Is Editor");
 
+#else
+
+            string url = "file://" + path.Replace(" ", "%20");
+            Debug.Log("URL = " + url);
+            Debug.Log("Persistance = " + path);
+            GeneralStaticManager.OpenFile(path);
+#endif
+        }, onError: (error) => { Debug.LogError(error); });
+    }
     public void GenerateRMarkdown(string OutputRmdPath,string CsvFilePath,string fileName)
     {
         try

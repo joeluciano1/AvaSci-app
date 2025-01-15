@@ -176,6 +176,12 @@
       },
       "url": "https://packages.unity.com"
     },
+    "com.whisper.unity": {
+      "version": "file:com.whisper.unity",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {}
+    },
     "com.yasirkula.nativeshare": {
       "version": "https://github.com/yasirkula/unitynativeshare.git",
       "depth": 0,

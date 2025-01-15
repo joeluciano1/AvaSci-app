@@ -5,6 +5,7 @@ using DG.Tweening;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using Whisper.Samples;
 
 public class TimeBasedReadingFromDB : MonoBehaviour
 {
@@ -18,6 +19,9 @@ public class TimeBasedReadingFromDB : MonoBehaviour
     public List<TimeBasedReadingRequest> timeBasedReadings = new List<TimeBasedReadingRequest>();
     public List<TimeBasedReadingRequest> selectedTimeBasedReadings = new List<TimeBasedReadingRequest>();
     public List<GetGaitReportResponse> gaitReportReadings = new List<GetGaitReportResponse>();
+    public GameObject RecordingPanel;
+    public TMP_Text RecordedText;
+    public StreamingSampleMic streamingSampleMic;
     public void ExpandAndCollapse(bool value)
     {
         if(value)
