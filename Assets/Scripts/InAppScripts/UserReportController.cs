@@ -911,84 +911,42 @@ public void GenerateRMarkdownForTimeBased(string outputRmdPath, List<string> csv
     rmdContent.AppendLine("numeric_columns <- names(combined_data)[sapply(combined_data, is.numeric)]");
     rmdContent.AppendLine("time_columns <- c(\"FootStrikeAtTime\", \"HeelPassingAtTime\")");
     rmdContent.AppendLine("value_columns <- setdiff(numeric_columns, time_columns)");
-    rmdContent.AppendLine("# Pivot data to long format");
-    rmdContent.AppendLine("long_data <- combined_data %>% pivot_longer(-c(Dataset, FootStrikeAtTime, HeelPassingAtTime), names_to = 'Variable', values_to = 'Value')");
     rmdContent.AppendLine("```");
 
-    // Generate two graphs: one for FootStrikeAtTime, one for HeelPassingAtTime
-    if (lineGraph)
+    // Generate two graphs for each dataset and combined datasets
+    foreach (var timeColumn in new[] { "FootStrikeAtTime", "HeelPassingAtTime" })
     {
-        foreach (var timeColumn in new[] { "FootStrikeAtTime", "HeelPassingAtTime" })
+        // Graphs for each dataset
+        for (int i = 1; i < datasetIndex; i++)
         {
-            rmdContent.AppendLine($"## Comparison for {timeColumn}");
-            rmdContent.AppendLine($"The following graph compares all variables with respect to `{timeColumn}`.\n");
+            rmdContent.AppendLine($"## Dataset {i} - Comparison for {timeColumn}");
+            rmdContent.AppendLine($"The following graph compares all variables with respect to `{timeColumn}` for Dataset {i}.\n");
 
             rmdContent.AppendLine("```{r echo=FALSE, warning=FALSE, message=FALSE}");
             rmdContent.AppendLine("svg_file <- tempfile(fileext = '.svg')"); // Save graph as SVG
             rmdContent.AppendLine("svglite::svglite(svg_file, width = 8, height = 6)");
+
+            // Generate the graph
             rmdContent.AppendLine(
-                $"p <- ggplot(long_data, aes(x = .data[[\"{timeColumn}\"]], y = Value, color = Variable, group = Variable)) +");
-            rmdContent.AppendLine("  geom_line(size = 1) +");
-            rmdContent.AppendLine("  geom_point(size = 2) +");
-            rmdContent.AppendLine($"  labs(title = 'Comparison of All Variables Across Datasets ({timeColumn})',");
-            rmdContent.AppendLine($"       x = '{timeColumn}',");
-            rmdContent.AppendLine("       y = 'Value') +");
-            rmdContent.AppendLine("  theme_minimal()");
-            rmdContent.AppendLine("print(p)");
-            rmdContent.AppendLine("dev.off()");
-            rmdContent.AppendLine("svg_content <- paste(readLines(svg_file), collapse = '\\n')");
-            rmdContent.AppendLine("cat(svg_content)");
-            rmdContent.AppendLine("```");
-            
-        }
-        rmdContent.AppendLine("\n <b>Note:</b> "+timeBasedReadingFromDBPrefab.RecordedText.text);
-    }
-    // Generate two bar graphs: one for FootStrikeAtTime, one for HeelPassingAtTime
-    else
-    {
-        foreach (var timeColumn in new[] { "FootStrikeAtTime", "HeelPassingAtTime" })
-
-        {
-
-            rmdContent.AppendLine($"## Comparison for {timeColumn}");
-
-            rmdContent.AppendLine(
-                $"The following graph compares all variables with respect to `{timeColumn}` using bar graphs.\n");
-
-
-
-            rmdContent.AppendLine("```{r echo=FALSE, warning=FALSE, message=FALSE}");
-
-            rmdContent.AppendLine("svg_file <- tempfile(fileext = '.svg')"); // Save graph as SVG
-
-            rmdContent.AppendLine("svglite::svglite(svg_file, width = 8, height = 6)");
-
-            rmdContent.AppendLine(
-                $"p <- ggplot(long_data, aes(x = .data[[\"{timeColumn}\"]], y = Value, fill = Variable)) +");
-
+                $"p <- ggplot(data{i} %>% pivot_longer(value_columns, names_to = 'Variable', values_to = 'Value'), aes(x = !!sym('{timeColumn}'), y = Value, fill = Variable)) +");
             rmdContent.AppendLine("  geom_bar(stat = 'identity', position = 'dodge') +");
-
-            rmdContent.AppendLine($"  labs(title = 'Comparison of All Variables Across Datasets ({timeColumn})',");
-
+            rmdContent.AppendLine($"  labs(title = 'Dataset {i} - Comparison of All Variables ({timeColumn})',");
             rmdContent.AppendLine($"       x = '{timeColumn}',");
-
             rmdContent.AppendLine("       y = 'Value') +");
-
             rmdContent.AppendLine("  theme_minimal()");
-
             rmdContent.AppendLine("print(p)");
-
             rmdContent.AppendLine("dev.off()");
-
             rmdContent.AppendLine("svg_content <- paste(readLines(svg_file), collapse = '\\n')");
-
             rmdContent.AppendLine("cat(svg_content)");
             rmdContent.AppendLine("```");
-            
-
         }
-        rmdContent.AppendLine("\n <b>Note:</b> "+timeBasedReadingFromDBPrefab.RecordedText.text);
-    } // Write the RMD file
+    }
+
+    if (!string.IsNullOrEmpty(timeBasedReadingFromDBPrefab.RecordedText.text))
+    {
+        rmdContent.AppendLine("\n <b>Note:</b> " + timeBasedReadingFromDBPrefab.RecordedText.text);
+    }
+    // Write the RMD file
 
     File.WriteAllText(outputRmdPath, rmdContent.ToString());
                 RReportGenerateRequest rr = new RReportGenerateRequest()

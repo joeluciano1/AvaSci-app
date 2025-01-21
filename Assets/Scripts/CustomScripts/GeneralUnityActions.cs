@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using DG.Tweening;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Events;
@@ -19,7 +20,7 @@ public class GeneralUnityActions : MonoBehaviour
     [HideInInspector] public GameObject loadedLoader;
     Vector2 initialPositionoOfContent;
 
-
+    public ScrollRect scrollRect;
     private void OnEnable()
     {
 
@@ -52,22 +53,28 @@ public class GeneralUnityActions : MonoBehaviour
         }
         float difference = initialPositionoOfContent.y - scrollRect.content.anchoredPosition.y;
         // Debug.Log(difference);
-        if (difference >= 10 && loadedLoader == null)
+        if (difference >= 40 && loadedLoader == null && Input.GetMouseButton(0))
         {
             loadedLoader = Instantiate(LoaderPrefab, scrollRect.content.transform.parent);
             loadedLoader.GetComponent<RectTransform>().anchoredPosition = new Vector2(0, -40);
             loadedLoader.transform.SetAsFirstSibling();
         }
-        if (difference >= 10f && Input.GetMouseButtonUp(0))
+        if (difference >= 40f && Input.GetMouseButtonUp(0))
         {
             WhenScrolledToTop?.Invoke();
             initialPositionoOfContent = Vector2.zero;
         }
-        if (difference <= 10f && loadedLoader != null && !Input.GetMouseButton(0))
+        if (difference <= 40f && loadedLoader != null)
         {
             Destroy(loadedLoader);
             loadedLoader = null;
             initialPositionoOfContent = Vector2.zero;
         }
+    }
+    
+    public void ScrollToTopPosition()
+    {
+        // Set verticalNormalizedPosition to 1 (top of the content)
+        scrollRect.DOVerticalNormalizedPos(1f, 1f);
     }
 }

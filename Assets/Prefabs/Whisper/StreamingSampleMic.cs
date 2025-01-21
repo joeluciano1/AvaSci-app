@@ -34,11 +34,12 @@ namespace Whisper.Samples
 
             microphoneRecord.OnRecordStop += OnRecordStop;
             button.onClick.AddListener(OnButtonPressed);
-            button.transform.DOScale(new Vector3(1.5f,1.5f,1.5f),1f).SetLoops(-1, LoopType.Yoyo).SetEase(Ease.InOutSine);
+            
         }
 
-        private void OnButtonPressed()
+        public void OnButtonPressed()
         {
+            
             if (!microphoneRecord.IsRecording)
             {
                 _stream.StartStream();

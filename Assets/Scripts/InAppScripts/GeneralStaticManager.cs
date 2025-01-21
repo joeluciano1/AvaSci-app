@@ -90,6 +90,10 @@ public static string ConvertCsvStringToJson(string csvString)
                 {
                     string key = headers[i].Trim();
                     string value = i < values.Length ? values[i].Trim() : "";
+                    if (value == "N/A")
+                    {
+                        value = null;
+                    }
                     row[key] = value;
                 }
 

@@ -36,6 +36,7 @@ public class ButtonHandler : MonoBehaviour
     public Vector2 MaxValueTwoPosition;
     public Vector2 RangeValueOnePosition;
     public Vector2 RangeValueTwoPosition;
+    public Vector2 NoteValuePosition;
     public Vector2 GraphImagePosition;
 
     public Canvas MainCanvas;
@@ -361,6 +362,38 @@ public class ButtonHandler : MonoBehaviour
                 );
 
             graphics.DrawImage(graphImageBitMap, GraphImagePosition.ToPointF());
+            if (!string.IsNullOrEmpty(ReferenceManager.instance.commentQuestionnaire.MyText.text))
+            {
+                // Define the available width and height for the text container
+                float availableWidth = page.Size.Width - NoteValuePosition.x -40;
+                float availableHeight = page.Size.Height - NoteValuePosition.y;
+
+                // Create a rectangle to define the text container
+                RectangleF textBounds = new RectangleF(
+                    NoteValuePosition.x, 
+                    NoteValuePosition.y, 
+                    availableWidth, 
+                    availableHeight
+                );
+
+                // Create a PdfTextElement with the text and font
+                PdfTextElement noteTextElement = new PdfTextElement(
+                    $"Note: {ReferenceManager.instance.commentQuestionnaire.MyText.text}",
+                    new PdfStandardFont(PdfFontFamily.Helvetica, 10, PdfFontStyle.Bold),
+                    PdfBrushes.Black
+                );
+
+                // Set string format for alignment (optional)
+                noteTextElement.StringFormat = new PdfStringFormat
+                {
+                    Alignment = PdfTextAlignment.Left, // Set text alignment to Left
+                    LineAlignment = PdfVerticalAlignment.Top // Align text at the top of the container
+                };
+
+                // Draw the text element within the specified bounds
+                noteTextElement.Draw(page, textBounds);
+            }
+
         }
         MemoryStream stream = new MemoryStream();
 

@@ -16,6 +16,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
+using Whisper.Samples;
 
 public class ReferenceManager : MonoBehaviour
 {
@@ -139,6 +140,7 @@ public class ReferenceManager : MonoBehaviour
     public GameObject clinicsButton;
     public ReportSectionManager reportSectionManager;
     public List<UIDragger> UIDraggers=new List<UIDragger>();
+    public StreamingSampleMic StreamingSampleMic;
     private void Awake()
     {
         instance = this;
