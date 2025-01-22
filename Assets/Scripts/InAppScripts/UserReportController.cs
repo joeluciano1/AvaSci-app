@@ -45,6 +45,7 @@ public class UserReportController : MonoBehaviour
     public Button CreateCSVButton;
     public List<UserReportFromDB> selectedReadings = new List<UserReportFromDB>();
     public List<UserReportFromDB> selectedGaitReadings = new List<UserReportFromDB>();
+    public ChatGPTHandler chatGPTHandler;
     // Start is called before the first frame update
     public void Start()
     {
@@ -544,6 +545,7 @@ public class UserReportController : MonoBehaviour
     }
     private int createdCsvCount = 0;
     private List<string> csvPaths = new();
+    public List<string> csvContents = new();
     void CreateCSV(string fileName, List<JointReading> readings)
     {
         // Path to save the file
@@ -636,10 +638,12 @@ public class UserReportController : MonoBehaviour
         
         // CSVManager.Export(filePath);
         csvPaths.Add((filePath));
+        csvContents.Add(csvContent.ToString());
         createdCsvCount += 1;
         if (createdCsvCount == addedTimeBasedReadings.Count)
         {
-            RunRScript(csvPaths,true);
+            chatGPTHandler.AnalyzeCSV(csvContents);
+            // RunRScript(csvPaths,true);
             createdCsvCount = 0;
             csvPaths.Clear();
         }

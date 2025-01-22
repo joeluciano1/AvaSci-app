@@ -32808,9 +32808,11 @@ MonoBehaviour:
   CreateCSVButton: {fileID: 1329993408}
   selectedReadings: []
   selectedGaitReadings: []
+  chatGPTHandler: {fileID: 1337138683}
   addedTimeBasedReadings: []
   toggles: []
   toggleGroups: []
+  csvContents: []
   GaitColumnOfTimeName: []
   CustomRContent: {fileID: 1914700629}
   _contentPanel: {fileID: 798955222}
@@ -33417,6 +33419,7 @@ Transform:
   m_Children:
   - {fileID: 595457413}
   - {fileID: 2102449544}
+  - {fileID: 1337138682}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1131865137
@@ -39201,6 +39204,51 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1334589468}
   m_CullTransparentMesh: 1
+--- !u!1 &1337138681
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1337138682}
+  - component: {fileID: 1337138683}
+  m_Layer: 0
+  m_Name: ChatGPT
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1337138682
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1337138681}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1130275793}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1337138683
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1337138681}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8c48d9d80fc3f4003a47527c8ee0c621, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  apiKey: 
 --- !u!1 &1337205050
 GameObject:
   m_ObjectHideFlags: 0
@@ -49604,7 +49652,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 0}
-  m_AnchoredPosition: {x: 0, y: 3.1599731}
+  m_AnchoredPosition: {x: 0, y: 3.159912}
   m_SizeDelta: {x: 0, y: 7.200012}
   m_Pivot: {x: 0.5, y: 0}
 --- !u!1 &1704585422
