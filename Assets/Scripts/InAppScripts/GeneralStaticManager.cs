@@ -2,9 +2,11 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using LightBuzz.AvaSci.Csv;
 using LightBuzz.AvaSci.Measurements;
 using Newtonsoft.Json;
 using UnityEngine;
@@ -103,5 +105,51 @@ public static string ConvertCsvStringToJson(string csvString)
 
         // Convert the rows list to JSON
         return JsonConvert.SerializeObject(rows, Formatting.Indented);
+    }
+    public static void CreateZipFile(string outputZipPath, List<string> csvFilePaths)
+    {
+        if (csvFilePaths == null || csvFilePaths.Count == 0)
+        {
+            Debug.LogError("No CSV files provided for zipping.");
+            return;
+        }
+
+        // Ensure the output directory exists
+        string outputDirectory = Path.GetDirectoryName(outputZipPath);
+        if (!Directory.Exists(outputDirectory))
+        {
+            Directory.CreateDirectory(outputDirectory);
+        }
+
+        // Create the ZIP file
+        using (FileStream zipToCreate = new FileStream(outputZipPath, FileMode.Create))
+        {
+            using (ZipArchive archive = new ZipArchive(zipToCreate, ZipArchiveMode.Create))
+            {
+                foreach (string filePath in csvFilePaths)
+                {
+                    if (File.Exists(filePath))
+                    {
+                        // Add the CSV file to the ZIP archive
+                        ZipArchiveEntry entry = archive.CreateEntry(Path.GetFileName(filePath));
+                        using (Stream entryStream = entry.Open())
+                        {
+                            byte[] csvBytes = File.ReadAllBytes(filePath);
+                            entryStream.Write(csvBytes, 0, csvBytes.Length);
+                        }
+                        Debug.Log($"Added {filePath} to ZIP.");
+                    }
+                    else
+                    {
+                        Debug.LogError($"File not found: {filePath}");
+                    }
+                }
+            }
+        }
+
+        Debug.Log("ZIP file created at: " + outputZipPath);
+
+        // Optionally, open the ZIP file in file explorer
+        CSVManager.Export(outputZipPath);
     }
 }

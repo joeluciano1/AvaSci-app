@@ -230,7 +230,7 @@ public class ReferenceManager : MonoBehaviour
 
     public void DisableAllGraphs()
     {
-        measurementSelector._toggles.ToList().ForEach(x => x.isOn = false);
+        measurementSelector._mainToggles.ToList().ForEach(x => x.isOn = false);
     }
 
     public void OpenSettings(bool value)

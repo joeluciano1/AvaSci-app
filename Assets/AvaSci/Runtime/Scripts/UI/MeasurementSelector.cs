@@ -18,6 +18,8 @@ namespace LightBuzz.AvaSci.UI
 
         [SerializeField]
         public Toggle[] _toggles;
+        [SerializeField]
+        public Toggle[] _mainToggles;
 
         [SerializeField]
         private TMPro.TMP_Text _label;

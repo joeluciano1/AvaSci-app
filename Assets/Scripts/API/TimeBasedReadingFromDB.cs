@@ -15,6 +15,7 @@ public class TimeBasedReadingFromDB : MonoBehaviour
     public Transform ToggleImage;
     public RectTransform Content;
     public Button CSVButton;
+    public Button CreateExcelButton;
     public Toggle SelectAllToggle;
     public List<TimeBasedReadingRequest> timeBasedReadings = new List<TimeBasedReadingRequest>();
     public List<TimeBasedReadingRequest> selectedTimeBasedReadings = new List<TimeBasedReadingRequest>();

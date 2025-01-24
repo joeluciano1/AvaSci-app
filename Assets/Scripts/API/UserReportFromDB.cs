@@ -65,23 +65,7 @@ public class UserReportFromDB : MonoBehaviour
             CompareGaitToggle.transform.GetChild(0).GetComponent<TMP_Text>().text = "Select To Compare Gait";
         }
     }
-    // bool check;
-    // private void Update()
-    // {
-    //     
-    //     if (timeBasedReadings != null)
-    //     {
-    //         if (check && timeBasedReadings[0].ReportsRecordId == 235)
-    //         {
-    //             if (CompareViewButton.interactable == false)
-    //             {
-    //                 Debug.Log("Toggle falsed");
-    //                 check = true;
-    //             }
-    //         }
-    //     }
-    // }
-
+   
     public void DeleteVide()
     {
         if (VideoURL.Contains("http"))
@@ -140,17 +124,17 @@ public class UserReportFromDB : MonoBehaviour
         if (value)
         {
             LayoutRebuilder.ForceRebuildLayoutImmediate(Content);
-            DropperToggle.DORotate(new Vector3(0, 0, 180), 1f);
-            myRect.DOSizeDelta(new Vector2(myRect.sizeDelta.x, 170), 1f);
-            DropDownItems.DOScale(new Vector3(1, 1, 1), 1);
+            DropperToggle.DORotate(new Vector3(0, 0, 180), 0.5f);
+            myRect.DOSizeDelta(new Vector2(myRect.sizeDelta.x, 170), 0.5f);
+            DropDownItems.DOScale(new Vector3(1, 1, 1), 0.5f);
            
         }
         else
         {
             LayoutRebuilder.ForceRebuildLayoutImmediate(Content);
-            DropperToggle.DORotate(new Vector3(0, 0, 0), 1f);
-            myRect.DOSizeDelta(new Vector2(myRect.sizeDelta.x, 60), 1f);
-            DropDownItems.DOScale(new Vector3(1, 0, 1), 1);
+            DropperToggle.DORotate(new Vector3(0, 0, 0), 0.5f);
+            myRect.DOSizeDelta(new Vector2(myRect.sizeDelta.x, 60), 0.5f);
+            DropDownItems.DOScale(new Vector3(1, 0, 1), 0.5f);
             
         }
     }

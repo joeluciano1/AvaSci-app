@@ -3,18 +3,15 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
-using System.Xml.Schema;
 using DG.Tweening;
 using LightBuzz.AvaSci;
 using LightBuzz.AvaSci.Csv;
 using LightBuzz.AvaSci.UI;
 using LightBuzz.BodyTracking;
 using Newtonsoft.Json;
-using Nrjwolf.Tools;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -359,6 +356,7 @@ public class UserReportController : MonoBehaviour
         var jointsOnDifferentDates = timeBasedReadings.GroupBy(x => x.ReportsRecordId.ToString());
         createdCsvCount = 0;
         timeBasedReadingFromDBPrefab.CSVButton.onClick.RemoveAllListeners();
+        timeBasedReadingFromDBPrefab.CreateExcelButton.onClick.RemoveAllListeners();
        foreach (IGrouping<string,TimeBasedReadingRequest> group in jointsOnDifferentDates)
         {
             TimeBasedReadingFromDB groupHeader = Instantiate(timeBasedReadingFromDBPrefab, timeBasedReadingFromDBPrefab.transform.parent);
@@ -395,7 +393,7 @@ public class UserReportController : MonoBehaviour
                                 groupHeader.SelectValue(variableName, go.GetComponent<Toggle>());
                                 InvokeOtherToggles(variableName, go.GetComponent<Toggle>().isOn);
                             });
-                            if (variableName == "UserName" || variableName == "TimeOfReading" || variableName == "CreatedOn" || variableName == "VideoName")
+                            if (variableName == "UserName" || variableName == "TimeOfReading" || variableName == "CreatedOn" || variableName == "VideoName" || variableName == "CreatedBy" || variableName == "Subject")
                             {
                                 go.SetActive(false);
                                 if (variableName == "TimeOfReading")
@@ -416,7 +414,8 @@ public class UserReportController : MonoBehaviour
                     }
                     
                     
-                    timeBasedReadingFromDBPrefab.CSVButton.onClick.AddListener(() => CreateTimeBasedCSV($"{selectedReadings[0].UserName.text}_{DateTime.Now.ToShortDateString().Replace("/","-")}_TimeBasedReadings_{createdCsvCount}.csv", groupHeader.timeBasedReadings,null,groupHeader.timeBasedReadingInfoSection.addedColumns.Select(x=>x.gameObject.name).ToList()));
+                    timeBasedReadingFromDBPrefab.CSVButton.onClick.AddListener(() => CreateTimeBasedCSV($"{selectedReadings[0].UserName.text}_{DateTime.Now.ToShortDateString().Replace("/","-")}_TimeBasedReadings_{createdCsvCount}.csv", groupHeader.timeBasedReadings,null,groupHeader.timeBasedReadingInfoSection.addedColumns.Select(x=>x.gameObject.name).ToList(),false));
+                    timeBasedReadingFromDBPrefab.CreateExcelButton.onClick.AddListener(() => CreateTimeBasedCSV($"{selectedReadings[0].UserName.text}_{DateTime.Now.ToShortDateString().Replace("/","-")}_TimeBasedReadings_{createdCsvCount}.csv", groupHeader.timeBasedReadings,null,groupHeader.timeBasedReadingInfoSection.addedColumns.Select(x=>x.gameObject.name).ToList(),true));
                     headingadded = true;
                 }
             }
@@ -438,6 +437,7 @@ public class UserReportController : MonoBehaviour
         var jointsOnDifferentDates = timeBasedReadings.GroupBy(x => x.ReportsRecordId.ToString());
         createdCsvCount = 0;
         timeBasedReadingFromDBPrefab.CSVButton.onClick.RemoveAllListeners();
+        timeBasedReadingFromDBPrefab.CreateExcelButton.onClick.RemoveAllListeners();
         timeBasedReadingFromDBPrefab.CSVButton.onClick.AddListener(() =>
         {
             timeBasedReadingFromDBPrefab.RecordingPanel.SetActive(false);
@@ -479,7 +479,7 @@ public class UserReportController : MonoBehaviour
                                 groupHeader.SelectValue(variableName, go.GetComponent<Toggle>());
                                 InvokeOtherToggles(variableName, go.GetComponent<Toggle>().isOn);
                             });
-                            if (variableName == "UserName" || variableName == "TimeOfReading" || variableName == "CreatedOn" || variableName == "VideoName" || variableName == "SubjectStandingAtTime" || variableName == "SelectedLeg" || variableName == "FootStrikeAtTime" || variableName == "HeelPassingAtTime")
+                            if (variableName == "UserName" || variableName == "TimeOfReading" || variableName == "CreatedOn" || variableName == "VideoName" || variableName == "SubjectStandingAtTime" || variableName == "SelectedLeg" || variableName == "FootStrikeAtTime" || variableName == "HeelPassingAtTime"||variableName == "UserName" || variableName == "TimeOfReading" || variableName == "CreatedOn" || variableName == "VideoName" || variableName == "CreatedBy" || variableName == "Subject")
                             {
                                 go.SetActive(false);
                                 if (variableName == "TimeOfReading" || variableName == "FootStrikeAtTime" || variableName == "HeelPassingAtTime")
@@ -509,7 +509,16 @@ public class UserReportController : MonoBehaviour
                                 $"{selectedReadings[0].UserName.text}_{DateTime.Now.ToShortDateString().Replace("/", "-")}_TimeBasedReadings_{createdCsvCount}.csv",
                                 groupHeader.timeBasedReadings, null,
                                 groupHeader.timeBasedReadingInfoSection.addedColumns.Select(x => x.gameObject.name)
-                                    .ToList());
+                                    .ToList(),false);
+                        });
+                        
+                        timeBasedReadingFromDBPrefab.CreateExcelButton.onClick.AddListener(() =>
+                        {
+                            CreateTimeBasedCSV(
+                                $"{selectedReadings[0].UserName.text}_{DateTime.Now.ToShortDateString().Replace("/", "-")}_TimeBasedReadings_{createdCsvCount}.csv",
+                                groupHeader.timeBasedReadings, null,
+                                groupHeader.timeBasedReadingInfoSection.addedColumns.Select(x => x.gameObject.name)
+                                    .ToList(),true);
                         });
                     }
 
@@ -519,12 +528,19 @@ public class UserReportController : MonoBehaviour
                         timeBasedReadingFromDBPrefab.CSVButton.onClick.AddListener(() =>
                         {
                             CreateTimeBasedCSV(
-                                $"{selectedGaitReadings[0].UserName.text}_{DateTime.Now.ToShortDateString().Replace("/", "-")}_TimeBasedReadings_{createdCsvCount}.csv",
+                                $"{selectedGaitReadings[0].UserName.text}_{DateTime.Now.ToShortDateString().Replace("/", "-")}_GaitReadings_{createdCsvCount}.csv",
                                 null, groupHeader.gaitReportReadings,
                                 groupHeader.timeBasedReadingInfoSection.addedColumns.Select(x => x.gameObject.name)
-                                    .ToList());
+                                    .ToList(), false);
                         });
-
+                        timeBasedReadingFromDBPrefab.CreateExcelButton.onClick.AddListener(() =>
+                        {
+                            CreateTimeBasedCSV(
+                                $"{selectedGaitReadings[0].UserName.text}_{DateTime.Now.ToShortDateString().Replace("/", "-")}_GaitReadings_{createdCsvCount}.csv",
+                                null, groupHeader.gaitReportReadings,
+                                groupHeader.timeBasedReadingInfoSection.addedColumns.Select(x => x.gameObject.name)
+                                    .ToList(), true);
+                        });
                     }
 
                     headingadded = true;
@@ -571,7 +587,7 @@ public class UserReportController : MonoBehaviour
     }
 
     public List<string> GaitColumnOfTimeName;
-    void CreateTimeBasedCSV(string fileName, List<TimeBasedReadingRequest> readings, List<GetGaitReportResponse> gaitReadings,List<string> columnNames)
+    void CreateTimeBasedCSV(string fileName, List<TimeBasedReadingRequest> readings, List<GetGaitReportResponse> gaitReadings,List<string> columnNames, bool showCSV)
     {
         Debug.Log("Itnni bar");
         // Path to save the file
@@ -581,28 +597,6 @@ public class UserReportController : MonoBehaviour
         // Use StringBuilder for efficient CSV generation
         StringBuilder csvContent = new StringBuilder();
 
-        // Add header row
-        // if (selectedGaitReadings.Count != 0)
-        // {
-        //     int index = 0;
-        //     if (columnNames.Contains("SubjectStandingAtTime"))
-        //     {
-        //         index = columnNames.IndexOf(columnNames.FirstOrDefault(x => x.Contains("SubjectStandingAtTime")));
-        //         GaitColumnOfTimeName = columnNames[index];
-        //     }
-        //
-        //     if (columnNames.Contains("FootStrikeAtTime"))
-        //     {
-        //         index = columnNames.IndexOf(columnNames.FirstOrDefault(x => x.Contains("FootStrikeAtTime")));
-        //         GaitColumnOfTimeName = columnNames[index];
-        //     }
-        //
-        //     if (columnNames.Contains("HeelPassingAtTime"))
-        //     {
-        //         index = columnNames.IndexOf(columnNames.FirstOrDefault(x => x.Contains("HeelPassingAtTime")));
-        //         GaitColumnOfTimeName = columnNames[index];
-        //     }
-        // }
         csvContent.AppendLine($"{string.Join(",",columnNames)}");
 
         // Add data rows
@@ -639,7 +633,21 @@ public class UserReportController : MonoBehaviour
         createdCsvCount += 1;
         if (createdCsvCount == addedTimeBasedReadings.Count)
         {
-            RunRScript(csvPaths,true);
+            if (!showCSV)
+            {
+                RunRScript(csvPaths, true);
+            }
+            else
+            {
+                if (csvPaths.Count > 1)
+                {
+                    GeneralStaticManager.CreateZipFile(Path.Combine(Application.persistentDataPath, fileName.Replace(".csv",".zip")),csvPaths);
+                }
+                else
+                {
+                    CSVManager.Export(csvPaths[0]);
+                }
+            }
             createdCsvCount = 0;
             csvPaths.Clear();
         }
@@ -1219,7 +1227,7 @@ string EscapeMarkdown(string input)
         ReferenceManager.instance.CleareVarusValgus();
         ReferenceManager.instance.videoPlayingCount = 0;
         if(ReferenceManager.instance.videoRecordingView.Sensor !=null)
-        ReferenceManager.instance.videoRecordingView.Sensor.OptimizationMode = 0;
+            ReferenceManager.instance.videoRecordingView.Sensor.OptimizationMode = 0;
         ReferenceManager.instance.sensorTypeDropDown.SetValueWithoutNotify(0);
         videoRecorderView.Show();
     }
@@ -1282,12 +1290,6 @@ string EscapeMarkdown(string input)
             requests.Remove(userReportFromDB.request);
             userReportFromDB.request.Dispose();
             userReportFromDB.request = null;
-            // Show results as text
-            // Debug.Log(request.downloadHandler.text);
-
-
-            // Or retrieve results as binary data
-            // byte[] results = www.downloadHandler.data;
         }
     }
 

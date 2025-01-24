@@ -14,6 +14,7 @@ public class GeneralUnityActions : MonoBehaviour
     public UnityEvent OnDisableAction;
     public UnityEvent OnDistroyAction;
     public UnityEvent WhenNoGraphAction;
+    public float scrollSensitivity = 40f;
 
     public UnityEvent WhenScrolledToTop;
     public GameObject LoaderPrefab;
@@ -47,27 +48,35 @@ public class GeneralUnityActions : MonoBehaviour
     }
     public void DetectScrollOnTop(ScrollRect scrollRect)
     {
+        
         if (initialPositionoOfContent == Vector2.zero)
         {
+            Debug.Log("Yahan Zero Tha");
             initialPositionoOfContent = scrollRect.content.anchoredPosition;
         }
         float difference = initialPositionoOfContent.y - scrollRect.content.anchoredPosition.y;
+        Debug.Log("Scroll Sensitivity: " + scrollSensitivity + "\nAnd Difference: "+ difference + "\nAnd Normal Position: "+ scrollRect.verticalNormalizedPosition);
         // Debug.Log(difference);
-        if (difference >= 40 && loadedLoader == null && Input.GetMouseButton(0))
+        if (difference >= scrollSensitivity && loadedLoader == null && Input.GetMouseButton(0))
         {
             loadedLoader = Instantiate(LoaderPrefab, scrollRect.content.transform.parent);
             loadedLoader.GetComponent<RectTransform>().anchoredPosition = new Vector2(0, -40);
             loadedLoader.transform.SetAsFirstSibling();
         }
-        if (difference >= 40f && Input.GetMouseButtonUp(0))
+        if (difference >= scrollSensitivity && Input.GetMouseButtonUp(0))
         {
             WhenScrolledToTop?.Invoke();
             initialPositionoOfContent = Vector2.zero;
         }
-        if (difference <= 40f && loadedLoader != null)
+        if (difference <= scrollSensitivity && loadedLoader != null)
         {
             Destroy(loadedLoader);
             loadedLoader = null;
+            // initialPositionoOfContent = Vector2.zero;
+        }
+
+        if (!Input.GetMouseButtonUp(0) && !Input.GetMouseButton(0) && scrollRect.verticalNormalizedPosition.Equals(1) && difference != 0)
+        {
             initialPositionoOfContent = Vector2.zero;
         }
     }

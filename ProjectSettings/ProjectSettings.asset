@@ -60,7 +60,7 @@ PlayerSettings:
   numberOfMipsStripped: 0
   numberOfMipsStrippedPerMipmapLimitGroup: {}
   m_StackTraceTypes: 010000000100000001000000010000000100000001000000
-  iosShowActivityIndicatorOnLoading: 100
+  iosShowActivityIndicatorOnLoading: 101
   androidShowActivityIndicatorOnLoading: -1
   iosUseCustomAppBackgroundBehavior: 0
   allowedAutorotateToPortrait: 1
