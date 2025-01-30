@@ -37,6 +37,10 @@ public class UserReportFromDB : MonoBehaviour
     public List<JointReading> jointReadings = new List<JointReading>();
     public List<TimeBasedReadingRequest> timeBasedReadings = new List<TimeBasedReadingRequest>();
     public List<GetGaitReportResponse> gaitReports = new List<GetGaitReportResponse>();
+    
+    public ScrollRect MyScrollRect;
+    public ReportGroupHandler MyReportGroupHandler;
+    
     private void Start()
     {
         // jointReadings.ForEach(x => x.VideoNameLink = ReportDescription.text.Replace("<b>Comment:</b>", ""));

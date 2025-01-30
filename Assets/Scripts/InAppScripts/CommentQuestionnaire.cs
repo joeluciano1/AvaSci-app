@@ -8,6 +8,7 @@ using DG.Tweening;
 public class CommentQuestionnaire : MonoBehaviour
 {
     public TMP_InputField CommentInputField;
+    public TMP_Dropdown GroupNameDropDown;
     public TMP_Dropdown PatientsDropDown;
     public Button DoneButton;
     Button PreviousRefButton;

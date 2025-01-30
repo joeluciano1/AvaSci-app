@@ -38,6 +38,11 @@ namespace LightBuzz.AvaSci.Measurements
             _angleStart = knee.Position2D;
             _angleCenter = hip.Position2D;
             _angleEnd = new Vector2D(hip.Position2D.X, knee.Position2D.Y);
+            
+            if(ResearchMeasurementManager.instance.leftLeg)
+                ResearchMeasurementManager.instance.leftKneeAbdValue = _value;
+            else
+                ResearchMeasurementManager.instance.rightKneeAbdValue = _value;
         }
     }
 }

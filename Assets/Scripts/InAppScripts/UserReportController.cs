@@ -12,8 +12,10 @@ using LightBuzz.AvaSci.Csv;
 using LightBuzz.AvaSci.UI;
 using LightBuzz.BodyTracking;
 using Newtonsoft.Json;
+using Nrjwolf.Tools;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Analytics;
 using UnityEngine.Networking;
 using UnityEngine.UI;
 
@@ -21,6 +23,8 @@ public class UserReportController : MonoBehaviour
 {
     public UserReportFromDB userReportFromDBPrefab;
     List<UserReportFromDB> userReportFromDBs = new List<UserReportFromDB>();
+    public ReportGroupHandler reportGroupHandlerPrefab;
+    public List<ReportGroupHandler> addedReportGroupHandlers = new List<ReportGroupHandler>();
 
     public GameObject ReportPanel;
     public GameObject GraphPanel;
@@ -35,13 +39,16 @@ public class UserReportController : MonoBehaviour
     UserReportFromDB RecentlyPlayedButton;
     public Button StopRecButton;
     public Button ResetButton;
-    public VerticalLayoutGroup ReportsLayoutGroup;
+    // public VerticalLayoutGroup ReportsLayoutGroup;
     public JointReadingFromDB jointReadingFromDBPrefab;
     public TimeBasedReadingFromDB timeBasedReadingFromDBPrefab;
     public GameObject ReadingViewer;
     public Button CreateCSVButton;
     public List<UserReportFromDB> selectedReadings = new List<UserReportFromDB>();
     public List<UserReportFromDB> selectedGaitReadings = new List<UserReportFromDB>();
+    public ChatGPTHandler chatGPTHandler;
+    public UserReportFromDB itemToSnapTo;
+    public ScrollRect reportsParentScrollRect;
     // Start is called before the first frame update
     public void Start()
     {
@@ -50,7 +57,7 @@ public class UserReportController : MonoBehaviour
             UserID = GeneralStaticManager.GlobalVar["UserID"]
         };
         string json = JsonConvert.SerializeObject(getReportsBody);
-        Transform itemToSnapTo = null;
+        itemToSnapTo = null;
         APIHandler.instance.Post(
             "UserReport/GetReports",
             json,
@@ -141,8 +148,33 @@ public class UserReportController : MonoBehaviour
                         userReportFromDB.UserId = item.UserID;
                         userReportFromDB.UserNameOfSubject = item.UserName;
                         userReportFromDB.VideoURL = item.VideoURL;
-                        userReportFromDB.gameObject.SetActive(true);
                         
+                        string groupName = string.IsNullOrEmpty(item.GroupName)? "Other" : item.GroupName;
+                        var alreadyExisting =
+                            addedReportGroupHandlers.FirstOrDefault(x => x.GroupName.text == groupName);
+                        if (alreadyExisting != null)
+                        {
+                            userReportFromDB.transform.parent = alreadyExisting.MyContent;
+                            alreadyExisting.DropDownItems.Add(userReportFromDB);
+                            userReportFromDB.MyReportGroupHandler = alreadyExisting;
+                            userReportFromDB.MyScrollRect = alreadyExisting.MyScrollView.GetComponent<ScrollRect>();
+                            alreadyExisting.ScaleDownItems();
+                            alreadyExisting.ForceRebuildLayout();
+                        }
+                        else
+                        {
+                            var groupHandler = Instantiate(reportGroupHandlerPrefab, reportGroupHandlerPrefab.transform.parent);
+                            groupHandler.gameObject.SetActive(true);
+                            groupHandler.GroupName.text = groupName;
+                            userReportFromDB.MyReportGroupHandler = groupHandler;
+                            userReportFromDB.MyScrollRect = groupHandler.MyScrollView.GetComponent<ScrollRect>();
+                            groupHandler.DropDownItems.Add(userReportFromDB);
+                            userReportFromDB.transform.parent = groupHandler.MyContent;
+                            addedReportGroupHandlers.Add(groupHandler);
+                            groupHandler.ScaleDownItems();
+                            groupHandler.ForceRebuildLayout();
+                        }
+                        userReportFromDB.gameObject.SetActive(true);
                         if(item.TimeBasedReadings!=null && item.TimeBasedReadings.Count > 0)
                         {
                             userReportFromDB.timeBasedReadings = item.TimeBasedReadings.ToList();
@@ -254,7 +286,7 @@ public class UserReportController : MonoBehaviour
                         {
                             userReportFromDB.WatchBtn.onClick.RemoveAllListeners();
                             userReportFromDB.ButtonText.text = "Watch";
-                            itemToSnapTo = userReportFromDB.transform;
+                            itemToSnapTo = userReportFromDB;
                             RecentlyPlayedButton = userReportFromDB;
                             userReportFromDB.WatchBtn.onClick.AddListener(
                                 () => { CreateFileAndView(null, "", userReportFromDB.UserNameOfSubject); 
@@ -278,8 +310,12 @@ public class UserReportController : MonoBehaviour
                         userReportFromDBs.Add(userReportFromDB);
                     }
                     userReportFromDBs.ForEach(x=>x.CheckIfItContainsTimeBasedReadings());
-                    if (itemToSnapTo != null)
-                        SnapToChild(itemToSnapTo);
+                    reportGroupHandlerPrefab.ForceRebuildLayout();
+                    reportGroupHandlerPrefab.ContentSizeFitter.enabled = false;
+                    reportGroupHandlerPrefab.ContentSizeFitter.SetLayoutVertical();
+                    reportGroupHandlerPrefab.ContentSizeFitter.enabled = true;
+                    // if (itemToSnapTo != null)
+                    //     SnapToChild(itemToSnapTo);
                 }
                 if (userReportResponse.isError)
                 {
@@ -586,7 +622,8 @@ public class UserReportController : MonoBehaviour
         // RunRScript(filePath,fileName);
     }
 
-    public List<string> GaitColumnOfTimeName;
+    public List<string> GaitColumnOfTimeName = new();
+    public List<string> CsvDatas = new ();
     void CreateTimeBasedCSV(string fileName, List<TimeBasedReadingRequest> readings, List<GetGaitReportResponse> gaitReadings,List<string> columnNames, bool showCSV)
     {
         Debug.Log("Itnni bar");
@@ -596,30 +633,90 @@ public class UserReportController : MonoBehaviour
 
         // Use StringBuilder for efficient CSV generation
         StringBuilder csvContent = new StringBuilder();
-
-        csvContent.AppendLine($"{string.Join(",",columnNames)}");
+        var tempNames = columnNames.ToList();
+        foreach (var tempColumnName in columnNames)
+        {
+            if (tempColumnName.Equals("AngleDifferenceAtTime"))
+            {
+                var matchingOne = tempNames.FirstOrDefault(x=>x.Equals(tempColumnName));
+                tempNames[tempNames.IndexOf(matchingOne)] = "HipKneeABDAngleDifference";
+            }
+        }
+        csvContent.AppendLine($"{string.Join(",",tempNames)}");
 
         // Add data rows
         if (readings != null)
         {
+            
+           readings = readings.OrderBy(x => x.TimeOfReading).ToList();
+          
             foreach (var reading in readings)
             {
                 PropertyInfo[] fields = reading.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance)
                     .Where(x => x.GetValue(reading) != null && x.Name != "ReportsRecordId" &&
                                 columnNames.Contains(x.Name)).ToArray();
-                csvContent.AppendLine($"{string.Join(",", fields.Select(x => x.GetValue(reading).ToString()))}");
+                
+                string lineToAddTimeBased = string.Join(",", fields.Select(x => x.GetValue(reading).ToString()));
+                if (showCSV)
+                {
+                    var items = lineToAddTimeBased.Split(',').ToList();
+                    items[0] = TimeSpan.FromSeconds(float.Parse(items[0])).ToString(@"mm\:ss\:fff");
+                    lineToAddTimeBased = string.Join(",", items);
+                }
+
+                csvContent.AppendLine($"{lineToAddTimeBased}");
             }
         }
 
         if (gaitReadings != null)
         {
+            gaitReadings=gaitReadings.OrderBy(x => x.HeelPassingAtTime).ThenBy(x=>x.FootStrikeAtTime).ToList();
+            var footStrikeRows = gaitReadings.Where(x => x.FootStrikeAtTime != 0).ToList();
+            
             foreach (var reading in gaitReadings)
             {
+                if (reading.HeelPassingAtTime == 0 && reading.FootStrikeAtTime == 0)
+                {
+                    continue;
+                }
+                if (reading.HeelPassingAtTime == 0)
+                {
+                    continue;
+                }
                 PropertyInfo[] fields = reading.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance)
                     .Where(x => x.GetValue(reading) != null && x.Name != "ReportsRecordId" &&
                                 columnNames.Contains(x.Name)).ToArray();
-                  
-                csvContent.AppendLine($"{string.Join(",", fields.Select(x => x.GetValue(reading).ToString()))}");
+
+
+                string lineToAddHeelPass = string.Join(",", fields.Select(x => x.GetValue(reading).ToString()));
+                var items = lineToAddHeelPass.Split(',').ToList();
+                if (showCSV)
+                {
+                    items[0] = TimeSpan.FromSeconds(float.Parse(items[0])).ToString(@"mm\:ss\:fff");
+                    items[1] = TimeSpan.FromSeconds(float.Parse(items[1])).ToString(@"mm\:ss\:fff");
+                    lineToAddHeelPass = string.Join(",", items);
+                }
+
+                csvContent.AppendLine($"{lineToAddHeelPass}");
+                var nextFootStrikeRow = footStrikeRows.FirstOrDefault(x => x.FootStrikeAtTime > reading.HeelPassingAtTime);
+                if (nextFootStrikeRow == null)
+                {
+                    continue;
+                }
+                PropertyInfo[] footStrikefields = nextFootStrikeRow.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                    .Where(x => x.GetValue(reading) != null && x.Name != "ReportsRecordId" &&
+                                columnNames.Contains(x.Name)).ToArray();
+
+                string lineToAddFootPass = string.Join(",",footStrikefields.Select(x => x.GetValue(nextFootStrikeRow).ToString()));
+                if (showCSV)
+                {
+                    var itemsFootPass = lineToAddFootPass.Split(',').ToList();
+                    itemsFootPass[0] = TimeSpan.FromSeconds(float.Parse(itemsFootPass[0])).ToString(@"mm\:ss\:fff");
+                    itemsFootPass[1] = TimeSpan.FromSeconds(float.Parse(itemsFootPass[1])).ToString(@"mm\:ss\:fff");
+                    lineToAddFootPass = string.Join(",", itemsFootPass);
+                }
+
+                csvContent.AppendLine($"{lineToAddFootPass}");
             }
         }
 
@@ -630,12 +727,28 @@ public class UserReportController : MonoBehaviour
         
         // CSVManager.Export(filePath);
         csvPaths.Add((filePath));
+        CsvDatas.Add(csvContent.ToString());
         createdCsvCount += 1;
         if (createdCsvCount == addedTimeBasedReadings.Count)
         {
             if (!showCSV)
             {
+               # region If Multiple Choice AI and R Generation
+                // IOSNativeAlert.ShowAlertMessage("Select One","Would you like AI report Generation or R Report Generation?",new IOSNativeAlert.AlertButton("Generate R Report",callback:
+                //     () =>
+                //     {
+                //         RunRScript(csvPaths, true);
+                //     }),new IOSNativeAlert.AlertButton("Generate AI Report",callback: () =>
+                // {
+                //     bool isGait = selectedReadings.Count == 0 ? true : false;
+                //     chatGPTHandler.AnalyzeCSV(CsvDatas,isGait);
+                // }));
+// #if UNITY_EDITOR
+//                 RunRScript(csvPaths, true);
+// #endif
+                #endregion
                 RunRScript(csvPaths, true);
+                
             }
             else
             {
@@ -1322,12 +1435,21 @@ string EscapeMarkdown(string input)
         }
         else
         {
-            userReportFromDBs.ForEach(x => x.gameObject.SetActive(false));
+            userReportFromDBs.ForEach(x =>
+            {
+                x.gameObject.SetActive(false);
+                if(x.MyReportGroupHandler.isDropped)
+                    x.MyReportGroupHandler.ToggleDropDown(false);
+            });
             var matchingNames = userReportFromDBs
                 .Where(x => x.UserName.text.Contains(name, StringComparison.OrdinalIgnoreCase)|| x.ReportDescription.text.Contains(name, StringComparison.OrdinalIgnoreCase))
                 .ToList();
             foreach (var item in matchingNames)
             {
+                if (!item.MyReportGroupHandler.isDropped)
+                {
+                    item.MyReportGroupHandler.ToggleDropDown(true);
+                }
                 item.gameObject.SetActive(true);
             }
         }
@@ -1485,11 +1607,11 @@ string EscapeMarkdown(string input)
         return localTime;
     }
 
-    public RectTransform _contentPanel;
-    public ScrollRect _scrollRect;
+    
+    
     public float offset;
 
-    private async void SnapToChild(Transform stage)
+    public async void SnapToChild(Transform stage,ScrollRect _scrollRect,RectTransform _contentPanel)
     {
         await Task.Delay(500);
         Canvas.ForceUpdateCanvases();
@@ -1508,7 +1630,8 @@ string EscapeMarkdown(string input)
     {
         if(order == 1)
         {
-            ReportsLayoutGroup.reverseArrangement = false;
+            addedReportGroupHandlers.ForEach(x=>x.MyVerticalLayoutGroup.reverseArrangement = false);
+            // ReportsLayoutGroup.reverseArrangement = false;
             userReportFromDBs = userReportFromDBs.OrderBy(x => x.UserName.text).ToList();
             for(int i = 0;i<userReportFromDBs.Count;i++)
             {
@@ -1522,7 +1645,7 @@ string EscapeMarkdown(string input)
             {
                 userReportFromDBs[i].transform.SetSiblingIndex(i);
             }
-            ReportsLayoutGroup.reverseArrangement = false;
+            addedReportGroupHandlers.ForEach(x=>x.MyVerticalLayoutGroup.reverseArrangement = false);
         }
         if(order == 3)
         {
@@ -1531,7 +1654,7 @@ string EscapeMarkdown(string input)
             {
                 userReportFromDBs[i].transform.SetSiblingIndex(i);
             }
-            ReportsLayoutGroup.reverseArrangement = true;
+            addedReportGroupHandlers.ForEach(x=>x.MyVerticalLayoutGroup.reverseArrangement = true);
         }
     }
 }

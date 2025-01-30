@@ -37,7 +37,7 @@ public class GaitPDFGenerator : MonoBehaviour
         table.Columns.Add("Foot Passing at (time)");
         table.Columns.Add("Hip/Knee ABD Angle Difference");
         table.Columns.Add("Var/Val Distance");
-        table.Columns.Add("Knee ABD at (time)");
+        table.Columns.Add("Hip ABD at (time)");
         table.Columns.Add("Ankle ABD at (time)");
         table.Columns.Add("Pelvis Angle at (time)");
         table.Columns.Add("Leg in Question");
@@ -173,7 +173,7 @@ public class GaitPDFGenerator : MonoBehaviour
                 SubjectStandingAtTime = (float)TimeSpan.ParseExact(item2.TimeofStanding,@"mm\:ss\:fff", CultureInfo.InvariantCulture).TotalSeconds,
                 AngleDifferenceAtTime =item2.angleDifferenceValue,
                 // MMDistaceAtTime = item2.distanceValue,
-                KneeAbductionAtTime = item2.kneeAbductionValue,
+                HipAbductionAtTime = item2.kneeAbductionValue,
                 AnkleAbductionAtTime = item2.ankleAbductionValue,
                 PelvisAngleAtTime = item2.pelvisAngleValue,
                 VarusValgusAtTime = item2.distanceValue,
@@ -201,7 +201,7 @@ public class GaitPDFGenerator : MonoBehaviour
                 MMDistaceAtTime = ReferenceManager
                     .instance.DistanceAtFootStrikingTime.ElementAt(i)
                     .Value,
-                KneeAbductionAtTime = ReferenceManager
+                HipAbductionAtTime = ReferenceManager
                     .instance.KneeAbductionAtFootStrikingTime.ElementAt(i)
                     .Value,
                 AnkleAbductionAtTime = ReferenceManager
@@ -229,7 +229,7 @@ public class GaitPDFGenerator : MonoBehaviour
                 HeelPassingAtTime = (float)TimeSpan.ParseExact(item.TimeOfHeelPressed,@"mm\:ss\:fff", CultureInfo.InvariantCulture).TotalSeconds,
                 AngleDifferenceAtTime =item.angleDifferenceValue,
                 MMDistaceAtTime = item.distanceValue,
-                KneeAbductionAtTime = item.kneeAbductionValue,
+                HipAbductionAtTime = item.kneeAbductionValue,
                 AnkleAbductionAtTime = item.ankleAbductionValue,
                 PelvisAngleAtTime = item.pelvisAngleValue,
                 SelectedLeg = ResearchMeasurementManager.instance.leftLeg ? "Left Leg" : "Right Leg",

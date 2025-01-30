@@ -906,7 +906,7 @@ public class ResearchMeasurementManager : MonoBehaviour
             currentAngle = currentAngle == 0 ? ReferenceManager.instance.angleManager._angles[MeasurementType.HipAnkleHipKneeLeftAbductionDifference].Angle : currentAngle;
 
             currentKneeAbd = kneeAbdAtTime.ContainsKey(footstrikesAtTime)? kneeAbdAtTime[footstrikesAtTime]:0;
-            currentKneeAbd = currentKneeAbd == 0 ? ReferenceManager.instance.angleManager._angles[MeasurementType.KneeLeftAbduction].Angle : currentKneeAbd;
+            currentKneeAbd = currentKneeAbd == 0 ? ReferenceManager.instance.angleManager._angles[MeasurementType.HipLeftAbduction].Angle : currentKneeAbd;
 
             currentAnkleAbd = ankleAbdAtTime.ContainsKey(footstrikesAtTime)? ankleAbdAtTime[footstrikesAtTime]:0;
             currentAnkleAbd = currentAnkleAbd == 0 ? ReferenceManager.instance.angleManager._angles[MeasurementType.AnkleLeftAbduction].Angle : currentAnkleAbd;
@@ -924,7 +924,7 @@ public class ResearchMeasurementManager : MonoBehaviour
             currentAngle = currentAngle == 0 ? ReferenceManager.instance.angleManager._angles[MeasurementType.HipAnkleHipKneeRightAbductionDifference].Angle : currentAngle;
 
             currentKneeAbd = kneeAbdAtTime.ContainsKey(footstrikesAtTime)? kneeAbdAtTime[footstrikesAtTime]:0;
-            currentKneeAbd = currentKneeAbd == 0 ? ReferenceManager.instance.angleManager._angles[MeasurementType.KneeRightAbduction].Angle : currentKneeAbd;
+            currentKneeAbd = currentKneeAbd == 0 ? ReferenceManager.instance.angleManager._angles[MeasurementType.HipRightAbduction].Angle : currentKneeAbd;
 
             currentAnkleAbd = ankleAbdAtTime.ContainsKey(footstrikesAtTime)? ankleAbdAtTime[footstrikesAtTime]:0;
             currentAnkleAbd = currentAnkleAbd == 0 ? ReferenceManager.instance.angleManager._angles[MeasurementType.AnkleRightAbduction].Angle : currentAnkleAbd;

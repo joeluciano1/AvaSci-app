@@ -207,11 +207,13 @@ public class UserReportData
     public string ReportURL { get; set; }
     public string CreatedOn { get; set; }
     public string ReportDescription { get; set; }
+    public string GroupName { get; set; }
     public string SubjectId { get; set; }
     public List<JointReading> JointReadings { get; set; } = new List<JointReading>();
     public List<TimeBasedReadingRequest> TimeBasedReadings { get; set; } = new List<TimeBasedReadingRequest>();
     public List<GetGaitReportResponse> GaitReports { get; set; } = new List<GetGaitReportResponse>();
 }
+[System.Serializable]
 public class GetGaitReportResponse
 {
     public long? ReportsRecordId { get; set; }
@@ -225,7 +227,8 @@ public class GetGaitReportResponse
     public float MaxAngleDifference { get; set; }
     public float MaxmmDistance { get; set; }
 
-    public float KneeAbductionAtTime { get; set; }
+    // public float KneeAbductionAtTime { get; set; }
+    public float HipAbductionAtTime { get; set; }
     public float PelvisAngleAtTime { get; set; }
     public float AnkleAbductionAtTime { get; set; }
     public float VarusValgusAtTime { get; set; }

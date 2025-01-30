@@ -73,6 +73,7 @@ public class ReportRecordBody
     public string? ReportURL { get; set; }
     public string ReportDescription { get; set; }
     public string SubjectId{ get; set; }
+    public string GroupName { get; set; }
     public List<JointReading> jointReadings { get; set; }=new List<JointReading>();
     public List<TimeBasedReadingRequest> TimeBasedReadings { get; set; } = new List<TimeBasedReadingRequest>();
 }
@@ -162,6 +163,7 @@ public class CreateGaitReportBody
     public float MaxAngleDifference { get; set; }
     public float MaxmmDistance { get; set; }
     public float KneeAbductionAtTime { get; set; }
+    public float HipAbductionAtTime { get; set; }
     public float PelvisAngleAtTime { get; set; }
     public float AnkleAbductionAtTime { get; set; }
     public float VarusValgusAtTime { get; set; }
