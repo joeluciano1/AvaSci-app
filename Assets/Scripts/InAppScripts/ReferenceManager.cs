@@ -141,6 +141,7 @@ public class ReferenceManager : MonoBehaviour
     public ReportSectionManager reportSectionManager;
     public List<UIDragger> UIDraggers=new List<UIDragger>();
     public StreamingSampleMic StreamingSampleMic;
+    public bool ignoreLowConfidenceJoints;
     private void Awake()
     {
         instance = this;

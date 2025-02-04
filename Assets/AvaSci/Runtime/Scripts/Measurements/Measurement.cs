@@ -72,7 +72,24 @@ namespace LightBuzz.AvaSci.Measurements
         /// Updates the current movement with the specified skeleton data.
         /// </summary>
         /// <param name="body">The body to check.</param>
-        public virtual void Update(Body body) { }
+        public virtual void Update(Body body)
+        {
+            if (ReferenceManager.instance.ignoreLowConfidenceJoints)
+            {
+                if (body.Joints[KeyJoint1]!=null && body.Joints[KeyJoint1].Confidence < 0.3f)
+                {
+                    return;
+                }
+                if (body.Joints[KeyJoint2]!=null && body.Joints[KeyJoint2].Confidence < 0.3f)
+                {
+                    return;
+                }
+                if (body.Joints[KeyJoint3]!=null && body.Joints[KeyJoint3].Confidence < 0.3f)
+                {
+                    return;
+                }
+            }
+        }
 
         /// <summary>
         /// Creates a new instance of the specified measurement.

@@ -16,8 +16,14 @@ public class VarusValgusLeftAngle : Measurement
   }
     public override void Update(Body body)
     {
-        // base.Update(body);
-        
+        base.Update(body);
+        if (ReferenceManager.instance.ignoreLowConfidenceJoints &&
+            ((body.Joints[KeyJoint1] != null && body.Joints[KeyJoint1].Confidence < 0.3f) ||
+             (body.Joints[KeyJoint2] != null && body.Joints[KeyJoint2].Confidence < 0.3f) ||
+             (body.Joints[KeyJoint3] != null && body.Joints[KeyJoint3].Confidence < 0.3f)))
+        {
+            return; // Prevent further execution
+        }
        HipKneeLeftDistance hipKneeLeftDistance = new HipKneeLeftDistance();
             hipKneeLeftDistance.Update(body);
             HipKneeLeftDifference hipKneeLeftDifference = new HipKneeLeftDifference();

@@ -43,6 +43,7 @@ public class CreatePatientQuestionnaire : MonoBehaviour
                     ClinicName = selectedClinic.ClinicName,
                 };
                 ReferenceManager.instance.LoginManager.signinResponse.result.patients.Add(patient);
+                ReferenceManager.instance.commentQuestionnaire.PatientsDropDown.options.Add(new TMP_Dropdown.OptionData(patient.SubjectId));
                 ReferenceManager.instance.reportSectionManager.FeedClinicData();
             }
             else{
