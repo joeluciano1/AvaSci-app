@@ -113,6 +113,7 @@ public class ReferenceManager : MonoBehaviour
     public AngleManager angleManager;
     public Text TimeElapsedLightBuzz;
 
+    public bool ResearchMode;
     // [HideInInspector]
     public Angle2D LeftDistance;
 
@@ -238,7 +239,7 @@ public class ReferenceManager : MonoBehaviour
     {
         if (value)
         {
-            SettingToggle.interactable = false;
+            // SettingToggle.interactable = false;
             SettingToggle.GetComponent<Image>().color = UnityEngine.Color.gray;
             SettingsPanel.DOAnchorPosX(10000, 0f);
             SettingsPanel.DOAnchorPosX(0, 0.5f).OnComplete(() => SettingToggle.interactable = true);

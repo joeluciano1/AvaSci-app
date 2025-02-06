@@ -55,7 +55,7 @@ public class GeneralUnityActions : MonoBehaviour
             initialPositionoOfContent = scrollRect.content.anchoredPosition;
         }
         float difference = initialPositionoOfContent.y - scrollRect.content.anchoredPosition.y;
-        Debug.Log("Scroll Sensitivity: " + scrollSensitivity + "\nAnd Difference: "+ difference + "\nAnd Normal Position: "+ scrollRect.verticalNormalizedPosition);
+        // Debug.Log("Scroll Sensitivity: " + scrollSensitivity + "\nAnd Difference: "+ difference + "\nAnd Normal Position: "+ scrollRect.verticalNormalizedPosition);
         // Debug.Log(difference);
         if (difference >= scrollSensitivity && loadedLoader == null && Input.GetMouseButton(0))
         {

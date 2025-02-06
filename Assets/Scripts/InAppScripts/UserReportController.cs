@@ -22,7 +22,7 @@ using UnityEngine.UI;
 public class UserReportController : MonoBehaviour
 {
     public UserReportFromDB userReportFromDBPrefab;
-    List<UserReportFromDB> userReportFromDBs = new List<UserReportFromDB>();
+    [HideInInspector]public List<UserReportFromDB> userReportFromDBs = new List<UserReportFromDB>();
     public ReportGroupHandler reportGroupHandlerPrefab;
     public List<ReportGroupHandler> addedReportGroupHandlers = new List<ReportGroupHandler>();
 
@@ -82,6 +82,9 @@ public class UserReportController : MonoBehaviour
                                         StartCoroutine(GetText(user.VideoURL, user.WatchBtn, user))
                                 );
                                 user.ButtonText.text = "Download";
+                                user.Download.SetActive(true);
+                                user.Error.SetActive(false);
+                                user.Watch.SetActive(false);
                             }
                             if(item.TimeBasedReadings!=null && item.TimeBasedReadings.Count > 0)
                             {
@@ -150,24 +153,24 @@ public class UserReportController : MonoBehaviour
                         userReportFromDB.VideoURL = item.VideoURL;
                         
                         string groupName = string.IsNullOrEmpty(item.GroupName)? "Other" : item.GroupName;
-                        var alreadyExisting =
+                        ReportGroupHandler alreadyExisting =
                             addedReportGroupHandlers.FirstOrDefault(x => x.GroupName.text == groupName);
                         if (alreadyExisting != null)
                         {
                             userReportFromDB.transform.parent = alreadyExisting.MyContent;
                             alreadyExisting.DropDownItems.Add(userReportFromDB);
                             userReportFromDB.MyReportGroupHandler = alreadyExisting;
-                            userReportFromDB.MyScrollRect = alreadyExisting.MyScrollView.GetComponent<ScrollRect>();
+                            userReportFromDB.MyScrollRect = alreadyExisting.MyScrollRect;
                             alreadyExisting.ScaleDownItems();
                             alreadyExisting.ForceRebuildLayout();
                         }
                         else
                         {
-                            var groupHandler = Instantiate(reportGroupHandlerPrefab, reportGroupHandlerPrefab.transform.parent);
+                            ReportGroupHandler groupHandler = Instantiate(reportGroupHandlerPrefab, reportGroupHandlerPrefab.transform.parent);
                             groupHandler.gameObject.SetActive(true);
                             groupHandler.GroupName.text = groupName;
                             userReportFromDB.MyReportGroupHandler = groupHandler;
-                            userReportFromDB.MyScrollRect = groupHandler.MyScrollView.GetComponent<ScrollRect>();
+                            userReportFromDB.MyScrollRect = groupHandler.MyScrollRect;
                             groupHandler.DropDownItems.Add(userReportFromDB);
                             userReportFromDB.transform.parent = groupHandler.MyContent;
                             addedReportGroupHandlers.Add(groupHandler);
@@ -189,7 +192,6 @@ public class UserReportController : MonoBehaviour
                             {
                                 Debug.Log("Got true");
                             }
-                            userReportFromDB.CompareViewToggle.gameObject.SetActive(true);
                             userReportFromDB.CompareViewToggle.onValueChanged.RemoveAllListeners();
                                 userReportFromDB.CompareViewToggle.onValueChanged.AddListener((value) => 
                                 {
@@ -281,11 +283,17 @@ public class UserReportController : MonoBehaviour
                                     }
                             );
                             userReportFromDB.ButtonText.text = "Download";
+                            userReportFromDB.Download.SetActive(true);
+                            userReportFromDB.Error.SetActive(false);
+                            userReportFromDB.Watch.SetActive(false);
                         }
                         else
                         {
                             userReportFromDB.WatchBtn.onClick.RemoveAllListeners();
                             userReportFromDB.ButtonText.text = "Watch";
+                            userReportFromDB.Download.SetActive(false);
+                            userReportFromDB.Error.SetActive(false);
+                            userReportFromDB.Watch.SetActive(true);
                             itemToSnapTo = userReportFromDB;
                             RecentlyPlayedButton = userReportFromDB;
                             userReportFromDB.WatchBtn.onClick.AddListener(
@@ -1360,6 +1368,9 @@ string EscapeMarkdown(string input)
         if (request.result != UnityWebRequest.Result.Success)
         {
             btn.transform.GetChild(0).GetComponent<TMP_Text>().text = "Retry? No Data Found";
+            userReportFromDB.Download.SetActive(false);
+            userReportFromDB.Error.SetActive(true);
+            userReportFromDB.Watch.SetActive(false);
             userReportFromDB.ProgressImage.fillAmount = 0;
             userReportFromDB.ProgressImage.gameObject.SetActive(false);
             requests.Remove(request);
@@ -1385,6 +1396,9 @@ string EscapeMarkdown(string input)
             btn.interactable = true;
             userReportFromDB.ProgressImage.gameObject.SetActive(false);
             userReportFromDB.ButtonText.text = $"Watch";
+            userReportFromDB.Download.SetActive(false);
+            userReportFromDB.Error.SetActive(false);
+            userReportFromDB.Watch.SetActive(true);
             if (reportFile != null)
             {
                 userReportFromDB.PreviewButton.onClick.RemoveAllListeners();
@@ -1399,6 +1413,9 @@ string EscapeMarkdown(string input)
             if (userReportFromDB.request.downloadProgress == 0)
             {
                 userReportFromDB.ButtonText.text = "Retry? No Data Found";
+                userReportFromDB.Download.SetActive(false);
+                userReportFromDB.Error.SetActive(true);
+                userReportFromDB.Watch.SetActive(false);
             }
             requests.Remove(userReportFromDB.request);
             userReportFromDB.request.Dispose();
@@ -1422,6 +1439,9 @@ string EscapeMarkdown(string input)
                     )
             );
             RecentlyPlayedButton.ButtonText.text = "Download";
+            RecentlyPlayedButton.Download.SetActive(true);
+            RecentlyPlayedButton.Error.SetActive(false);
+            RecentlyPlayedButton.Watch.SetActive(false);
             RecentlyPlayedButton.PreviewButton.gameObject.SetActive(false);
             PlayerPrefs.SetString("LastVidURL", "None");
         }
@@ -1435,22 +1455,17 @@ string EscapeMarkdown(string input)
         }
         else
         {
-            userReportFromDBs.ForEach(x =>
-            {
-                x.gameObject.SetActive(false);
-                if(x.MyReportGroupHandler.isDropped)
-                    x.MyReportGroupHandler.ToggleDropDown(false);
-            });
+           userReportFromDBs.Where((x=>x.MyReportGroupHandler.isDropped)).ToList().ForEach(x=>x.gameObject.SetActive(false));
             var matchingNames = userReportFromDBs
                 .Where(x => x.UserName.text.Contains(name, StringComparison.OrdinalIgnoreCase)|| x.ReportDescription.text.Contains(name, StringComparison.OrdinalIgnoreCase))
                 .ToList();
             foreach (var item in matchingNames)
             {
-                if (!item.MyReportGroupHandler.isDropped)
+                if (item.MyReportGroupHandler.isDropped)
                 {
-                    item.MyReportGroupHandler.ToggleDropDown(true);
+                    item.gameObject.SetActive(true);
                 }
-                item.gameObject.SetActive(true);
+               
             }
         }
     }
@@ -1471,9 +1486,15 @@ string EscapeMarkdown(string input)
                     {
                         item.ProgressImage.gameObject.SetActive(false);
                         item.ButtonText.text = $"Watch";
+                        item.Download.SetActive(false);
+                        item.Error.SetActive(false);
+                        item.Watch.SetActive(true);
                         if (request.downloadProgress == 0)
                         {
                             item.ButtonText.text = "Retry? No Data Found";
+                            item.Download.SetActive(false);
+                            item.Error.SetActive(true);
+                            item.Watch.SetActive(false);
                         }
                     }
                 }

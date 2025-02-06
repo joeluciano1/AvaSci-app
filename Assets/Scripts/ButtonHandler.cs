@@ -46,10 +46,13 @@ public class ButtonHandler : MonoBehaviour
 
     private void Start()
     {
-        ScrollViewFocusFunctions.FocusOnItem(
-            scrollView,
-            ReferenceManager.instance.graphManagers[0].GetComponent<RectTransform>()
-        );
+        if(ReferenceManager.instance.graphManagers.Count!=0){
+            ScrollViewFocusFunctions.FocusOnItem(
+                scrollView,
+                ReferenceManager.instance.graphManagers[0].GetComponent<RectTransform>()
+            );
+        }
+        
     }
     public List<GraphData> graphDatas = new List<GraphData>();
     public void GeneratePDFTest()

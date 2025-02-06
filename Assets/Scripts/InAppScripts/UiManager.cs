@@ -155,6 +155,13 @@ public class UiManager : MonoBehaviour
         }
 
     }
+
+    public TMP_Text UserName;
+    public TMP_Text UserRole;
+    public TMP_Text UserCountry;
+    public TMP_Text UserGender;
+    public TMP_Text UserAge;
+    
     public void DisplayUserInfo()
     {
         if (GeneralStaticManager.GlobalVar.ContainsKey("UserName"))
@@ -164,7 +171,12 @@ public class UiManager : MonoBehaviour
             string country = GeneralStaticManager.GlobalVar["UserCountry"];
             string gender = GeneralStaticManager.GlobalVar["UserGender"];
             string age = GeneralStaticManager.GlobalVar["UserAge"];
-            UserInfotext.text = $"<b>User Name: </b> {username}\n \n<b>Roles: </b>{roles}\n \n<b>Country: </b>{country}\n \n<b>Gender: </b>{gender}\n \n<b>Age: </b>{age}";
+            // UserInfotext.text = $"<b>User Name: </b> {username}\n \n<b>Roles: </b>{roles}\n \n<b>Country: </b>{country}\n \n<b>Gender: </b>{gender}\n \n<b>Age: </b>{age}";
+            UserName.text = username;
+            UserRole.text = roles;
+            UserCountry.text = country;
+            UserGender.text = gender;
+            UserAge.text = age;
         }
     }
     public void AcceptConsent()

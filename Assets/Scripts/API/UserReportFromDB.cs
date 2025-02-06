@@ -40,6 +40,10 @@ public class UserReportFromDB : MonoBehaviour
     
     public ScrollRect MyScrollRect;
     public ReportGroupHandler MyReportGroupHandler;
+
+    public GameObject Watch;
+    public GameObject Download;
+    public GameObject Error;
     
     private void Start()
     {
