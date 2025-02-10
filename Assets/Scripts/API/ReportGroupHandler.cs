@@ -38,6 +38,8 @@ public class ReportGroupHandler : MonoBehaviour
     {
         // DropDownItems.ForEach(x=>x.transform.DOScaleY(0,0.5f));
     }
+
+    private bool hasSpoken;
     public void ToggleDropDown(bool value)
     {
         RectTransform myRect = GetComponent<RectTransform>();
@@ -67,6 +69,14 @@ public class ReportGroupHandler : MonoBehaviour
                         ReferenceManager.instance.userReportController.itemToSnapTo.MyScrollRect,
                         ReferenceManager.instance.userReportController.itemToSnapTo.MyScrollRect.content);
                 }
+
+                if (!hasSpoken)
+                {   
+                    ReferenceManager.instance.userReportController.addedReportGroupHandlers.ForEach(x=>x.hasSpoken=true);
+                    ReferenceManager.instance.TTSTutorialHandler.NextLine(
+                        "You can see the list of reports uploaded by different users. Each item has a red button to download or watch the recording session. If the report contains a pdf in the database a blue icon will also appear next to the watch or download button. You can also see in the top left corner of the screen a toggle to enable research mode of the app to enable or disable more detailed features of readings. Click on the red video icon to record a new video or click on the little arrow icon on top to go back to the previous screen.");
+                }
+
                 ReportsScrollView.GetComponent<LayoutElement>().ignoreLayout = false;
                 ShowcaseScrollRect.GetComponent<LayoutElement>().ignoreLayout = false;
             });

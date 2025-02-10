@@ -11,6 +11,7 @@ using LightBuzz.AvaSci.Csv;
 using LightBuzz.AvaSci.Measurements;
 using LightBuzz.AvaSci.UI;
 using LightBuzz.BodyTracking;
+using LMNT;
 using Newtonsoft.Json;
 using TMPro;
 using UnityEngine;
@@ -116,7 +117,7 @@ public class ReferenceManager : MonoBehaviour
     public bool ResearchMode;
     // [HideInInspector]
     public Angle2D LeftDistance;
-
+    public TTSTutorialHandler TTSTutorialHandler;
     // [HideInInspector]
     public Angle2D LeftAngleDifference;
 
@@ -146,7 +147,6 @@ public class ReferenceManager : MonoBehaviour
     private void Awake()
     {
         instance = this;
-
         AppVersion.text = isProduction ? "" : $"version:{Application.version}";
         if (isProduction)
         {

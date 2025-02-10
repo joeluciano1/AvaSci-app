@@ -49,9 +49,20 @@ public class UserReportController : MonoBehaviour
     public ChatGPTHandler chatGPTHandler;
     public UserReportFromDB itemToSnapTo;
     public ScrollRect reportsParentScrollRect;
+
+    private bool hasSpokenAboutReports;
+
+    private bool hasSpokenWelcomeNote;
     // Start is called before the first frame update
     public void Start()
     {
+        if (!hasSpokenWelcomeNote)
+        {
+            hasSpokenWelcomeNote = true;
+            ReferenceManager.instance.TTSTutorialHandler.NextLine(
+                "Hello welcome to AvaSci research project app. Getting reports from or server. This might take a little while.");
+        }
+
         GetReportsBody getReportsBody = new GetReportsBody()
         {
             UserID = GeneralStaticManager.GlobalVar["UserID"]
@@ -322,8 +333,11 @@ public class UserReportController : MonoBehaviour
                     reportGroupHandlerPrefab.ContentSizeFitter.enabled = false;
                     reportGroupHandlerPrefab.ContentSizeFitter.SetLayoutVertical();
                     reportGroupHandlerPrefab.ContentSizeFitter.enabled = true;
-                    // if (itemToSnapTo != null)
-                    //     SnapToChild(itemToSnapTo);
+                    if (!hasSpokenAboutReports)
+                    {
+                        hasSpokenAboutReports = true;
+                        ReferenceManager.instance.TTSTutorialHandler.NextLine("You can now see in the top of the screen which section you are currently in. Right now we are in the reports section. In the middle of the screen there is scroll view of groups. Which contain reports and recordings related to the group's category. You can click on any of them to go in the next section");
+                    }
                 }
                 if (userReportResponse.isError)
                 {
@@ -1338,8 +1352,14 @@ string EscapeMarkdown(string input)
         Start();
     }
 
+    private bool spokenCreateNew;
     public void ReallyCreateNew()
     {
+        if (!spokenCreateNew)
+        {
+            spokenCreateNew = true;
+            ReferenceManager.instance.TTSTutorialHandler.NextLine("There is a dropdown on the top to select the measurements you want to do. Subject should stand in front of the camera and click the recording button to start recording process. Once done recording you will be for some information to fill and after that your video will be saved in our database.");
+        }
         ResearchMeasurementManager.instance.footDistances.Clear();
         ResearchMeasurementManager.instance.footStrikeAtTimes.Clear();
         ReferenceManager.instance.heelPressDetectionBodies.Clear();

@@ -16,10 +16,11 @@ public class PopupManager : MonoBehaviour
     [HideInInspector] public bool doFade;
     [HideInInspector] public Image MyImage;
     public UnityEvent onSuccess;
-
+    
     public GameObject NoButton;
     public async void Show(string heading, string content, bool fade = false, System.Action okPressed = null, bool isAsking = false)
     {
+    
         Debug.Log("Popup Message: " + content);
         if (okPressed != null)
         {
@@ -31,8 +32,10 @@ public class PopupManager : MonoBehaviour
             IOSNativeAlert.ShowAlertMessage(heading, content);
         }
 
+        
     }
 
+  
     public void OnOkClick()
     {
 

@@ -27,11 +27,10 @@ public class APIHandler : MonoBehaviour
 
         using (UnityWebRequest www = UnityWebRequest.Get(url))
         {
-            
             www.SendWebRequest();
             while (!www.isDone)
             {
-                ReferenceManager.instance.LoadingManager.DownloadedBytes.text = Math.Round(www.downloadProgress+0.24) * 100 + "%";
+                ReferenceManager.instance.LoadingManager.DownloadedBytes.text = Math.Round(www.downloadProgress) * 100 + "%";
                 if(ReferenceManager.instance.LoadingManager.LoadingImage.fillAmount < www.downloadProgress)
                     ReferenceManager.instance.LoadingManager.LoadingImage.DOFillAmount(www.downloadProgress,0.5f);
                 yield return null;
@@ -62,11 +61,10 @@ public class APIHandler : MonoBehaviour
         request.uploadHandler = (UploadHandler)new UploadHandlerRaw(jsonToSend);
         request.downloadHandler = (DownloadHandler)new DownloadHandlerBuffer();
         request.SetRequestHeader("Content-Type", "application/json");
-        
         request.SendWebRequest();
         while (!request.isDone)
         {
-            ReferenceManager.instance.LoadingManager.DownloadedBytes.text = Math.Round(request.downloadProgress+0.24) * 100 + "%";
+            ReferenceManager.instance.LoadingManager.DownloadedBytes.text = Math.Round(request.downloadProgress) * 100 + "%";
             if(ReferenceManager.instance.LoadingManager.LoadingImage.fillAmount < request.downloadProgress)
                 ReferenceManager.instance.LoadingManager.LoadingImage.DOFillAmount(request.downloadProgress,0.5f);
             yield return null;
