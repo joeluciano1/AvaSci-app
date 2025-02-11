@@ -7,6 +7,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using DG.Tweening;
+using FastForward.CAS;
 using LightBuzz.AvaSci;
 using LightBuzz.AvaSci.Csv;
 using LightBuzz.AvaSci.UI;
@@ -53,6 +54,9 @@ public class UserReportController : MonoBehaviour
     private bool hasSpokenAboutReports;
 
     private bool hasSpokenWelcomeNote;
+
+    public GameObject UploadHtmlPrompt;
+    public Button UploadHtmlButton;
     // Start is called before the first frame update
     public void Start()
     {
@@ -961,6 +965,14 @@ public void GenerateRMarkdownForTimeBased(string outputRmdPath, List<string> csv
             Debug.Log("Persistance = " + path);
             GeneralStaticManager.OpenFile(path);
 #endif
+                UploadHtmlPrompt.SetActive(true);
+                UploadHtmlButton.onClick.RemoveAllListeners();
+                UploadHtmlButton.onClick.AddListener(()=>
+                {
+                    ReferenceManager.instance.LoadingManager.Show("Uploading HTML to database");
+                    StartCoroutine(AzureConnector.Instance.PutHTMLOnBlob(rrr.result.HtmlResponse, "htmlreports",
+                        "report", UploadHtmlCallback, true));
+                });
             }, onError: (error) => { Debug.LogError(error); });
             Debug.Log($"R Markdown file generated successfully at: {outputRmdPath}");
         }
@@ -1117,6 +1129,14 @@ public void GenerateRMarkdownForTimeBased(string outputRmdPath, List<string> csv
             Debug.Log("Persistance = " + path);
             GeneralStaticManager.OpenFile(path);
 #endif
+                    UploadHtmlPrompt.SetActive(true);
+                    UploadHtmlButton.onClick.RemoveAllListeners();
+                    UploadHtmlButton.onClick.AddListener(()=>
+                    {
+                        ReferenceManager.instance.LoadingManager.Show("Uploading HTML to database");
+                        StartCoroutine(AzureConnector.Instance.PutHTMLOnBlob(rrr.result.HtmlResponse, "htmlreports",
+                            "report", UploadHtmlCallback, true));
+                    });
                 }, onError: (error) => { Debug.LogError(error); });
                 Debug.Log($"R Markdown file generated successfully at: {outputRmdPath}");
             }
@@ -1128,6 +1148,65 @@ public void GenerateRMarkdownForTimeBased(string outputRmdPath, List<string> csv
     }
 }
 
+public void UploadHtmlCallback(bool success, string error, string uri)
+{
+    if (success)
+    {
+        if (selectedReadings.Count != 0)
+        {
+            foreach (var userReportFromDB in selectedReadings)
+            {
+                CreateHtmlReportBody createHtmlReportBody = new CreateHtmlReportBody()
+                {
+                    CreatedBy = GeneralStaticManager.GlobalVar["UserName"],
+                    HtmlReport = uri,
+                    ReportsRecordId = userReportFromDB.videoId
+                };
+                string json = JsonConvert.SerializeObject(createHtmlReportBody);
+                APIHandler.instance.Post("UserReport/UploadHtmlReport",json, onSuccess: (response) =>
+                {
+                    Debug.Log("Success Uploading HTML report");
+                }, onError: (error) =>
+                {
+                    ReferenceManager.instance.PopupManager.Show(
+                        "Uploading Report Failed",
+                        $"Reasons are: {error}"
+                    );
+                });
+            }
+        }
+
+        if (selectedGaitReadings.Count != 0)
+        {
+            foreach (var userReportFromDB in selectedGaitReadings)
+            {
+                CreateHtmlReportBody createHtmlReportBody = new CreateHtmlReportBody()
+                {
+                    CreatedBy = GeneralStaticManager.GlobalVar["UserName"],
+                    HtmlReport = uri,
+                    ReportsRecordId = userReportFromDB.videoId
+                };
+                string json = JsonConvert.SerializeObject(createHtmlReportBody);
+                APIHandler.instance.Post("UserReport/UploadHtmlReport",json, onSuccess: (response) =>
+                {
+                    Debug.Log("Success Uploading HTML report");
+                }, onError: (error) =>
+                {
+                    ReferenceManager.instance.PopupManager.Show(
+                        "Uploading Report Failed",
+                        $"Reasons are: {error}"
+                    );
+                });
+            }
+        }
+        ReferenceManager.instance.PopupManager.Show("Uploading Successful","Your report is saved properly in our database");
+    }
+    else
+    {
+        ReferenceManager.instance.PopupManager.Show("There was an error",$"Error uploading html report due to:\n{error}");
+    }
+    ReferenceManager.instance.LoadingManager.Hide();
+}
 string EscapeMarkdown(string input)
 {
     return input.Replace("\\", "\\\\")

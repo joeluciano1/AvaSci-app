@@ -17,7 +17,12 @@ public class SignupBody
     public string interests { get; set; }
     public string AdvancedSurvey { get; set; }
 }
-
+public class CreateHtmlReportBody
+{
+    public long? ReportsRecordId { get; set; }
+    public string HtmlReport { get; set; }
+    public string CreatedBy;
+}
 public class LoginBody
 {
     public string email { get; set; }

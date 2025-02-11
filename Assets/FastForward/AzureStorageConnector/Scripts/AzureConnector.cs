@@ -308,7 +308,7 @@ namespace FastForward.CAS
             }
         }
 
-        private IEnumerator PutTextBlob(string data, string containerName, string fileName, AzureUploadCallback uploadCallback, bool useMillis = true)
+        public IEnumerator PutTextBlob(string data, string containerName, string fileName, AzureUploadCallback uploadCallback, bool useMillis = true)
         {
             // https://docs.microsoft.com/en-us/rest/api/storageservices/put-blob
             // for emulation use uri:  http://127.0.0.1:10000/devstoreaccount1/mycontainer/myblob
@@ -396,7 +396,75 @@ namespace FastForward.CAS
             ReferenceManager.instance.uploadVideoEvent.RemoveAllListeners();
             ReferenceManager.instance.persistantCount = 0;
         }
+       public IEnumerator PutHTMLOnBlob(string data, string containerName, string fileName, AzureUploadCallback uploadCallback, bool useMillis = true)
+        {
+            string requestMethod = "PUT";
+            string blobType = "BlockBlob";
+            string contentType = "text/html";
 
+            DateTime now = DateTime.UtcNow;
+            string date = now.ToString("R", CultureInfo.InvariantCulture);
+            string dateMillis = new DateTimeOffset(now).ToUnixTimeMilliseconds().ToString();
+
+            string blobName = $"{fileName}{(useMillis ? "-" + dateMillis : "")}.html";
+            string blobUri = string.Format("{0}/{1}", containerName, blobName);
+            string uri = string.Format("https://{0}.blob.core.windows.net/{1}", _accountName, blobUri);
+
+            // Convert string to bytes
+            byte[] bytes = Encoding.UTF8.GetBytes(data);
+
+            using (UnityWebRequest request = UnityWebRequest.Put(uri, bytes))
+            {
+                // Set headers
+                request.SetRequestHeader("x-ms-blob-type", blobType);
+                request.SetRequestHeader("x-ms-date", date);
+                request.SetRequestHeader("x-ms-version", _storageServiceVersion);
+                request.SetRequestHeader("Content-Type", contentType); // FIXED!
+
+                string canonicalizedHeaders = string.Format(
+                    "x-ms-blob-type:{0}\nx-ms-date:{1}\nx-ms-version:{2}\n",
+                    blobType,
+                    date,
+                    _storageServiceVersion
+                );
+
+                string canonicalizedResource = GetCanonicalizedResource(request.uri, _accountName);
+                string signature = string.Format("{0}\n\n\n{3}\n\n{4}\n\n\n\n\n\n\n{1}{2}",
+                    requestMethod,
+                    canonicalizedHeaders,
+                    canonicalizedResource,
+                    bytes.Length,
+                    contentType);
+                string encodedSignature = EncodeMessageSignature(signature);
+
+                request.SetRequestHeader("Authorization", encodedSignature);
+
+                request.SendWebRequest();
+                
+
+                while (!request.isDone)
+                {
+                    Debug.Log($"GET progress: {request.uploadProgress}");
+                    
+                    ReferenceManager.instance.LoadingManager.LoadingImage.fillAmount = request.uploadProgress;
+                    ReferenceManager.instance.LoadingManager.DownloadedBytes.text = request.uploadProgress.ToString("0.0")+"%";
+
+                    yield return 0;
+                }
+
+                if (request.result != UnityWebRequest.Result.Success)
+                {
+                    Debug.LogWarning($"PUT error: {request.error}");
+                    Debug.LogWarning($"PUT error: {request.downloadHandler.text}");
+                    uploadCallback?.Invoke(false, request.error);
+                }
+                else
+                {
+                    Debug.Log($"PUT complete {request.downloadHandler.text}");
+                    uploadCallback?.Invoke(true, request.error, uri);
+                }
+            }
+        }
         #endregion
 
         #region Read Blobs
