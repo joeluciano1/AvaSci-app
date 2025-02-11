@@ -11,6 +11,7 @@ public static class StringConstants
     public const string INTERESTSRESPONSE = "InteresetsResponse";
     public const string FIRSTTIMEAPPRUN = "FirstTimeRun";
     public static string TOKEN;
+    public const string ResearchMode = "IsResearchMode";
 
     /// <summary>
     /// PlayerPrefs
