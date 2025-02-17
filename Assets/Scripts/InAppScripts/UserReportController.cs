@@ -88,9 +88,17 @@ public class UserReportController : MonoBehaviour
                     foreach (var item in userReportResponse.result)
                     {
                         
-                        var user = userReportFromDBs.FirstOrDefault(x =>x.VideoURL == item.VideoURL);
+                        UserReportFromDB user = userReportFromDBs.FirstOrDefault(x =>x.VideoURL == item.VideoURL);
                         if (user != null)
                         {
+                            if (item.HasHtmlReports)
+                            {
+                                user.HtmlButton.gameObject.SetActive(true);
+                            }
+                            else
+                            {
+                                user.HtmlButton.gameObject.SetActive(false);
+                            }
                             if (!PlayerPrefs.GetString("LastVidURL").Equals(user.VideoURL))
                             {
                                 user.WatchBtn.onClick.RemoveAllListeners();
@@ -169,9 +177,18 @@ public class UserReportController : MonoBehaviour
                         userReportFromDB.UserNameOfSubject = item.UserName;
                         userReportFromDB.VideoURL = item.VideoURL;
                         
+                        if (item.HasHtmlReports)
+                        {
+                            userReportFromDB.HtmlButton.gameObject.SetActive(true);
+                        }
+                        else
+                        {
+                            userReportFromDB.HtmlButton.gameObject.SetActive(false);
+                        }
                         string groupName = string.IsNullOrEmpty(item.GroupName)? "Other" : item.GroupName;
                         ReportGroupHandler alreadyExisting =
                             addedReportGroupHandlers.FirstOrDefault(x => x.GroupName.text == groupName);
+                        
                         if (alreadyExisting != null)
                         {
                             userReportFromDB.transform.parent = alreadyExisting.MyContent;

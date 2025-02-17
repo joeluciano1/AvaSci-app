@@ -209,6 +209,7 @@ public class UserReportData
     public string ReportDescription { get; set; }
     public string GroupName { get; set; }
     public string SubjectId { get; set; }
+    public bool HasHtmlReports { get; set; }
     public List<JointReading> JointReadings { get; set; } = new List<JointReading>();
     public List<TimeBasedReadingRequest> TimeBasedReadings { get; set; } = new List<TimeBasedReadingRequest>();
     public List<GetGaitReportResponse> GaitReports { get; set; } = new List<GetGaitReportResponse>();
@@ -258,3 +259,24 @@ public class Receipt
         public int status { get; set; }
         
     }
+
+ public class HtmlBaseResponse
+ {
+     public bool isSuccess { get; set; }
+     public bool isError { get; set; }
+     public int status { get; set; }
+     public HtmlReportResponse result { get; set; }
+     public List<ServiceError> serviceErrors { get; set; }
+ }
+ public class HtmlReportResponse
+ {
+
+     public List<HtmlContents> htmlContents { get; set; } = new List<HtmlContents>();
+ }
+ public class HtmlContents
+ {
+     public string CreatedBy { get; set; }
+
+     public string HtmlReport { get; set; }
+     public string CreatedOn { get; set; }
+ }

@@ -20,7 +20,7 @@ public class UserReportFromDB : MonoBehaviour
 
     public Button WatchBtn;
     public Button PreviewButton;
-
+    public Button HtmlButton;
     public Image ProgressImage;
     public UnityWebRequest request;
 
@@ -45,6 +45,9 @@ public class UserReportFromDB : MonoBehaviour
     public GameObject Download;
     public GameObject Error;
     
+    public HtmlReportFromDb HtmlReportFromDbPrefab;
+    public GameObject HtmlReportsScroller;
+    public GameObject SelectedReportsViewScroller;
     private void Start()
     {
         // jointReadings.ForEach(x => x.VideoNameLink = ReportDescription.text.Replace("<b>Comment:</b>", ""));
@@ -120,7 +123,53 @@ public class UserReportFromDB : MonoBehaviour
             ReferenceManager.instance.PopupManager.Show("Report Delete Failed!", $"Reasons are: {error}");
         });
     }
+    List<HtmlReportFromDb> addedHtmlReports = new List<HtmlReportFromDb>();
+    public void ListAvailableHTMLs()
+    {
+        GetHtmlReportRequest request = new GetHtmlReportRequest()
+        {
+            ReportRecordId = videoId
+        };
+        string json = JsonConvert.SerializeObject(request);
+        SelectedReportsViewScroller.SetActive(false);
+        HtmlReportsScroller.SetActive(true);
+        APIHandler.instance.Post("UserReport/GetHtmlReport", json, onSuccess: (response) =>
+        {
+            HtmlBaseResponse responseWithNoObject = JsonConvert.DeserializeObject<HtmlBaseResponse>(response);
+            if (responseWithNoObject.isSuccess)
+            {
+                ReferenceManager.instance.PopupManager.Show("Reports Fetch Success!", $"Reports Fetched Successfully");
+                foreach (var item in responseWithNoObject.result.htmlContents)
+                {
+                    if (addedHtmlReports.FirstOrDefault(x => x.HTMLLink == item.HtmlReport) == null)
+                    {
+                        HtmlReportFromDb htmlReportFromDb = Instantiate(HtmlReportFromDbPrefab,
+                            HtmlReportFromDbPrefab.transform.parent);
+                        htmlReportFromDb.gameObject.SetActive(true);
+                        htmlReportFromDb.CreatedByText.text = item.CreatedBy;
+                        htmlReportFromDb.CreatedDateText.text = item.CreatedOn;
+                        htmlReportFromDb.HTMLLink = item.HtmlReport;
+                        htmlReportFromDb.viewButton.onClick.AddListener(() => Application.OpenURL(item.HtmlReport));
+                        addedHtmlReports.Add(htmlReportFromDb);
+                    }
+                }
+            }
+            if (responseWithNoObject.isError)
+            {
+                string reasons = "";
+                foreach (var item in responseWithNoObject.serviceErrors)
+                {
+                    reasons += $"\n {item.code} {item.description}";
+                }
+                ReferenceManager.instance.PopupManager.Show("Report Fetch Failed!", $"Reasons are: {reasons}");
+                Debug.Log($"{responseWithNoObject.serviceErrors}");
+            }
 
+        }, onError: (error) =>
+        {
+            ReferenceManager.instance.PopupManager.Show("Report Fetch Failed!", $"Reasons are: {error}");
+        });
+    }
     public void ToggleDropDown(bool value)
     {
         RectTransform myRect = GetComponent<RectTransform>();

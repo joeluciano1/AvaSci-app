@@ -23,6 +23,10 @@ public class CreateHtmlReportBody
     public string HtmlReport { get; set; }
     public string CreatedBy;
 }
+public class GetHtmlReportRequest
+{
+    public long ReportRecordId { get; set; }
+}
 public class LoginBody
 {
     public string email { get; set; }
