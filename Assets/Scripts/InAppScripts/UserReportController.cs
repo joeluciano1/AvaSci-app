@@ -967,14 +967,15 @@ public void GenerateRMarkdownForTimeBased(string outputRmdPath, List<string> csv
             Debug.Log("Persistance = " + path);
             GeneralStaticManager.OpenFile(path);
 #endif
-                string fileName = string.IsNullOrEmpty(HtmlFileName.text)? "report":HtmlFileName.text;
+                
                 UploadHtmlPrompt.SetActive(true);
                 UploadHtmlButton.onClick.RemoveAllListeners();
                 UploadHtmlButton.onClick.AddListener(()=>
                 {
+                    string fileName = string.IsNullOrEmpty(HtmlFileName.text)? "report":HtmlFileName.text;
                     ReferenceManager.instance.LoadingManager.Show("Uploading HTML to database");
                     StartCoroutine(AzureConnector.Instance.PutHTMLOnBlob(rrr.result.HtmlResponse, "htmlreports",
-                        fileName, UploadHtmlCallback, true));
+                        fileName.ToLower(), UploadHtmlCallback, true));
                 });
             }, onError: (error) => { Debug.LogError(error); });
             Debug.Log($"R Markdown file generated successfully at: {outputRmdPath}");
@@ -1132,14 +1133,15 @@ public void GenerateRMarkdownForTimeBased(string outputRmdPath, List<string> csv
             Debug.Log("Persistance = " + path);
             GeneralStaticManager.OpenFile(path);
 #endif
-                    string fileName = string.IsNullOrEmpty(HtmlFileName.text)? "report":HtmlFileName.text;
+                    
                     UploadHtmlPrompt.SetActive(true);
                     UploadHtmlButton.onClick.RemoveAllListeners();
                     UploadHtmlButton.onClick.AddListener(()=>
                     {
+                        string fileName = string.IsNullOrEmpty(HtmlFileName.text)? "report":HtmlFileName.text;
                         ReferenceManager.instance.LoadingManager.Show("Uploading HTML to database");
                         StartCoroutine(AzureConnector.Instance.PutHTMLOnBlob(rrr.result.HtmlResponse, "htmlreports",
-                            fileName, UploadHtmlCallback, true));
+                            fileName.ToLower(), UploadHtmlCallback, true));
                     });
                 }, onError: (error) => { Debug.LogError(error); });
                 Debug.Log($"R Markdown file generated successfully at: {outputRmdPath}");

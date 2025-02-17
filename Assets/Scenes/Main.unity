@@ -14984,7 +14984,7 @@ MonoBehaviour:
   GroupName: {fileID: 1558600847}
   MyContent: {fileID: 1438642774}
   MyScrollView: {fileID: 268795981}
-  MyVerticalLayoutGroup: {fileID: 1438642776}
+  MyVerticalLayoutGroup: {fileID: 154494818}
   MyScrollRect: {fileID: 268795982}
   ShowcaseScrollRect: {fileID: 143955239}
   ReportsScrollView: {fileID: 4957962250531198744}
@@ -18801,7 +18801,7 @@ MonoBehaviour:
   GroupName: {fileID: 1353027907}
   MyContent: {fileID: 896876752}
   MyScrollView: {fileID: 1471536572}
-  MyVerticalLayoutGroup: {fileID: 896876754}
+  MyVerticalLayoutGroup: {fileID: 154494818}
   MyScrollRect: {fileID: 1471536573}
   ShowcaseScrollRect: {fileID: 143955239}
   ReportsScrollView: {fileID: 4957962250531198744}
@@ -39652,7 +39652,7 @@ MonoBehaviour:
   GroupName: {fileID: 2083948922}
   MyContent: {fileID: 643958006}
   MyScrollView: {fileID: 955237915}
-  MyVerticalLayoutGroup: {fileID: 643958008}
+  MyVerticalLayoutGroup: {fileID: 154494818}
   MyScrollRect: {fileID: 955237916}
   ShowcaseScrollRect: {fileID: 143955239}
   ReportsScrollView: {fileID: 4957962250531198744}
@@ -76940,7 +76940,7 @@ MonoBehaviour:
   GroupName: {fileID: 885795900}
   MyContent: {fileID: 1267563957}
   MyScrollView: {fileID: 536540192}
-  MyVerticalLayoutGroup: {fileID: 1267563959}
+  MyVerticalLayoutGroup: {fileID: 154494818}
   MyScrollRect: {fileID: 536540193}
   ShowcaseScrollRect: {fileID: 143955239}
   ReportsScrollView: {fileID: 4957962250531198744}
@@ -77379,7 +77379,7 @@ MonoBehaviour:
   GroupName: {fileID: 1481078634}
   MyContent: {fileID: 745922358}
   MyScrollView: {fileID: 1006079325}
-  MyVerticalLayoutGroup: {fileID: 745922360}
+  MyVerticalLayoutGroup: {fileID: 154494818}
   MyScrollRect: {fileID: 1006079326}
   ShowcaseScrollRect: {fileID: 143955239}
   ReportsScrollView: {fileID: 4957962250531198744}
