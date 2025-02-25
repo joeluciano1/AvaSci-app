@@ -21,6 +21,8 @@ using Whisper.Samples;
 
 public class ReferenceManager : MonoBehaviour
 {
+    public AppThemeChanger AppThemeChanger;
+    public NotificationManager NotificationManager;
     public long? SelectedVideoID;
     public bool isProduction;
     public GameObject DebugButton;

@@ -47,13 +47,14 @@ public class APIHandler : MonoBehaviour
         }
     }
 
-    public void Post(string endpoint, string json, System.Action<string> onSuccess, System.Action<string> onError)
+    public void Post(string endpoint, string json, System.Action<string> onSuccess, System.Action<string> onError, bool isSilent = false)
     {
-        ReferenceManager.instance.LoadingManager.Show($"Working on <b>{endpoint.Split('/')[1]}</b> in the backend");
-        StartCoroutine(PostRequest($"{StringConstants.BASEENDPOINT}/{endpoint}", json, onSuccess, onError));
+        if(!isSilent) 
+            ReferenceManager.instance.LoadingManager.Show($"Working on <b>{endpoint.Split('/')[1]}</b> in the backend");
+        StartCoroutine(PostRequest($"{StringConstants.BASEENDPOINT}/{endpoint}", json, onSuccess, onError, isSilent));
     }
 
-    private IEnumerator PostRequest(string url, string json, System.Action<string> onSuccess, System.Action<string> onError)
+    private IEnumerator PostRequest(string url, string json, System.Action<string> onSuccess, System.Action<string> onError, bool isSilent = false)
     {
 
         var request = new UnityWebRequest(url, "POST");

@@ -37,7 +37,7 @@ public class UserReportController : MonoBehaviour
     public VideoPlayerView videoPlayerView;
     public VideoRecordingView videoRecorderView;
 
-    UserReportFromDB RecentlyPlayedButton;
+    public UserReportFromDB RecentlyPlayedButton;
     public Button StopRecButton;
     public Button ResetButton;
     // public VerticalLayoutGroup ReportsLayoutGroup;
@@ -59,6 +59,10 @@ public class UserReportController : MonoBehaviour
     public Button UploadHtmlButton;
 
     public TMP_InputField HtmlFileName;
+    public TMP_InputField UserEmailToShareWith;
+
+    public GameObject ShareRecordingPopup;
+    public Button ShareRecordingButton;
     // Start is called before the first frame update
     public void Start()
     {
@@ -1476,10 +1480,11 @@ string EscapeMarkdown(string input)
         videoRecorderView.Show();
     }
 
-    List<UnityWebRequest> requests = new List<UnityWebRequest>();
+    public List<UnityWebRequest> requests = new List<UnityWebRequest>();
+    public ReportSectionManager reportSectionManager;
     float progress;
 
-    IEnumerator GetText(string url, Button btn, UserReportFromDB userReportFromDB)
+    public IEnumerator GetText(string url, Button btn, UserReportFromDB userReportFromDB)
     {
         ClearLastPlayedVideoData();
         btn.interactable = false;
@@ -1742,7 +1747,7 @@ string EscapeMarkdown(string input)
         return serverTime;
     }
 
-    DateTime ConvertToLocalTime(DateTime serverTime)
+   public DateTime ConvertToLocalTime(DateTime serverTime)
     {
         // Assuming the server time is in UTC, convert it to local time
         TimeZoneInfo localZone = TimeZoneInfo.Local;

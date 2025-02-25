@@ -195,4 +195,48 @@ public class UserReportFromDB : MonoBehaviour
             
         }
     }
+
+    public void AskToShareRecording()
+    {
+        ReferenceManager.instance.userReportController.ShareRecordingPopup.SetActive(true);
+        ReferenceManager.instance.userReportController.ShareRecordingButton.onClick.RemoveAllListeners();
+        ReferenceManager.instance.userReportController.ShareRecordingButton.onClick.AddListener(ShareRecording);
+    }
+    public void ShareRecording()
+    {
+        if (string.IsNullOrEmpty(ReferenceManager.instance.userReportController.UserEmailToShareWith.text))
+        {
+            ReferenceManager.instance.PopupManager.Show("Error", $"Please enter your email address");
+            return;
+        }
+        ReferenceManager.instance.userReportController.ShareRecordingPopup.SetActive(false);
+        ShareRecordingRequest shareRecordingRequest = new ShareRecordingRequest()
+        {
+            SharedBy = UserId,
+            UserEmail = ReferenceManager.instance.userReportController.UserEmailToShareWith.text,
+            VideoURL = VideoURL,
+            RecordingId = videoId
+        };
+        string json = JsonConvert.SerializeObject(shareRecordingRequest);
+        APIHandler.instance.Post("UserReport/ShareRecording", json, onSuccess: (response) =>
+        {
+            ResponseWithNoObject responseWithNoObject = JsonConvert.DeserializeObject<ResponseWithNoObject>(response);
+            if (responseWithNoObject.isSuccess)
+            {
+                ReferenceManager.instance.PopupManager.Show("Share Recording Success!", $"Shared Recording Successfully");
+            }
+            else
+            {
+                string reasons = "";
+                foreach (var item in responseWithNoObject.serviceErrors)
+                {
+                    reasons += $"\n {item.code} {item.description}";
+                }
+                ReferenceManager.instance.PopupManager.Show("Sharing Recording Failed!!", $"Reasons are: {reasons}");
+            }
+        }, onError: (error) =>
+        {
+            ReferenceManager.instance.PopupManager.Show("Sharing Recording Failed!!", $"Reasons are: {error}");
+        });
+    }
 }

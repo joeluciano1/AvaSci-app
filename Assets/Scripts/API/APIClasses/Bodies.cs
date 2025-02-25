@@ -27,6 +27,11 @@ public class GetHtmlReportRequest
 {
     public long ReportRecordId { get; set; }
 }
+public class GetSharedRecordingRequest
+{
+    public string UserEmail { get; set; }
+
+}
 public class LoginBody
 {
     public string email { get; set; }
@@ -221,3 +226,11 @@ public class AddClinicPatientBody
         public string DoctorId { get; set; }
         public string PatientId { get; set; }
     }
+    
+public class ShareRecordingRequest
+{
+    public string SharedBy { get; set; }
+    public long RecordingId { get; set; }
+    public string VideoURL { get; set; }
+    public string UserEmail { get; set; }
+}

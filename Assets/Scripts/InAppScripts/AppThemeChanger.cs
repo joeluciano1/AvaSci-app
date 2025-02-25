@@ -15,6 +15,10 @@ public class AppThemeChanger : MonoBehaviour
     [Space(20)]
     public Color DarkThemeColorNew;
     public Color LightThemeColorNew;
+
+    public Color NormalNotificationColor;
+    public Color WarningNotificationColor;
+    public Color ErrorNotificationColor;
     
     public void ToggleTheme(bool useDarkTheme)
     {
