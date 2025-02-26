@@ -285,8 +285,13 @@ namespace LightBuzz.AvaSci.UI
             _recordButton.interactable = false;
             _settingsButton.interactable = false;
             _switchCameraButton.interactable = false;
+
+            if (_configuration.SensorType == SensorType.RealSense)
+            {
+                ReferenceManager.instance.DepthModeToggle.gameObject.SetActive(true);
+            }
             
-                Sensor = Sensor.Create(_configuration);
+            Sensor = Sensor.Create(_configuration);
             
 
             if (Sensor == null)

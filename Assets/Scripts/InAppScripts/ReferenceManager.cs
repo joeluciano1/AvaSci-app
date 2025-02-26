@@ -147,6 +147,19 @@ public class ReferenceManager : MonoBehaviour
     public StreamingSampleMic StreamingSampleMic;
     public bool ignoreLowConfidenceJoints;
     public LightBuzz_BodyTracking_RealSense lightBuzz_BodyTracking_RealSenseForConfigRef;
+    public Toggle DepthModeToggle;
+    public LightBuzzViewer lightBuzzViewer;
+    public void SetDepthMode(bool value)
+    {
+        if (value)
+        {
+            lightBuzzViewer.Visualization = FrameVisualization.Depth;
+        }
+        else
+        {
+            lightBuzzViewer.Visualization = FrameVisualization.Color;
+        }
+    }
     private void Awake()
     {
         instance = this;
