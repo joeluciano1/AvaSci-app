@@ -36,6 +36,11 @@ public class NotificationManager : MonoBehaviour
         APIHandler.instance.Post("UserReport/GetSharedRecording",json,onSuccess: (response) =>
         {
             GetSharedRecordingResponse getSharedRecordingResponse = JsonConvert.DeserializeObject<GetSharedRecordingResponse>(response);
+            if(getSharedRecordingResponse == null)
+            {
+                CheckSharedRecordingAgain();
+                return;
+            }
             if (getSharedRecordingResponse.isSuccess)
             {
                 

@@ -8,7 +8,7 @@
       "hash": "cb43705e2c6fa2c8d6de517d940ffb1f6359efe6"
     },
     "com.lightbuzz.bodytracking": {
-      "version": "file:/Users/ehtisham/Downloads/com.lightbuzz.bodytracking-6.2.5.tgz",
+      "version": "file:C:/Users/stunn/Downloads/com.lightbuzz.bodytracking-6.2.5.tgz",
       "depth": 0,
       "source": "local-tarball",
       "dependencies": {}
@@ -26,7 +26,7 @@
       "dependencies": {}
     },
     "com.unity.collab-proxy": {
-      "version": "2.5.2",
+      "version": "2.7.1",
       "depth": 0,
       "source": "registry",
       "dependencies": {},
@@ -54,8 +54,8 @@
         "com.unity.ide.visualstudio": "2.0.22",
         "com.unity.ide.rider": "3.0.31",
         "com.unity.editorcoroutines": "1.0.0",
-        "com.unity.performance.profile-analyzer": "1.2.2",
-        "com.unity.test-framework": "1.4.5",
+        "com.unity.performance.profile-analyzer": "1.2.3",
+        "com.unity.test-framework": "1.4.6",
         "com.unity.testtools.codecoverage": "1.2.6"
       }
     },
@@ -93,7 +93,7 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.performance.profile-analyzer": {
-      "version": "1.2.2",
+      "version": "1.2.3",
       "depth": 1,
       "source": "registry",
       "dependencies": {},
@@ -113,7 +113,7 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.services.core": {
-      "version": "1.13.0",
+      "version": "1.14.0",
       "depth": 1,
       "source": "registry",
       "dependencies": {
@@ -131,7 +131,7 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.test-framework": {
-      "version": "1.4.5",
+      "version": "1.4.6",
       "depth": 1,
       "source": "registry",
       "dependencies": {
@@ -173,7 +173,7 @@
       }
     },
     "com.unity.visualscripting": {
-      "version": "1.9.4",
+      "version": "1.9.5",
       "depth": 0,
       "source": "registry",
       "dependencies": {
@@ -193,7 +193,7 @@
       "depth": 0,
       "source": "git",
       "dependencies": {},
-      "hash": "70c1cc84230f4c60381a2955d4d64c85e4da3526"
+      "hash": "99559c82d9ef7fa2e2c588b91b1995f117f754b2"
     },
     "com.unity.modules.accessibility": {
       "version": "1.0.0",

@@ -116519,17 +116519,17 @@ MonoBehaviour:
     _smoothing: 0.15
     _threadingMode: 1
     _timeout: 0
-    _videoPath: /Users/vangos/Projects/AvaSci/Assets/StreamingAssets/LightBuzz/video.avi
+    _videoPath: C:/Users/Vangos/Projects/Body-Tracking/Product/Unity3D/LightBuzz_BodyTracking/Assets/StreamingAssets\LightBuzz\video.avi
     _deviceIndex: 0
-    _requestedFrameRate: 60
+    _requestedFrameRate: 30
     _requestedColorResolution:
-      Width: 1280
-      Height: 720
+      Width: 640
+      Height: 480
     _requestedDepthResolution:
       Width: 640
       Height: 480
     _serialNumber: 
-    _enableSteadyRate: 1
+    _enableSteadyRate: 0
     _enableHandTracking: 0
   _videoPath: 
   _mode: 0

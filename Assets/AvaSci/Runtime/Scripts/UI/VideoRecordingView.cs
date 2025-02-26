@@ -285,14 +285,9 @@ namespace LightBuzz.AvaSci.UI
             _recordButton.interactable = false;
             _settingsButton.interactable = false;
             _switchCameraButton.interactable = false;
-            if (_configuration.SensorType == SensorType.RealSense)
-            {
-                Sensor = Sensor.Create(ReferenceManager.instance.lightBuzz_BodyTracking_RealSenseForConfigRef._configuration);
-            }
-            else
-            {
+            
                 Sensor = Sensor.Create(_configuration);
-            }
+            
 
             if (Sensor == null)
             {
