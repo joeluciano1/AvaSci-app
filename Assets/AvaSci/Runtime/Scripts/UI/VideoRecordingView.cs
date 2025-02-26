@@ -285,14 +285,20 @@ namespace LightBuzz.AvaSci.UI
             _recordButton.interactable = false;
             _settingsButton.interactable = false;
             _switchCameraButton.interactable = false;
-
-            Sensor = Sensor.Create(_configuration);
+            if (_configuration.SensorType == SensorType.RealSense)
+            {
+                Sensor = Sensor.Create(ReferenceManager.instance.lightBuzz_BodyTracking_RealSenseForConfigRef._configuration);
+            }
+            else
+            {
+                Sensor = Sensor.Create(_configuration);
+            }
 
             if (Sensor == null)
             {
                 _loading.SetActive(false);
-
-                Debug.LogError("Could not create sensor. Check the configuration settings.");
+                
+                Debug.LogError($"Could not create sensor. Check the configuration settings.\n{_configuration.SensorType}\n{_configuration.DeviceIndex}");
                 OnRecordingReady?.Invoke(false);
 
                 return;
@@ -312,7 +318,7 @@ namespace LightBuzz.AvaSci.UI
 
             if (!Sensor.IsOpen)
             {
-                Debug.LogError("Could not open sensor. Check the configuration settings.");
+                Debug.LogError($"2 Could not open sensor. Check the configuration settings.\n{_configuration.SensorType}\n{_configuration.DeviceIndex}\n{Sensor.Configuration.SensorType}");
                 OnRecordingReady?.Invoke(false);
 
                 return;

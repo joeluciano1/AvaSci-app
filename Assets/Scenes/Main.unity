@@ -4452,6 +4452,7 @@ MonoBehaviour:
   UIDraggers: []
   StreamingSampleMic: {fileID: 1012889780}
   ignoreLowConfidenceJoints: 1
+  lightBuzz_BodyTracking_RealSenseForConfigRef: {fileID: 175258351}
   persistantCount: 0
   isUploadingVideo: 0
   uploadVideoEvent:
@@ -7273,6 +7274,70 @@ RectTransform:
   m_AnchoredPosition: {x: 5, y: -0.5}
   m_SizeDelta: {x: -30, y: -3}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!1 &175258349
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 175258350}
+  - component: {fileID: 175258351}
+  m_Layer: 0
+  m_Name: RealSenseConfigs
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &175258350
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 175258349}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 194548978}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &175258351
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 175258349}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 67a1b7684530e9d4b8f12f469e4b88f9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _configuration:
+    _sensorType: 2
+    _smoothingType: 0
+    _smoothing: 0.15
+    _threadingMode: 1
+    _timeout: 0
+    _videoPath: C:/Users/Vangos/Projects/Body-Tracking/Product/Unity3D/LightBuzz_BodyTracking/Assets/StreamingAssets\LightBuzz\video.avi
+    _deviceIndex: 0
+    _requestedFrameRate: 30
+    _requestedColorResolution:
+      Width: 640
+      Height: 480
+    _requestedDepthResolution:
+      Width: 640
+      Height: 480
+    _serialNumber: 
+    _enableSteadyRate: 0
+    _enableHandTracking: 0
+  _colorViewer: {fileID: 0}
+  _depthViewer: {fileID: 0}
 --- !u!1 &178112467
 GameObject:
   m_ObjectHideFlags: 0
@@ -8249,6 +8314,7 @@ Transform:
   - {fileID: 934384202}
   - {fileID: 610860687}
   - {fileID: 1457388898}
+  - {fileID: 175258350}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &199829677
@@ -37070,8 +37136,6 @@ GameObject:
   - component: {fileID: 889440917}
   - component: {fileID: 889440916}
   - component: {fileID: 889440919}
-  - component: {fileID: 889440921}
-  - component: {fileID: 889440920}
   m_Layer: 5
   m_Name: LoadingPanel (Off)
   m_TagString: Untagged
@@ -37177,129 +37241,6 @@ MonoBehaviour:
   DownloadedBytes: {fileID: 264861107}
   LoadingImage: {fileID: 1698210447}
   closeButton: {fileID: 1511460262}
---- !u!114 &889440920
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 889440914}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4d0390bd8b8ffd640b34fe25065ff1df, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  updateType: 0
-  isSpeedBased: 0
-  hasOnStart: 0
-  hasOnPlay: 0
-  hasOnUpdate: 0
-  hasOnStepComplete: 0
-  hasOnComplete: 0
-  hasOnTweenCreated: 0
-  hasOnRewind: 0
-  onStart:
-    m_PersistentCalls:
-      m_Calls: []
-  onPlay:
-    m_PersistentCalls:
-      m_Calls: []
-  onUpdate:
-    m_PersistentCalls:
-      m_Calls: []
-  onStepComplete:
-    m_PersistentCalls:
-      m_Calls: []
-  onComplete:
-    m_PersistentCalls:
-      m_Calls: []
-  onTweenCreated:
-    m_PersistentCalls:
-      m_Calls: []
-  onRewind:
-    m_PersistentCalls:
-      m_Calls: []
-  targetIsSelf: 1
-  targetGO: {fileID: 0}
-  tweenTargetIsTargetGO: 1
-  delay: 0
-  duration: 0.3
-  easeType: 6
-  easeCurve:
-    serializedVersion: 2
-    m_Curve:
-    - serializedVersion: 3
-      time: 0
-      value: 0
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0
-      outWeight: 0
-    - serializedVersion: 3
-      time: 1
-      value: 1
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0
-      outWeight: 0
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-    m_RotationOrder: 4
-  loopType: 0
-  loops: 1
-  id: 
-  isRelative: 0
-  isFrom: 1
-  isIndependentUpdate: 0
-  autoKill: 0
-  autoGenerate: 1
-  isActive: 1
-  isValid: 1
-  target: {fileID: 889440916}
-  animationType: 6
-  targetType: 3
-  forcedTargetType: 0
-  autoPlay: 0
-  useTargetAsV3: 0
-  endValueFloat: 0
-  endValueV3: {x: 0, y: 0, z: 0}
-  endValueV2: {x: 0, y: 0}
-  endValueColor: {r: 0.007843138, g: 0.03137255, b: 0.09411765, a: 0.69411767}
-  endValueString: 
-  endValueRect:
-    serializedVersion: 2
-    x: 0
-    y: 0
-    width: 0
-    height: 0
-  endValueTransform: {fileID: 0}
-  optionalBool0: 0
-  optionalBool1: 0
-  optionalFloat0: 0
-  optionalInt0: 0
-  optionalRotationMode: 0
-  optionalScrambleMode: 0
-  optionalShakeRandomnessMode: 0
-  optionalString: 
---- !u!114 &889440921
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 889440914}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 40306178, guid: aa0b1eebb5db27a419fa4564bbe5c9c5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  preset: 1
-  onEnableBehaviour: 3
-  onDisableBehaviour: 2
 --- !u!1 &889931462
 GameObject:
   m_ObjectHideFlags: 0
@@ -97060,6 +97001,8 @@ MonoBehaviour:
     - m_Text: Webcam (RGB)
       m_Image: {fileID: 0}
     - m_Text: LiDAR (RGBD)
+      m_Image: {fileID: 0}
+    - m_Text: RealSense
       m_Image: {fileID: 0}
   m_OnValueChanged:
     m_PersistentCalls:

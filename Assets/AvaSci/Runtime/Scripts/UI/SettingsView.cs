@@ -155,7 +155,10 @@ namespace LightBuzz.AvaSci.UI
         public void OnSensorChange(int value)
         {
             SensorType sensorType = value == 0 ? SensorType.Webcam : SensorType.LiDAR;
-
+            if (value == 2)
+            {
+                sensorType = SensorType.RealSense;
+            }
             SensorChanged?.Invoke((int)sensorType);
         }
 

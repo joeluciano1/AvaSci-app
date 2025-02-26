@@ -146,6 +146,7 @@ public class ReferenceManager : MonoBehaviour
     public List<UIDragger> UIDraggers=new List<UIDragger>();
     public StreamingSampleMic StreamingSampleMic;
     public bool ignoreLowConfidenceJoints;
+    public LightBuzz_BodyTracking_RealSense lightBuzz_BodyTracking_RealSenseForConfigRef;
     private void Awake()
     {
         instance = this;

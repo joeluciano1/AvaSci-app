@@ -63,7 +63,7 @@ public class APIHandler : MonoBehaviour
         request.downloadHandler = (DownloadHandler)new DownloadHandlerBuffer();
         request.SetRequestHeader("Content-Type", "application/json");
         request.SendWebRequest();
-        while (!request.isDone)
+        while (!request.isDone && !isSilent)
         {
             ReferenceManager.instance.LoadingManager.DownloadedBytes.text = Math.Round(request.downloadProgress) * 100 + "%";
             if(ReferenceManager.instance.LoadingManager.LoadingImage.fillAmount < request.downloadProgress)
@@ -78,6 +78,7 @@ public class APIHandler : MonoBehaviour
         {
             onSuccess?.Invoke(request.downloadHandler.text);
         }
+        if(!isSilent)
         ReferenceManager.instance.LoadingManager.Hide();
     }
 }
