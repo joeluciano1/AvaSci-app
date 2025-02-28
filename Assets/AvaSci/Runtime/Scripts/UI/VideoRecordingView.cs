@@ -22,8 +22,8 @@ namespace LightBuzz.AvaSci.UI
         [SerializeField] public string _videoPath = string.Empty;
         [SerializeField] private VideoRecordingMode _mode = VideoRecordingMode.Default;
         [SerializeField][Range(0, 100)] private int _quality = 50;
-        [SerializeField] private bool _recordColorData = true;
-        [SerializeField] private bool _recordDepthData = false;
+        [SerializeField] public bool _recordColorData = true;
+        [SerializeField] public bool _recordDepthData = false;
         [SerializeField] private bool _recordBodyData = true;
         [SerializeField] private bool _hideFaces = false;
 
@@ -289,6 +289,10 @@ namespace LightBuzz.AvaSci.UI
             if (_configuration.SensorType == SensorType.RealSense)
             {
                 ReferenceManager.instance.DepthModeToggle.gameObject.SetActive(true);
+            }
+            else
+            {
+                ReferenceManager.instance.DepthModeToggle.gameObject.SetActive(false);
             }
             
             Sensor = Sensor.Create(_configuration);

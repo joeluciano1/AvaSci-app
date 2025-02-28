@@ -79,6 +79,15 @@ public class UserReportFromDB : MonoBehaviour
    
     public void DeleteVide()
     {
+        ReferenceManager.instance.PopupManager.Show("Delete Video?","Are you sure you want to delete this video?",false,okPressed:()=>
+        {
+            PerformDeleteOperation();
+        });
+        
+    }
+
+    public void PerformDeleteOperation()
+    {
         if (VideoURL.Contains("http"))
         {
             Uri uri = new Uri(VideoURL);

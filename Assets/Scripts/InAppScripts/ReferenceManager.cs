@@ -154,10 +154,14 @@ public class ReferenceManager : MonoBehaviour
         if (value)
         {
             lightBuzzViewer.Visualization = FrameVisualization.Depth;
+            videoRecordingView._recordDepthData = true;
+            videoRecordingView._recordColorData = false;
         }
         else
         {
             lightBuzzViewer.Visualization = FrameVisualization.Color;
+            videoRecordingView._recordDepthData = false;
+            videoRecordingView._recordColorData = true;
         }
     }
     private void Awake()

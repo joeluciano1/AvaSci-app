@@ -195,7 +195,7 @@ public class UserReportController : MonoBehaviour
                         
                         if (alreadyExisting != null)
                         {
-                            userReportFromDB.transform.parent = alreadyExisting.MyContent;
+                            userReportFromDB.transform.SetParent(alreadyExisting.MyContent, false);
                             alreadyExisting.DropDownItems.Add(userReportFromDB);
                             userReportFromDB.MyReportGroupHandler = alreadyExisting;
                             userReportFromDB.MyScrollRect = alreadyExisting.MyScrollRect;
@@ -1477,6 +1477,7 @@ string EscapeMarkdown(string input)
         if(ReferenceManager.instance.videoRecordingView.Sensor !=null)
             ReferenceManager.instance.videoRecordingView.Sensor.OptimizationMode = 0;
         ReferenceManager.instance.sensorTypeDropDown.SetValueWithoutNotify(0);
+        ReferenceManager.instance.lightBuzzViewer.Visualization = FrameVisualization.Color;
         videoRecorderView.Show();
     }
 
@@ -1678,10 +1679,11 @@ string EscapeMarkdown(string input)
         {
             Directory.Delete(path1, recursive: true);
         }
+        string[] filePaths = null;
         if (videoSaveBodies != null)
         {
             Directory.CreateDirectory(path1);
-            foreach (var item in videoSaveBodies)
+            foreach (VideoSaveBody item in videoSaveBodies)
             {
                 if (item.FileName.Equals("Sample.pdf"))
                 {
@@ -1689,7 +1691,7 @@ string EscapeMarkdown(string input)
                 }
                 string fileName = item.FileName;
                 string fileData = item.FileData;
-
+                Debug.Log(fileName);
                 string path = System.IO.Path.Combine(
                     Application.persistentDataPath,
                     "Video",
@@ -1699,11 +1701,24 @@ string EscapeMarkdown(string input)
                 File.WriteAllBytes(path, bytes);
             }
 
-            var filePaths = Directory.GetFiles(path1);
+            filePaths = Directory.GetFiles(path1);
             while (filePaths.Length < videoSaveBodies.Count - 1)
             {
                 await Task.Delay(500);
             }
+        }
+
+        if (filePaths == null)
+        {
+            filePaths = Directory.GetFiles(path1);
+        }
+        if (filePaths.FirstOrDefault(x => x.Contains(".depth")) != null)
+        {
+            ReferenceManager.instance.lightBuzzViewer.Visualization = FrameVisualization.Depth;
+        }
+        else
+        {
+            ReferenceManager.instance.lightBuzzViewer.Visualization = FrameVisualization.Color;
         }
         ReportPanel.SetActive(false);
         GraphPanel.SetActive(true);
