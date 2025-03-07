@@ -52,7 +52,7 @@ public class ReportGroupHandler : MonoBehaviour
         ShowcaseScrollRect.gameObject.SetActive(true);
         DropDownItems.ForEach(x=>
         {
-            x.transform.parent = ShowcaseScrollRect.content;
+            x.transform.SetParent(ShowcaseScrollRect.content,false);
             x.MyScrollRect = ShowcaseScrollRect;
         });
         ReportsScrollView.GetComponent<LayoutElement>().ignoreLayout = true;

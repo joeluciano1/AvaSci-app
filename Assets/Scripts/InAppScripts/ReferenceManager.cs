@@ -198,12 +198,12 @@ public class ReferenceManager : MonoBehaviour
                 PopupManager.Show(
                     "Lidar Detected",
                     "Would you like to switch to lidar camera?",
-                    false,
+                    noButtonName:"No",
                     okPressed: () =>
                     {
                         sensorTypeDropDown.value = 1;
-                    },
-                    true
+                    }
+                    
                 );
             }
             isDone = true;
@@ -481,9 +481,9 @@ public class ReferenceManager : MonoBehaviour
         PopupManager.Show(
             "Save Video?",
             "Would you like the video to be saved to be viewed Later?",
-            false,
-            okPressed: () => UploadVideo(path),
-            true
+            noButtonName:"No",
+            okPressed: () => UploadVideo(path)
+            
         );
     }
 

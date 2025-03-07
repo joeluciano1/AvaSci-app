@@ -7,7 +7,6 @@ using UnityEngine.UI;
 using System.Threading.Tasks;
 using UnityEngine.Events;
 using System;
-using Nrjwolf.Tools;
 
 public class PopupManager : MonoBehaviour
 {
@@ -16,25 +15,54 @@ public class PopupManager : MonoBehaviour
     [HideInInspector] public bool doFade;
     [HideInInspector] public Image MyImage;
     public UnityEvent onSuccess;
+    public Button SampleButton;
     
-    public GameObject NoButton;
-    public async void Show(string heading, string content, bool fade = false, System.Action okPressed = null, bool isAsking = false)
+    public Button NoButton;
+
+    public GameObject Toast;
+    public TMP_Text ToastText;
+    public async void Show(string heading, string content,string noButtonName = "", System.Action okPressed = null, string yesButtonName = "Yes" )
     {
     
         Debug.Log("Popup Message: " + content);
+        gameObject.SetActive(true);
+        HeadingText.text = heading;
+        ContentText.text = content;
+        NoButton.gameObject.SetActive(false);
+        SampleButton.onClick.RemoveAllListeners();
+        NoButton.onClick.RemoveAllListeners();
         if (okPressed != null)
         {
-            IOSNativeAlert.ShowAlertMessage(heading, content,new IOSNativeAlert.AlertButton("No", null, ButtonStyle.Cancel), new IOSNativeAlert.AlertButton("Yes", () => { okPressed.Invoke(); }));
+            // IOSNativeAlert.ShowAlertMessage(heading, content,new IOSNativeAlert.AlertButton("No", null, ButtonStyle.Cancel), new IOSNativeAlert.AlertButton("Yes", () => { okPressed.Invoke(); }));
+                SampleButton.GetComponentInChildren<TextMeshProUGUI>().text = yesButtonName;
+                SampleButton.onClick.AddListener(()=>okPressed?.Invoke());
 
+                if (!string.IsNullOrEmpty(noButtonName))
+                {
+                    NoButton.gameObject.SetActive(true);
+                    NoButton.GetComponentInChildren<TextMeshProUGUI>().text = noButtonName;
+
+
+                    NoButton.onClick.AddListener(() => gameObject.SetActive(false));
+                }
         }
         else
         {
-            IOSNativeAlert.ShowAlertMessage(heading, content);
+            // IOSNativeAlert.ShowAlertMessage(heading, content);
+            
+            SampleButton.GetComponentInChildren<TextMeshProUGUI>().text = "Ok";
+            
+            SampleButton.onClick.AddListener(()=>gameObject.SetActive(false));
         }
 
         
     }
 
+    public void ShowToast(string content)
+    {
+        Toast.SetActive(true);
+        ToastText.text = content;
+    }
   
     public void OnOkClick()
     {

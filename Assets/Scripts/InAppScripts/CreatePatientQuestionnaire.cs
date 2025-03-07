@@ -5,7 +5,7 @@ using TMPro;
 using UnityEngine.UI;
 using System.Linq;
 using Newtonsoft.Json;
-using Nrjwolf.Tools;
+
 public class CreatePatientQuestionnaire : MonoBehaviour
 {
     public TMP_InputField EmailInputField;
@@ -47,13 +47,13 @@ public class CreatePatientQuestionnaire : MonoBehaviour
                 ReferenceManager.instance.reportSectionManager.FeedClinicData();
             }
             else{
-                IOSNativeAlert.ShowAlertMessage("Failed!", $"UnknownError");
+                ReferenceManager.instance.PopupManager.Show("Failed!", $"UnknownError");
             }
 
         },
         onError: (error) =>
         {
-            IOSNativeAlert.ShowAlertMessage("Failed!", $"Reasons are: {error}");
+            ReferenceManager.instance.PopupManager.Show("Failed!", $"Reasons are: {error}");
             Debug.LogError($"Error: {error}");
         }
         );

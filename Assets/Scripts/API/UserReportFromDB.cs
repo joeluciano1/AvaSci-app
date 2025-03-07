@@ -79,7 +79,7 @@ public class UserReportFromDB : MonoBehaviour
    
     public void DeleteVide()
     {
-        ReferenceManager.instance.PopupManager.Show("Delete Video?","Are you sure you want to delete this video?",false,okPressed:()=>
+        ReferenceManager.instance.PopupManager.Show("Delete Video?","Are you sure you want to delete this video?",noButtonName:"No",okPressed:()=>
         {
             PerformDeleteOperation();
         });

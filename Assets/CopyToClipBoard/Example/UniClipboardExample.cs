@@ -1,7 +1,6 @@
 ﻿using System.Runtime.InteropServices;
 using UnityEngine;
 using UnityEngine.UI;
-using Nrjwolf.Tools;
 using System.Collections.Generic;
 using System.Linq;
 using TMPro;
@@ -25,7 +24,7 @@ public class UniClipboardExample : MonoBehaviour
 
         UniClipboard.SetText(textAsset.text);
 #if UNITY_IOS
-        IOSNativeAlert.ShowToast($"Copied {fileName}");
+        ReferenceManager.instance.PopupManager.ShowToast($"Copied {fileName}");
 #endif
     }
 }
