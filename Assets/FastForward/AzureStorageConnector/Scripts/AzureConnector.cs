@@ -312,28 +312,28 @@ namespace FastForward.CAS
 
         public IEnumerator PutTextBlob(string data, string containerName, string fileName, AzureUploadCallback uploadCallback, bool useMillis = true)
         {
-                    string requestMethod = "PUT";
+            string requestMethod = "PUT";
             string contentType = "application/octet-stream";
-            
+
             // Append timestamp if `useMillis` is true
             string timestamp = useMillis ? "-" + DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString() : "";
             string fullFileName = $"{fileName}{timestamp}.txt"; // Change extension if needed
 
-            string saas = "sp=racwdl&st=2025-03-11T14:50:03Z&se=2025-03-11T22:50:03Z&sv=2022-11-02&sr=c&sig=eEXoAbbDZlkwKoxbqlmLeL7dv9j%2BCdAWBQXsEhtmsBg%3D";
-            
+            string saas = "sp=racwdl&st=2025-03-13T06:03:26Z&se=2025-03-13T14:03:26Z&sv=2022-11-02&sr=c&sig=JvluZ0YHQzJbQG8K03vby%2B1ZwSc7k2ptcpVup%2FGYYlk%3D";
+
             string blobUri = $"{containerName}/{fullFileName}";
             string uri = $"https://{_accountName}.blob.core.windows.net/{blobUri}?{saas}";
-            
+
             targetURL = uri;
-            
+
             ReferenceManager.instance.LoadingManager.Show("Preparing File to Upload");
             yield return new WaitForSeconds(2);
             ReferenceManager.instance.LoadingManager.Hide();
-            
-            long fileSize = GeneralStaticManager.GetStringSizeInBytes(data,Encoding.UTF8);
+
+            long fileSize = GeneralStaticManager.GetStringSizeInBytes(data, Encoding.UTF8);
             if (fileSize < 4 * 1024 * 1024)  // Less than 4MB → Direct Upload
             {
-                     requestMethod = "PUT";
+                requestMethod = "PUT";
                 string blobType = "BlockBlob";
                 contentType = "text/plain; charset=UTF-8";
 
@@ -387,24 +387,40 @@ namespace FastForward.CAS
                     request.SetRequestHeader("Authorization", encodedSignature);
 
                     // Send the request.
+                    request.SendWebRequest();
+                    NumberOfVideosUploading += 1;
                     while (!request.isDone)
                     {
+                        Debug.Log($"GET progress: {request.uploadProgress}");
+                        ReferenceManager.instance.UploadingImage.gameObject.SetActive(true);
+                        ReferenceManager.instance.UploadingImage.transform.GetChild(0).GetComponent<UnityEngine.UI.Image>().fillAmount = request.uploadProgress;
+                        ReferenceManager.instance.UploadingImage.transform.GetChild(1).GetComponent<TMP_Text>().text = NumberOfVideosUploading.ToString();
                         // ReferenceManager.instance.ProgressManager.Show("Uploading Video", request.uploadProgress);
 
-            // Construct the URI. This will look like this:
-            string uri = string.Format("https://{0}.blob.core.windows.net/{1}", _accountName, blobUri);
+                        yield return 0;
                     }
+                    // ReferenceManager.instance.ProgressManager.Hide();
+                    if (request.result != UnityWebRequest.Result.Success)
+                    {
+                        Debug.LogWarning($"PUT error: {request.error}");
+                        Debug.LogWarning($"PUT error: {request.downloadHandler.text}");
+                        uploadCallback?.Invoke(false, request.error);
+                    }
+                    else
+                    {
+                        Debug.Log($"PUT complete {request.downloadHandler.text}");
+                        uploadCallback?.Invoke(true, request.error, uri);
 
-            using (UnityWebRequest request = UnityWebRequest.Put(uri, data))
+
+                    }
+                }
             }
+            else
             {
-                request.uploadHandler.contentType = contentType;
-                
+
+                int blockSize = 4 * 1024 * 1024; // 4MB per chunk
                 List<string> blockIds = new List<string>();
 
-                request.SetRequestHeader("x-ms-blob-type", blobType);
-                request.SetRequestHeader("x-ms-date", date);
-                request.SetRequestHeader("x-ms-version", _storageServiceVersion);
                 byte[] dataBytes = Encoding.UTF8.GetBytes(data); // Convert string to bytes
                 int totalSize = dataBytes.Length;
                 int totalChunks = (int)Math.Ceiling((double)totalSize / blockSize);
@@ -433,6 +449,8 @@ namespace FastForward.CAS
 
                         while (!request.isDone)
                         {
+                            ReferenceManager.instance.LoadingManager.Show($"Large File. Uploading in Chunks {index + 1}/{totalChunks}");
+                            ReferenceManager.instance.LoadingManager.LoadingImage.fillAmount = request.uploadProgress;
                             Debug.Log($"Uploading chunk {index + 1}/{totalChunks}, Progress: {request.uploadProgress}");
                             yield return null;
                         }
@@ -447,7 +465,7 @@ namespace FastForward.CAS
                         index++;
                     }
                 }
-
+                ReferenceManager.instance.LoadingManager.Hide();
                 // Commit all uploaded blocks
                 string commitUri = $"{uri}&comp=blocklist";
                 string blockListXml = "<BlockList>" + string.Join("", blockIds.Select(id => $"<Latest>{id}</Latest>")) +
@@ -478,11 +496,11 @@ namespace FastForward.CAS
             }
 
             ReferenceManager.instance.isUploadingVideo = false;
-                ReferenceManager.instance.uploadVideoEvent.RemoveAllListeners();
-                ReferenceManager.instance.persistantCount = 0;
-            
+            ReferenceManager.instance.uploadVideoEvent.RemoveAllListeners();
+            ReferenceManager.instance.persistantCount = 0;
+
         }
-       public IEnumerator PutHTMLOnBlob(string data, string containerName, string fileName, AzureUploadCallback uploadCallback, bool useMillis = true)
+        public IEnumerator PutHTMLOnBlob(string data, string containerName, string fileName, AzureUploadCallback uploadCallback, bool useMillis = true)
         {
             string requestMethod = "PUT";
             string blobType = "BlockBlob";
