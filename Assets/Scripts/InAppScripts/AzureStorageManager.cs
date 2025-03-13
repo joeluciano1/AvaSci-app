@@ -153,6 +153,11 @@ public class AzureStorageManager : MonoBehaviour
         }
         else
         {
+            ReferenceManager.instance.PopupManager.Show("Error", $"Got error while Uploading wana Retry?{error}",yesButtonName:"Yes",noButtonName:"No",okPressed:
+                () =>
+                {
+                    ReferenceManager.instance.UploadVideo(ReferenceManager.instance.recorderPath);
+                });
             AzureConnector.Instance.NumberOfVideosUploading -= 1;
             if (AzureConnector.Instance.NumberOfVideosUploading <= 0)
             {

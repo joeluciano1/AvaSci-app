@@ -114,6 +114,7 @@ public class UserReportFromDB : MonoBehaviour
             if (responseWithNoObject.isSuccess)
             {
                 ReferenceManager.instance.PopupManager.Show("Report Delete Success!", $"Report Deleted Successfully");
+                MyReportGroupHandler.DropDownItems.Remove(this);
                 Destroy(gameObject);
             }
             if (responseWithNoObject.isError)

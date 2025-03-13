@@ -168,7 +168,21 @@ namespace LightBuzz.AvaSci.UI
         /// <param name="value">0 for 30 FPS, 1 for 60.</param>
         public void OnFrameRateChange(int value)
         {
-            int fps = value == 0 ? 60 : 30;
+            int fps = 0;
+            if (value == 0)
+            {
+                fps = 60;
+            }
+
+            if (value == 1)
+            {
+                fps = 90;
+            }
+
+            if (value == 2)
+            {
+                fps = 30;
+            }
 
             FrameRateChanged?.Invoke(fps);
         }

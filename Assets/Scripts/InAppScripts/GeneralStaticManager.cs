@@ -152,4 +152,22 @@ public static string ConvertCsvStringToJson(string csvString)
         // Optionally, open the ZIP file in file explorer
         CSVManager.Export(outputZipPath);
     }
+    public static long GetFileSizeFromBase64(string base64String)
+    {
+        // Remove Base64 metadata if present (e.g., "data:image/png;base64,")
+        int indexOfComma = base64String.IndexOf(",");
+        if (indexOfComma >= 0)
+        {
+            base64String = base64String.Substring(indexOfComma + 1);
+        }
+
+        int padding = base64String.EndsWith("==") ? 2 : base64String.EndsWith("=") ? 1 : 0;
+        long fileSizeInBytes = (long)Math.Floor((base64String.Length * 3) / 4.0) - padding;
+    
+        return fileSizeInBytes;
+    }
+    public static long GetStringSizeInBytes(string data, Encoding encoding)
+    {
+        return encoding.GetByteCount(data);
+    }
 }

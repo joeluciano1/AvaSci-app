@@ -23,8 +23,9 @@ public class NotificationManager : MonoBehaviour
    }
    public void CheckNewSharedRecordings()
    {
-       if (string.IsNullOrEmpty(PlayerPrefs.GetString(StringConstants.LOGINEMAIL)) || APIHandler.instance==null )
+       if (string.IsNullOrEmpty(PlayerPrefs.GetString(StringConstants.LOGINEMAIL)) || APIHandler.instance==null || !ReferenceManager.instance.userReportController.ReportPanel.gameObject.activeSelf)
        {
+           Debug.Log("Returned the method to save memory");
            CheckSharedRecordingAgain();
            return;
        }

@@ -1696,8 +1696,11 @@ string EscapeMarkdown(string input)
                     "Video",
                     fileName
                 );
+                
                 byte[] bytes = System.Convert.FromBase64String(fileData);
-                File.WriteAllBytes(path, bytes);
+                await File.WriteAllBytesAsync(path, bytes);
+                
+               
             }
 
             filePaths = Directory.GetFiles(path1);

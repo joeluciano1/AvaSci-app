@@ -524,9 +524,20 @@ public class ReferenceManager : MonoBehaviour
                 videoSaveBodies.Add(videoSaveBody);
             }
         }
+        // foreach (FileInfo myFile in myFiles)
+        // {
+        //     VideoSaveBody videoSaveBody = new VideoSaveBody()
+        //         {
+        //             FileName = myFile.Name,
+        //             FileData = string.Empty,
+        //             FileLines = await File.ReadAllLinesAsync(Path.Combine(path, myFile.Name)),
+        //         };
+        //         videoSaveBodies.Add(videoSaveBody);
+        // }
         string json = JsonConvert.SerializeObject(videoSaveBodies);
         isUploadingVideo = true;
         persistantCount = 1;
+        uploadVideoEvent.RemoveAllListeners();
         uploadVideoEvent.AddListener(()=> azureStorageManager.UploadVideo(json, $"{GeneralStaticManager.GlobalVar["UserName"]}_"));
         uploadVideoEvent.Invoke();
     }

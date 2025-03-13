@@ -283,7 +283,7 @@ namespace LightBuzz.AvaSci.UI
             _loading.SetActive(true);
 
             _recordButton.interactable = false;
-            _settingsButton.interactable = false;
+            _settingsButton.interactable = true;
             _switchCameraButton.interactable = false;
 
             if (_configuration.SensorType == SensorType.RealSense)
@@ -322,6 +322,7 @@ namespace LightBuzz.AvaSci.UI
 
             if (!Sensor.IsOpen)
             {
+                ReferenceManager.instance.PopupManager.Show("No Device Found", $"Could not find the device of type {_configuration.SensorType} in your system");
                 Debug.LogError($"2 Could not open sensor. Check the configuration settings.\n{_configuration.SensorType}\n{_configuration.DeviceIndex}\n{Sensor.Configuration.SensorType}");
                 OnRecordingReady?.Invoke(false);
 
