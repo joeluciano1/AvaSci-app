@@ -90,6 +90,23 @@ public class ResearchMeasurementManager : MonoBehaviour
         //     ReferenceManager.instance.PopupManager.Show("Information", "Please run the video completely once again to complete the foot detection record. Thanks!");
         //     informationShown = true;
         // }
+        abdDiffAtTime.Clear();
+        varValAtTime.Clear();
+        kneeAbdAtTime.Clear();
+        ankleAbdAtTime.Clear();
+        pelvisAngleAtTime.Clear();
+        footStrikeAtTimes.Clear();
+        ReferenceManager.instance.AngleAtFootStrikingTime.Clear();
+        ReferenceManager.instance.DistanceAtFootStrikingTime.Clear();
+        ReferenceManager.instance.maxAngleAtFootStrikingTime.Clear();
+        ReferenceManager.instance.maxDistanceAtFootStrikingTime.Clear();
+        ReferenceManager.instance.AnkleAbductionAtFootStrikingTime.Clear();
+        ReferenceManager.instance.KneeAbductionAtFootStrikingTime.Clear();
+        ReferenceManager.instance.PelvisAngleAtFootStrikingTime.Clear();
+        ReferenceManager.instance.VarusValgusAtFootStrikingTime.Clear();
+        ReferenceManager.instance.heelPressDetectionBodies.Clear();
+        ReferenceManager.instance.standingDetectionBodies.Clear();
+        
         researchProjectCompleteBodyDatas.ForEach(x => x.gameObject.SetActive(true));
         ReferenceManager.instance.StartTimer();
         TakeUserConsent();
@@ -329,7 +346,7 @@ public class ResearchMeasurementManager : MonoBehaviour
     {
         if (ReferenceManager.instance.videoPlayingCount == 3)
         {
-            processingNotifier.NotifierText.text = "Detecting Standing Pose Of User...";
+            processingNotifier.NotifierText.text = "Detecting Initial Pose Of User...";
             processingNotifier.gameObject.SetActive(true);
             var pelvis = cubes.FirstOrDefault(x => x.gameObject.name == "Pelvis");
             if (pelvis == null)
@@ -733,13 +750,13 @@ public class ResearchMeasurementManager : MonoBehaviour
                 coroutine = null;
                 yield break;
             }
-            debugDistance = Vector3.Distance(
-                jointForStrideLengthL.Position3D,
-                jointForStrideLengthR.Position3D
-            );
+            // debugDistance = Vector3.Distance(
+            //     jointForStrideLengthL.Position3D,
+            //     jointForStrideLengthR.Position3D
+            // );
             if (
                 Vector3.Distance(jointForStrideLengthL.Position3D, jointForStrideLengthR.Position3D)
-                >= footDistances.Max() - float.Parse(toloranceValue.text)
+                >= footDistances.Average()
             )
             {
                 // Debug.Log("Foot Detected");
@@ -747,7 +764,7 @@ public class ResearchMeasurementManager : MonoBehaviour
                 
                 jointForStrideLengthL.ShockWaveEffect.SetActive(true);
                 jointForStrideLengthR.ShockWaveEffect.SetActive(false);
-                yield return new WaitForSeconds(1);
+                yield return new WaitForSeconds(1f);
             }
             else
             {
@@ -767,7 +784,7 @@ public class ResearchMeasurementManager : MonoBehaviour
             }
             if (
                 Vector3.Distance(jointForStrideLengthL.Position3D, jointForStrideLengthR.Position3D)
-                >= footDistances.Max() - float.Parse(toloranceValue.text)
+                >= footDistances.Average()
             )
             {
                 // Debug.Log("Foot Detected");
@@ -775,7 +792,7 @@ public class ResearchMeasurementManager : MonoBehaviour
                 
                 jointForStrideLengthR.ShockWaveEffect.SetActive(true);
                 jointForStrideLengthL.ShockWaveEffect.SetActive(false);
-                yield return new WaitForSeconds(1);
+                yield return new WaitForSeconds(1f);
             }
             else
             {

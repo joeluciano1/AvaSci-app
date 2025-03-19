@@ -899,7 +899,7 @@ PlayerSettings:
     WebGL: 1
     Windows Store Apps: 1
     XboxOne: 1
-    iPhone: 3
+    iPhone: 1
     tvOS: 1
   incrementalIl2cppBuild: {}
   suppressCommonWarnings: 1

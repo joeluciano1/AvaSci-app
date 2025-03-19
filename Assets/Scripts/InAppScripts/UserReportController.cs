@@ -1663,6 +1663,7 @@ string EscapeMarkdown(string input)
         string username = ""
     )
     {
+        ReferenceManager.instance.LoadingManager.Show("Writing Video Files From Server");
         if (!GeneralStaticManager.GlobalVar.ContainsKey("Subject"))
             GeneralStaticManager.GlobalVar.Add("Subject", username);
         else
@@ -1698,7 +1699,7 @@ string EscapeMarkdown(string input)
                 );
                 
                 byte[] bytes = System.Convert.FromBase64String(fileData);
-                await File.WriteAllBytesAsync(path, bytes);
+                File.WriteAllBytes(path, bytes);
                 
                
             }
@@ -1735,6 +1736,7 @@ string EscapeMarkdown(string input)
         videoPlayerView.Options.Path = path1;
         LighbuzzMain._videoRecorderView._videoPath = path1;
         LighbuzzMain.OnRecordingCompleted();
+        ReferenceManager.instance.LoadingManager.Hide();
     }
 
     public static byte[] ReadFully(Stream input)

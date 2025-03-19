@@ -460,7 +460,7 @@ namespace LightBuzz.AvaSci.UI
                 _switchCameraButton.Play();
 
                 _configuration.RequestedFrameRate = fps;
-
+                Application.targetFrameRate = fps;
                 Close();
                 Open();
 

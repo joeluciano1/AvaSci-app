@@ -31,10 +31,10 @@ public class GaitPDFGenerator : MonoBehaviour
         
         
         table.Columns.Add("Subject");
-        // table.Columns.Add("Standing at (time)");
+        table.Columns.Add("Initial Pose at (time)");
         table.Columns.Add("Foot Strike at (time)");
         table.Columns.Add("Foot Passing at (time)");
-        table.Columns.Add("Hip/Knee ABD Angle Difference");
+        // table.Columns.Add("Hip/Knee ABD Angle Difference");
         table.Columns.Add("Var/Val Distance");
         table.Columns.Add("Hip ABD at (time)");
         table.Columns.Add("Ankle ABD at (time)");
@@ -43,38 +43,38 @@ public class GaitPDFGenerator : MonoBehaviour
         //Include rows to the DataTable
         for (int i = 0; i < ReferenceManager.instance.AngleAtFootStrikingTime.Count; i++)
         {
-            // var item1 = ReferenceManager.instance.standingDetectionBodies.FirstOrDefault(x=>x.angleDifferenceValue !=0 && x.distanceValue!=0&&!x.added);
-            // if(item1 != null)
-            // {
-            //     item1.added = true;
-            //      table.Rows.Add(
-            //     new string[]
-            //     {
-            //         GeneralStaticManager.GlobalVar["Subject"],
-            //         item1.TimeofStanding,
-            //         "",
-            //         "",
-            //         item1.angleDifferenceValue.ToString("0.00"),
-            //         item1.distanceValue.ToString("0.00"),
-            //         item1.kneeAbductionValue.ToString("0.00"),
-            //         item1.ankleAbductionValue.ToString("0.00"),
-            //         item1.pelvisAngleValue.ToString("0.00"),
-            //         item1.nameOfTheFoot,
-            //     }
-            // );
-            // }
+            var item1 = ReferenceManager.instance.standingDetectionBodies.FirstOrDefault(x=>x.angleDifferenceValue !=0 && x.distanceValue!=0&&!x.added);
+            if(item1 != null)
+            {
+                item1.added = true;
+                 table.Rows.Add(
+                new string[]
+                {
+                    GeneralStaticManager.GlobalVar["Subject"],
+                    item1.TimeofStanding,
+                    "",
+                    "",
+                    // item1.angleDifferenceValue.ToString("0.00"),
+                    item1.distanceValue.ToString("0.00"),
+                    item1.kneeAbductionValue.ToString("0.00"),
+                    item1.ankleAbductionValue.ToString("0.00"),
+                    item1.pelvisAngleValue.ToString("0.00"),
+                    item1.nameOfTheFoot,
+                }
+            );
+            }
             table.Rows.Add(
                 new string[]
                 {
                     GeneralStaticManager.GlobalVar["Subject"],
-                    // "",
+                    "",
                     ReferenceManager
                         .instance.AngleAtFootStrikingTime.ElementAt(i)
                         .Key,
                         "",
-                    ReferenceManager
-                        .instance.AngleAtFootStrikingTime.ElementAt(i)
-                        .Value.ToString("0.00") + "º",
+                    // ReferenceManager
+                    //     .instance.AngleAtFootStrikingTime.ElementAt(i)
+                    //     .Value.ToString("0.00") + "º",
                     ReferenceManager
                         .instance.DistanceAtFootStrikingTime.ElementAt(i)
                         .Value.ToString("0.00"),
@@ -100,10 +100,10 @@ public class GaitPDFGenerator : MonoBehaviour
                 new string[]
                 {
                     GeneralStaticManager.GlobalVar["Subject"],
-                    // "",
+                    "",
                     "",
                     item.TimeOfHeelPressed,
-                    item.angleDifferenceValue.ToString("0.00"),
+                    // item.angleDifferenceValue.ToString("0.00"),
                     item.distanceValue.ToString("0.00"),
                     item.kneeAbductionValue.ToString("0.00"),
                     item.ankleAbductionValue.ToString("0.00"),
