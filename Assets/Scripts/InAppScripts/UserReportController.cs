@@ -94,6 +94,15 @@ public class UserReportController : MonoBehaviour
                         UserReportFromDB user = userReportFromDBs.FirstOrDefault(x =>x.VideoURL == item.VideoURL);
                         if (user != null)
                         {
+                            if(string.IsNullOrEmpty(item.SubjectId))
+                                user.UserName.text = item.UserName;
+                            else
+                                user.UserName.text = item.SubjectId;
+                            if (!string.IsNullOrEmpty(item.ReportDescription))
+                                user.ReportDescription.text = item.ReportDescription;
+                            
+                            user.UserNameOfSubject = item.UserName;
+                            
                             if (item.HasHtmlReports)
                             {
                                 user.HtmlButton.gameObject.SetActive(true);
