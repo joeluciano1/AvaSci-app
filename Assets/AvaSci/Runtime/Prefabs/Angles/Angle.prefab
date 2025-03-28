@@ -516,6 +516,8 @@ MonoBehaviour:
   _end: {x: 0, y: 0}
   _displayMessage: 
   uIDragger: {fileID: 1708598311276105012}
+  ValgusColor: {r: 1, g: 0.4002926, b: 0, a: 1}
+  VarusColor: {r: 1, g: 0, b: 0, a: 1}
   initialDifference: 0
   MinScale: 0.5
   MaxScale: 1

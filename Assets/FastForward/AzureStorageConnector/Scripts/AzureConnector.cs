@@ -319,7 +319,7 @@ namespace FastForward.CAS
             string timestamp = useMillis ? "-" + DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString() : "";
             string fullFileName = $"{fileName}{timestamp}.txt"; // Change extension if needed
 
-            string saas = "sp=racwdl&st=2025-03-13T06:03:26Z&se=2025-03-13T14:03:26Z&sv=2022-11-02&sr=c&sig=JvluZ0YHQzJbQG8K03vby%2B1ZwSc7k2ptcpVup%2FGYYlk%3D";
+            string saas = "sp=racwdli&st=2025-03-25T11:53:05Z&se=2027-02-01T19:53:05Z&sv=2024-11-04&sr=c&sig=A1D3oHtaf0cMEuPaC%2BS%2ByLzq0ABgsjMz2AMcRm4kL%2F4%3D";
 
             string blobUri = $"{containerName}/{fullFileName}";
             string uri = $"https://{_accountName}.blob.core.windows.net/{blobUri}?{saas}";

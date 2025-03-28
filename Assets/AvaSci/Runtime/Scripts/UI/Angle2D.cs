@@ -6,6 +6,7 @@ using LightBuzz.AvaSci.Measurements;
 using LightBuzz.BodyTracking;
 using UnityEngine;
 using UnityEngine.UI;
+using Color = UnityEngine.Color;
 
 namespace LightBuzz.AvaSci.UI
 {
@@ -48,6 +49,8 @@ namespace LightBuzz.AvaSci.UI
 
         private RectTransform _rect;
         public UIDragger uIDragger;
+        public Color ValgusColor;
+        public Color VarusColor;
 
         /// <summary>
         /// The scaled image view.
@@ -249,7 +252,9 @@ namespace LightBuzz.AvaSci.UI
         {
             if (measurement == null)
                 return;
-
+            
+            AssignPosition(measurement);
+            _text.color = UnityEngine.Color.white;
             gameObject.name = measurement.Type.ToString();
 
             _start = _imageView.GetPosition(measurement.AngleStart);
@@ -345,40 +350,75 @@ namespace LightBuzz.AvaSci.UI
                 _foregroundImage.color = UnityEngine.Color.red;
             }
 
-            if (measurement.Type == MeasurementType.KneeLeftAbduction)
+            if (measurement.Type == MeasurementType.HipAnkleHipKneeLeftAbductionDifference)
             {
-                if (_angle >= 10)
-                {
+                
                     Vector3D positionOfKnee = body.Joints[JointType.KneeLeft].Position3D;
                     Vector3D positionOfHip = body.Joints[JointType.HipLeft].Position3D;
 
-                    if (positionOfKnee.X > positionOfHip.X)
-                    {
-                        //valgus condition
-                        _displayMessage += "\nValgus Condition";
-                    }
-                    if (positionOfKnee.X < positionOfHip.X)
+                    if (_angle > 1)
                     {
                         //varus condition
                         _displayMessage += "\nVarus Condition";
+                        _text.color = VarusColor;
                     }
-                }
+                    else if (_angle < -1)
+                    {
+                        //valgus condition
+                        _displayMessage += "\nValgus Condition";
+                        _text.color = ValgusColor;
+                    }
+                    // if (positionOfKnee.X > positionOfHip.X)
+                    // {
+                    //     if (Math.Abs(positionOfHip.X - positionOfHip.X) > 0.1)
+                    //     {
+                    //         
+                    //     }
+                    // }
+                    // if (positionOfKnee.X < positionOfHip.X)
+                    // {
+                    //     if (Math.Abs(positionOfHip.X - positionOfHip.X) > 0.1)
+                    //     {
+                    //        
+                    //     }
+                    // }
+                
             }
-            if (measurement.Type == MeasurementType.KneeRightAbduction)
+            if (measurement.Type == MeasurementType.HipAnkleHipKneeRightAbductionDifference)
             {
                 Vector3D positionOfKnee = body.Joints[JointType.KneeRight].Position3D;
-                Vector3D positionOfHip = body.Joints[JointType.KneeRight].Position3D;
+                Vector3D positionOfHip = body.Joints[JointType.HipRight].Position3D;
 
-                if (positionOfKnee.X > positionOfHip.X)
-                {
-                    //valgus condition
-                    _displayMessage += "\nValgus Condition";
-                }
-                if (positionOfKnee.X < positionOfHip.X)
+                if (_angle > 1)
                 {
                     //varus condition
                     _displayMessage += "\nVarus Condition";
+                    _text.color = VarusColor;
                 }
+                else if (_angle < -1)
+                {
+                    //valgus condition
+                    _displayMessage += "\nValgus Condition";
+                    _text.color = ValgusColor;
+                }
+                // if (positionOfKnee.X > positionOfHip.X)
+                // {
+                //     if (Math.Abs(positionOfHip.X - positionOfHip.X) > 0.1)
+                //     {
+                //         //valgus condition
+                //         _displayMessage += "\nValgus Condition";
+                //         _text.color = ValgusColor;
+                //     }
+                // }
+                // if (positionOfKnee.X < positionOfHip.X)
+                // {
+                //     if (Math.Abs(positionOfHip.X - positionOfHip.X) > 0.1)
+                //     {
+                //         //varus condition
+                //         _displayMessage += "\nVarus Condition";
+                //         _text.color = VarusColor;
+                //     }
+                // }
             }
             if(measurement.Type == MeasurementType.HipKneeLeftDistance || measurement.Type == MeasurementType.HipKneeRightDistance){
                 _displayMessage = _displayMessage.Replace(name, name.Substring(0,1)+" Hip/Knee Dis");
@@ -388,6 +428,32 @@ namespace LightBuzz.AvaSci.UI
                 _displayMessage = _displayMessage.Replace(name, name.Substring(0,1)+" Var/Val Dis");
             }
             Refresh();
+        }
+
+        private bool once;
+        public void AssignPosition(Measurement measurement)
+        {
+            if (!once)
+            {
+                if (measurement.Type == MeasurementType.HipLeftAbduction)
+                {
+                    uIDragger._rect.anchoredPosition = new Vector2(uIDragger._rect.anchoredPosition.x +70,uIDragger._rect.anchoredPosition.y + 30);
+
+                }
+                else if (measurement.Type == MeasurementType.HipRightAbduction)
+                {
+                    uIDragger._rect.anchoredPosition = new Vector2(uIDragger._rect.anchoredPosition.x -70,uIDragger._rect.anchoredPosition.y + 30);
+                }
+                else if (measurement.Type == MeasurementType.HipAnkleHipKneeLeftAbductionDifference)
+                {
+                    uIDragger._rect.anchoredPosition = new Vector2(uIDragger._rect.anchoredPosition.x +50,uIDragger._rect.anchoredPosition.y - 13);
+                }
+                else if (measurement.Type == MeasurementType.HipAnkleHipKneeRightAbductionDifference)
+                {
+                    uIDragger._rect.anchoredPosition = new Vector2(uIDragger._rect.anchoredPosition.x -50,uIDragger._rect.anchoredPosition.y - 13);
+                }
+                once = true;
+            }
         }
     }
 }

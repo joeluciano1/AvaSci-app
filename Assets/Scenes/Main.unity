@@ -12893,7 +12893,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 186.5395, y: -37.4351}
+  m_AnchoredPosition: {x: 186.53952, y: -37.4351}
   m_SizeDelta: {x: 124.35967, y: 34.8702}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &346701463
@@ -27243,7 +27243,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a7883a3b6dca04b588fef00a61a98a0d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  ExpandedYScale: 394.18
+  ExpandedYScale: 300.7
   ParentToggleRect: {fileID: 661964571}
   ToggleChilds:
   - {fileID: 1802013953}
@@ -27251,8 +27251,6 @@ MonoBehaviour:
   - {fileID: 1925776628170397037}
   - {fileID: 1774719854}
   - {fileID: 1724644203}
-  - {fileID: 1946394494}
-  - {fileID: 833646380}
   - {fileID: 1037774676}
   - {fileID: 2018021227}
   Content: {fileID: 7308559604983397633}
@@ -35787,18 +35785,6 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
-      - m_Target: {fileID: 2043354592}
-        m_TargetAssemblyTypeName: ProcessingNotifier, Assembly-CSharp
-        m_MethodName: CloseMe
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
 --- !u!114 &849331928
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -43312,7 +43298,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 188.5, y: -332}
+  m_AnchoredPosition: {x: 188.5, y: -241}
   m_SizeDelta: {x: 377, y: 48}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1037774678
@@ -47251,18 +47237,6 @@ MonoBehaviour:
       - m_Target: {fileID: 640202398}
         m_TargetAssemblyTypeName: GaitPDFGenerator, Assembly-CSharp
         m_MethodName: GeneratePDF
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
-      - m_Target: {fileID: 2043354592}
-        m_TargetAssemblyTypeName: ProcessingNotifier, Assembly-CSharp
-        m_MethodName: CloseMe
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -84474,7 +84448,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 188.5, y: -384}
+  m_AnchoredPosition: {x: 188.5, y: -293}
   m_SizeDelta: {x: 377, y: 48}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &2018021229
@@ -95173,7 +95147,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   videoId: 0
   UserNameOfSubject: 
-  UserName: {fileID: 1796370946545834148}
+  UserNamefromDB: {fileID: 1796370946545834148}
   CreatedOn: {fileID: 9206014455646680070}
   ReportDescription: {fileID: 7018653161206570316}
   WatchBtn: {fileID: 2375808210328429466}
@@ -112689,7 +112663,7 @@ RectTransform:
   m_Father: {fileID: 711831737266846786}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 1, y: 0.9999998}
+  m_AnchorMax: {x: 1, y: 0.99999976}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 20, y: 20}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -117444,18 +117418,18 @@ MonoBehaviour:
     _smoothing: 0.15
     _threadingMode: 1
     _timeout: 0
-    _videoPath: C:/Users/Vangos/Projects/Body-Tracking/Product/Unity3D/LightBuzz_BodyTracking/Assets/StreamingAssets\LightBuzz\video.avi
+    _videoPath: /Users/vangos/Projects/AvaSci/Assets/StreamingAssets/LightBuzz/video.avi
     _deviceIndex: 0
     _requestedFrameRate: 60
     _requestedColorResolution:
-      Width: 640
-      Height: 480
+      Width: 1280
+      Height: 720
     _requestedDepthResolution:
       Width: 640
       Height: 480
     _serialNumber: 
     _ipAddress: 
-    _enableSteadyRate: 0
+    _enableSteadyRate: 1
     _enableHandTracking: 0
   _videoPath: 
   _mode: 0

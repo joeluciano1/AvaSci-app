@@ -16,7 +16,7 @@ namespace LightBuzz.AvaSci.Measurements
             
             KeyJoint1 = JointType.HipLeft;
             KeyJoint2 = JointType.KneeLeft;
-            KeyJoint3 = JointType.AnkleLeft;
+            KeyJoint3 = JointType.Pelvis;
         }
 
         public override void Update(Body body)
@@ -40,6 +40,21 @@ namespace LightBuzz.AvaSci.Measurements
             if (knee3D.Y < hip3D.Y)
             {
                 angle = 180.0f - angle;
+            }
+
+            if (Type == MeasurementType.HipLeftAbduction)
+            {
+                if (knee3D.X < hip3D.X) // Moving inward (adduction)
+                {
+                    angle = -angle; // Make it negative
+                }
+            }
+            else if (Type == MeasurementType.HipRightAbduction)
+            {
+                if (knee3D.X > hip3D.X) // Moving inward (adduction)
+                {
+                    angle = -angle; // Make it negative
+                }
             }
 
             _value = angle;

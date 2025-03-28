@@ -545,7 +545,7 @@ public class ResearchMeasurementManager : MonoBehaviour
         if(!ReferenceManager.instance.standingDetectionBodies.Any(x=>x.TimeofStanding == standingDetectionBody.TimeofStanding))
                     ReferenceManager.instance.standingDetectionBodies.Add(standingDetectionBody);
 
-                ReferenceManager.instance.standingDetectionBodies = ReferenceManager.instance.standingDetectionBodies.OrderBy(x => x.TimeofStanding).ToList();
+                ReferenceManager.instance.standingDetectionBodies = ReferenceManager.instance.standingDetectionBodies.OrderBy(x => TimeSpan.ParseExact(x.TimeofStanding,@"mm\:ss\:fff",null)).ToList();
    }
    public void FootFullyPressedNewDetection(string timeDetectedOn = "")
    {
@@ -756,7 +756,7 @@ public class ResearchMeasurementManager : MonoBehaviour
             // );
             if (
                 Vector3.Distance(jointForStrideLengthL.Position3D, jointForStrideLengthR.Position3D)
-                >= footDistances.Average()
+                > footDistances.Average()
             )
             {
                 // Debug.Log("Foot Detected");
@@ -925,8 +925,8 @@ public class ResearchMeasurementManager : MonoBehaviour
             currentKneeAbd = kneeAbdAtTime.ContainsKey(footstrikesAtTime)? kneeAbdAtTime[footstrikesAtTime]:0;
             currentKneeAbd = currentKneeAbd == 0 ? ReferenceManager.instance.angleManager._angles[MeasurementType.HipLeftAbduction].Angle : currentKneeAbd;
 
-            currentAnkleAbd = ankleAbdAtTime.ContainsKey(footstrikesAtTime)? ankleAbdAtTime[footstrikesAtTime]:0;
-            currentAnkleAbd = currentAnkleAbd == 0 ? ReferenceManager.instance.angleManager._angles[MeasurementType.AnkleLeftAbduction].Angle : currentAnkleAbd;
+            // currentAnkleAbd = ankleAbdAtTime.ContainsKey(footstrikesAtTime)? ankleAbdAtTime[footstrikesAtTime]:0;
+            // currentAnkleAbd = currentAnkleAbd == 0 ? ReferenceManager.instance.angleManager._angles[MeasurementType.AnkleLeftAbduction].Angle : currentAnkleAbd;
 
             currentPelvAngle = pelvisAngleAtTime.ContainsKey(footstrikesAtTime)? pelvisAngleAtTime[footstrikesAtTime]:0;
             currentPelvAngle = currentPelvAngle == 0 ? ReferenceManager.instance.angleManager._angles[MeasurementType.PelvisAngle].Angle : currentPelvAngle;
@@ -943,8 +943,8 @@ public class ResearchMeasurementManager : MonoBehaviour
             currentKneeAbd = kneeAbdAtTime.ContainsKey(footstrikesAtTime)? kneeAbdAtTime[footstrikesAtTime]:0;
             currentKneeAbd = currentKneeAbd == 0 ? ReferenceManager.instance.angleManager._angles[MeasurementType.HipRightAbduction].Angle : currentKneeAbd;
 
-            currentAnkleAbd = ankleAbdAtTime.ContainsKey(footstrikesAtTime)? ankleAbdAtTime[footstrikesAtTime]:0;
-            currentAnkleAbd = currentAnkleAbd == 0 ? ReferenceManager.instance.angleManager._angles[MeasurementType.AnkleRightAbduction].Angle : currentAnkleAbd;
+            // currentAnkleAbd = ankleAbdAtTime.ContainsKey(footstrikesAtTime)? ankleAbdAtTime[footstrikesAtTime]:0;
+            // currentAnkleAbd = currentAnkleAbd == 0 ? ReferenceManager.instance.angleManager._angles[MeasurementType.AnkleRightAbduction].Angle : currentAnkleAbd;
 
             currentPelvAngle = pelvisAngleAtTime.ContainsKey(footstrikesAtTime)? pelvisAngleAtTime[footstrikesAtTime]:0;
             currentPelvAngle = currentPelvAngle == 0 ? ReferenceManager.instance.angleManager._angles[MeasurementType.PelvisAngle].Angle : currentPelvAngle;
@@ -970,8 +970,8 @@ public class ResearchMeasurementManager : MonoBehaviour
         if (!ReferenceManager.instance.KneeAbductionAtFootStrikingTime.Any(x=> x.Key == footstrikesAtTime))
             ReferenceManager.instance.KneeAbductionAtFootStrikingTime.Add(footstrikesAtTime, currentKneeAbd);
 
-        if (!ReferenceManager.instance.AnkleAbductionAtFootStrikingTime.Any(x=> x.Key == footstrikesAtTime))
-            ReferenceManager.instance.AnkleAbductionAtFootStrikingTime.Add(footstrikesAtTime, currentAnkleAbd);
+        // if (!ReferenceManager.instance.AnkleAbductionAtFootStrikingTime.Any(x=> x.Key == footstrikesAtTime))
+        //     ReferenceManager.instance.AnkleAbductionAtFootStrikingTime.Add(footstrikesAtTime, currentAnkleAbd);
 
         if (!ReferenceManager.instance.PelvisAngleAtFootStrikingTime.Any(x=> x.Key == footstrikesAtTime))
         ReferenceManager.instance.PelvisAngleAtFootStrikingTime.Add(footstrikesAtTime, currentPelvAngle);

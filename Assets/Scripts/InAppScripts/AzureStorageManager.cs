@@ -71,7 +71,7 @@ public class AzureStorageManager : MonoBehaviour
                 ReportURL = reportURL,
                 ReportDescription = ReportDesc,
                 GroupName = ReferenceManager.instance.commentQuestionnaire.GroupNameDropDown.captionText.text,
-                SubjectId = selectedPatient != null ? selectedPatient.SubjectId: selectedVideo.UserName.text
+                SubjectId = selectedPatient != null ? selectedPatient.SubjectId: selectedVideo.UserNamefromDB.text
             };
             foreach(var item in ReferenceManager.instance.ButtonHandler.graphDatas)
             {

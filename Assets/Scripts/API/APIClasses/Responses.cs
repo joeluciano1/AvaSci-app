@@ -198,6 +198,7 @@ public class InstructionsResponse
     public List<ServiceError> serviceErrors { get; set; }
 }
 
+[System.Serializable]
 public class UserReportData
 {
     public long Id { get; set; }

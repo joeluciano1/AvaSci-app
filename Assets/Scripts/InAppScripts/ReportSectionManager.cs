@@ -242,7 +242,7 @@ public class ReportSectionManager : MonoBehaviour
                             userReportFromDB.HtmlButton.gameObject.SetActive(false);
                         }
                         string groupName = string.IsNullOrEmpty(item.GroupName)? "Other" : item.GroupName;
-                       userReportFromDB.UserName.text += " (" + groupName + ")";
+                       userReportFromDB.UserNamefromDB.text += " (" + groupName + ")";
                         userReportFromDB.gameObject.SetActive(true);
                         if(item.TimeBasedReadings!=null && item.TimeBasedReadings.Count > 0)
                         {
@@ -303,9 +303,9 @@ public class ReportSectionManager : MonoBehaviour
                             userReportFromDB.CompareGaitToggle.interactable = false;
                         }
                         if(string.IsNullOrEmpty(item.SubjectId))
-                            userReportFromDB.UserName.text = item.UserName;
+                            userReportFromDB.UserNamefromDB.text = item.UserName;
                         else
-                            userReportFromDB.UserName.text = item.SubjectId;
+                            userReportFromDB.UserNamefromDB.text = item.SubjectId;
                         if (!string.IsNullOrEmpty(item.ReportDescription))
                             userReportFromDB.ReportDescription.text = item.ReportDescription;
                         DateTime serverTime;

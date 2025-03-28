@@ -34,34 +34,74 @@ public class GaitPDFGenerator : MonoBehaviour
         table.Columns.Add("Initial Pose at (time)");
         table.Columns.Add("Foot Strike at (time)");
         table.Columns.Add("Foot Passing at (time)");
-        // table.Columns.Add("Hip/Knee ABD Angle Difference");
+        table.Columns.Add("Hip/Knee ABD Angle Difference");
         table.Columns.Add("Var/Val Distance");
+        table.Columns.Add("Condition");
         table.Columns.Add("Hip ABD at (time)");
-        table.Columns.Add("Ankle ABD at (time)");
+        // table.Columns.Add("Ankle ABD at (time)");
         table.Columns.Add("Pelvis Angle at (time)");
         table.Columns.Add("Leg in Question");
         //Include rows to the DataTable
-        for (int i = 0; i < ReferenceManager.instance.AngleAtFootStrikingTime.Count; i++)
+        
+        var item1 = ReferenceManager.instance.standingDetectionBodies.FirstOrDefault(x=>x.angleDifferenceValue !=0 && x.distanceValue!=0&&!x.added);
+        TimeSpan initialTime =new TimeSpan();
+        if(item1 != null)
         {
-            var item1 = ReferenceManager.instance.standingDetectionBodies.FirstOrDefault(x=>x.angleDifferenceValue !=0 && x.distanceValue!=0&&!x.added);
-            if(item1 != null)
+            TimeSpan.ParseExact(item1.TimeofStanding,@"mm\:ss\:fff",null);
+            item1.added = true;
+            string condition = "";
+            if (item1.angleDifferenceValue < -1)
             {
-                item1.added = true;
-                 table.Rows.Add(
+                condition = "Valgus";
+            }
+            else if (item1.angleDifferenceValue > 1)
+            {
+                condition = "Varus";
+            }
+            else
+            {
+                condition = "Normal";
+            }
+            table.Rows.Add(
                 new string[]
                 {
                     GeneralStaticManager.GlobalVar["Subject"],
                     item1.TimeofStanding,
                     "",
                     "",
-                    // item1.angleDifferenceValue.ToString("0.00"),
+                    item1.angleDifferenceValue.ToString("0.00"),
                     item1.distanceValue.ToString("0.00"),
+                    condition,
                     item1.kneeAbductionValue.ToString("0.00"),
-                    item1.ankleAbductionValue.ToString("0.00"),
+                    // item1.ankleAbductionValue.ToString("0.00"),
                     item1.pelvisAngleValue.ToString("0.00"),
                     item1.nameOfTheFoot,
                 }
             );
+        }
+        for (int i = 0; i < ReferenceManager.instance.AngleAtFootStrikingTime.Count; i++)
+        {
+            if (TimeSpan.ParseExact(ReferenceManager.instance.AngleAtFootStrikingTime.ElementAt(i).Key, @"mm\:ss\:fff",
+                    null) < initialTime)
+            {
+                continue;
+            }
+            string condition1 = "";
+            if (ReferenceManager
+                    .instance.AngleAtFootStrikingTime.ElementAt(i)
+                    .Value < -1)
+            {
+                condition1 = "Valgus";
+            }
+            else if (ReferenceManager
+                         .instance.AngleAtFootStrikingTime.ElementAt(i)
+                         .Value > 1)
+            {
+                condition1 = "Varus";
+            }
+            else
+            {
+                condition1 = "Normal";
             }
             table.Rows.Add(
                 new string[]
@@ -72,18 +112,19 @@ public class GaitPDFGenerator : MonoBehaviour
                         .instance.AngleAtFootStrikingTime.ElementAt(i)
                         .Key,
                         "",
-                    // ReferenceManager
-                    //     .instance.AngleAtFootStrikingTime.ElementAt(i)
-                    //     .Value.ToString("0.00") + "º",
+                    ReferenceManager
+                        .instance.AngleAtFootStrikingTime.ElementAt(i)
+                        .Value.ToString("0.00") + "º",
                     ReferenceManager
                         .instance.DistanceAtFootStrikingTime.ElementAt(i)
                         .Value.ToString("0.00"),
+                    condition1,
                         ReferenceManager
                         .instance.KneeAbductionAtFootStrikingTime.ElementAt(i)
                         .Value.ToString("0.00") + "º",
-                        ReferenceManager
-                        .instance.AnkleAbductionAtFootStrikingTime.ElementAt(i)
-                        .Value.ToString("0.00") + "º",
+                        // ReferenceManager
+                        // .instance.AnkleAbductionAtFootStrikingTime.ElementAt(i)
+                        // .Value.ToString("0.00") + "º",
                         ReferenceManager
                         .instance.PelvisAngleAtFootStrikingTime.ElementAt(i)
                         .Value.ToString("0.00") + "º",
@@ -96,6 +137,19 @@ public class GaitPDFGenerator : MonoBehaviour
                 continue;
             }
             item.added = true;
+            string condition2 = "";
+            if (item.angleDifferenceValue < -1)
+            {
+                condition2 = "Valgus";
+            }
+            else if (item.angleDifferenceValue > 1)
+            {
+                condition2 = "Varus";
+            }
+            else
+            {
+                condition2 = "Normal";
+            }
              table.Rows.Add(
                 new string[]
                 {
@@ -103,10 +157,11 @@ public class GaitPDFGenerator : MonoBehaviour
                     "",
                     "",
                     item.TimeOfHeelPressed,
-                    // item.angleDifferenceValue.ToString("0.00"),
+                    item.angleDifferenceValue.ToString("0.00"),
                     item.distanceValue.ToString("0.00"),
+                    condition2,
                     item.kneeAbductionValue.ToString("0.00"),
-                    item.ankleAbductionValue.ToString("0.00"),
+                    // item.ankleAbductionValue.ToString("0.00"),
                     item.pelvisAngleValue.ToString("0.00"),
                     item.nameOfTheFoot,
                 }

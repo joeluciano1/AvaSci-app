@@ -14,7 +14,7 @@ public class UserReportFromDB : MonoBehaviour
 {
     public long videoId;
     public string UserNameOfSubject;
-    public TMP_Text UserName;
+    public TMP_Text UserNamefromDB;
     public TMP_Text CreatedOn;
     public TMP_Text ReportDescription;
 
@@ -48,6 +48,7 @@ public class UserReportFromDB : MonoBehaviour
     public HtmlReportFromDb HtmlReportFromDbPrefab;
     public GameObject HtmlReportsScroller;
     public GameObject SelectedReportsViewScroller;
+    public UserReportData mydata;
     private void Start()
     {
         // jointReadings.ForEach(x => x.VideoNameLink = ReportDescription.text.Replace("<b>Comment:</b>", ""));

@@ -125,84 +125,84 @@ public class UIDragger : MonoBehaviour, IDragHandler
         isDragging = false;
     }
 
-    private void OnTriggerExit2D(Collider2D other)
-    {   
-        var draggerInother = other.gameObject.GetComponent<UIDragger>();
-        if(draggerInother !=null && UIDraggersNearMe.Contains(draggerInother) || UIDraggersNearMe.Count==0)
-            isInside = false;
-    }
+    // private void OnTriggerExit2D(Collider2D other)
+    // {   
+    //     var draggerInother = other.gameObject.GetComponent<UIDragger>();
+    //     if(draggerInother !=null && UIDraggersNearMe.Contains(draggerInother) || UIDraggersNearMe.Count==0)
+    //         isInside = false;
+    // }
 
-    private void OnTriggerStay2D(Collider2D other)
-    {
-        var draggerInother = other.gameObject.GetComponent<UIDragger>();
-        if (draggerInother != null && UIDraggersNearMe.Contains(draggerInother))
-        {
-            isInside = true;
-            
-        }
-        else
-        {
-            return;
-        }
-        Debug.Log("Staying");
-        // ReferenceManager.instance.ArrangeNotifiers();
-        if (!isMoving)
-        {
-            var uiElement1 = GetComponent<RectTransform>();
-            var otherElement = other.GetComponent<RectTransform>();
-            // Calculate the differences in positions
-            float deltaX = otherElement.localPosition.x - transform.localPosition.x;
-            float deltaY = otherElement.localPosition.y - transform.localPosition.y;
-        
-            // Determine if the collision is more horizontal or vertical
-            bool horizontalCollision = Mathf.Abs(deltaX) > Mathf.Abs(deltaY);
-        
-            if (horizontalCollision)
-            {
-                // Move elements along the x-axis
-                float midpointX = (transform.localPosition.x + otherElement.localPosition.x) / 2f;
-                transform.localPosition = new Vector3(
-                    midpointX - 100 / 2f,
-                    transform.localPosition.y,
-                    transform.localPosition.z
-                );
-                otherElement.localPosition = new Vector3(
-                    midpointX + 100 / 2f,
-                    otherElement.localPosition.y,
-                    otherElement.localPosition.z
-                );
-            }
-            else
-            {
-                // Move elements along the y-axis
-                float midpointX = (transform.localPosition.x + otherElement.localPosition.x) / 2f;
-                transform.localPosition = new Vector3(
-                    midpointX - 100 / 2f,
-                    transform.localPosition.y,
-                    transform.localPosition.z
-                );
-                otherElement.localPosition = new Vector3(
-                    midpointX + 100 / 2f,
-                    otherElement.localPosition.y,
-                    otherElement.localPosition.z
-                );
-                // float midpointY = (transform.localPosition.y + otherElement.localPosition.y) / 2f;
-                // transform.localPosition = new Vector3(
-                //     transform.localPosition.x,
-                //     midpointY - 100 / 2f,
-                //     transform.localPosition.z
-                // );
-                // otherElement.localPosition = new Vector3(
-                //     otherElement.localPosition.x,
-                //     midpointY + 100 / 2f,
-                //     otherElement.localPosition.z
-                // );
-            }
-        
-            // Reset the flag after moving
-            isMoving = false;
-        }
-    }
+    // private void OnTriggerStay2D(Collider2D other)
+    // {
+    //     var draggerInother = other.gameObject.GetComponent<UIDragger>();
+    //     if (draggerInother != null && UIDraggersNearMe.Contains(draggerInother))
+    //     {
+    //         isInside = true;
+    //         
+    //     }
+    //     else
+    //     {
+    //         return;
+    //     }
+    //     Debug.Log("Staying");
+    //     // ReferenceManager.instance.ArrangeNotifiers();
+    //     if (!isMoving)
+    //     {
+    //         var uiElement1 = GetComponent<RectTransform>();
+    //         var otherElement = other.GetComponent<RectTransform>();
+    //         // Calculate the differences in positions
+    //         float deltaX = otherElement.localPosition.x - transform.localPosition.x;
+    //         float deltaY = otherElement.localPosition.y - transform.localPosition.y;
+    //     
+    //         // Determine if the collision is more horizontal or vertical
+    //         bool horizontalCollision = Mathf.Abs(deltaX) > Mathf.Abs(deltaY);
+    //     
+    //         if (horizontalCollision)
+    //         {
+    //             // Move elements along the x-axis
+    //             float midpointX = (transform.localPosition.x + otherElement.localPosition.x) / 2f;
+    //             transform.localPosition = new Vector3(
+    //                 midpointX - 100 / 2f,
+    //                 transform.localPosition.y,
+    //                 transform.localPosition.z
+    //             );
+    //             otherElement.localPosition = new Vector3(
+    //                 midpointX + 100 / 2f,
+    //                 otherElement.localPosition.y,
+    //                 otherElement.localPosition.z
+    //             );
+    //         }
+    //         else
+    //         {
+    //             // Move elements along the y-axis
+    //             float midpointX = (transform.localPosition.x + otherElement.localPosition.x) / 2f;
+    //             transform.localPosition = new Vector3(
+    //                 midpointX - 100 / 2f,
+    //                 transform.localPosition.y,
+    //                 transform.localPosition.z
+    //             );
+    //             otherElement.localPosition = new Vector3(
+    //                 midpointX + 100 / 2f,
+    //                 otherElement.localPosition.y,
+    //                 otherElement.localPosition.z
+    //             );
+    //             // float midpointY = (transform.localPosition.y + otherElement.localPosition.y) / 2f;
+    //             // transform.localPosition = new Vector3(
+    //             //     transform.localPosition.x,
+    //             //     midpointY - 100 / 2f,
+    //             //     transform.localPosition.z
+    //             // );
+    //             // otherElement.localPosition = new Vector3(
+    //             //     otherElement.localPosition.x,
+    //             //     midpointY + 100 / 2f,
+    //             //     otherElement.localPosition.z
+    //             // );
+    //         }
+    //     
+    //         // Reset the flag after moving
+    //         isMoving = false;
+    //     }
+    // }
 
     private void OnDestroy()
     {
