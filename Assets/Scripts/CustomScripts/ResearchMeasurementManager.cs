@@ -392,73 +392,73 @@ public class ResearchMeasurementManager : MonoBehaviour
             if(!abdDiffAtTime.ContainsKey(ReferenceManager.instance.TimeElapsedLightBuzz.text))
             {
                 if(leftLeg )
-                abdDiffAtTime.Add(ReferenceManager.instance.TimeElapsedLightBuzz.text, leftAngleValue);
+                    abdDiffAtTime.Add(ReferenceManager.instance.TimeElapsedLightBuzz.text, leftAngleValue);
                 else if(rightLeg )
-                abdDiffAtTime.Add(ReferenceManager.instance.TimeElapsedLightBuzz.text, rightAngleValue);
+                    abdDiffAtTime.Add(ReferenceManager.instance.TimeElapsedLightBuzz.text, rightAngleValue);
             }
             else
             {
                 if(leftLeg )
-                abdDiffAtTime[ReferenceManager.instance.TimeElapsedLightBuzz.text] = leftAngleValue;
+                    abdDiffAtTime[ReferenceManager.instance.TimeElapsedLightBuzz.text] = leftAngleValue;
                 else if(rightLeg ) 
-                abdDiffAtTime[ReferenceManager.instance.TimeElapsedLightBuzz.text] = rightAngleValue;
+                    abdDiffAtTime[ReferenceManager.instance.TimeElapsedLightBuzz.text] = rightAngleValue;
                 
             }
             if(!varValAtTime.ContainsKey(ReferenceManager.instance.TimeElapsedLightBuzz.text))
             {
                 if(leftLeg )
-                varValAtTime.Add(ReferenceManager.instance.TimeElapsedLightBuzz.text, leftDisValue);
+                    varValAtTime.Add(ReferenceManager.instance.TimeElapsedLightBuzz.text, leftDisValue);
                 else if(rightLeg)
-                varValAtTime.Add(ReferenceManager.instance.TimeElapsedLightBuzz.text, rightDisValue);
+                    varValAtTime.Add(ReferenceManager.instance.TimeElapsedLightBuzz.text, rightDisValue);
             }
             else
             {
                 if(leftLeg )
-                 varValAtTime[ReferenceManager.instance.TimeElapsedLightBuzz.text] = leftDisValue;
-                 else if (rightLeg)
-                 varValAtTime[ReferenceManager.instance.TimeElapsedLightBuzz.text] = rightDisValue;
+                    varValAtTime[ReferenceManager.instance.TimeElapsedLightBuzz.text] = leftDisValue;
+                else if (rightLeg)
+                    varValAtTime[ReferenceManager.instance.TimeElapsedLightBuzz.text] = rightDisValue;
             }
             if(!ankleAbdAtTime.ContainsKey(ReferenceManager.instance.TimeElapsedLightBuzz.text))
             {
                 if(leftLeg )
-                ankleAbdAtTime.Add(ReferenceManager.instance.TimeElapsedLightBuzz.text, leftAnkleAbdValue);
+                    ankleAbdAtTime.Add(ReferenceManager.instance.TimeElapsedLightBuzz.text, leftAnkleAbdValue);
                 else if(rightLeg)
-                ankleAbdAtTime.Add(ReferenceManager.instance.TimeElapsedLightBuzz.text, rightAnkleAbdValue);
+                    ankleAbdAtTime.Add(ReferenceManager.instance.TimeElapsedLightBuzz.text, rightAnkleAbdValue);
             }
             else
             {
                 if(leftLeg )
-                 ankleAbdAtTime[ReferenceManager.instance.TimeElapsedLightBuzz.text] = leftAnkleAbdValue;
-                 else if (rightLeg)
-                 ankleAbdAtTime[ReferenceManager.instance.TimeElapsedLightBuzz.text] = rightAnkleAbdValue;
+                    ankleAbdAtTime[ReferenceManager.instance.TimeElapsedLightBuzz.text] = leftAnkleAbdValue;
+                else if (rightLeg)
+                    ankleAbdAtTime[ReferenceManager.instance.TimeElapsedLightBuzz.text] = rightAnkleAbdValue;
             }
-             if(!kneeAbdAtTime.ContainsKey(ReferenceManager.instance.TimeElapsedLightBuzz.text))
+            if(!kneeAbdAtTime.ContainsKey(ReferenceManager.instance.TimeElapsedLightBuzz.text))
             {
                 if(leftLeg )
-                kneeAbdAtTime.Add(ReferenceManager.instance.TimeElapsedLightBuzz.text, leftKneeAbdValue);
+                    kneeAbdAtTime.Add(ReferenceManager.instance.TimeElapsedLightBuzz.text, leftKneeAbdValue);
                 else if(rightLeg)
-                kneeAbdAtTime.Add(ReferenceManager.instance.TimeElapsedLightBuzz.text, rightKneeAbdValue);
+                    kneeAbdAtTime.Add(ReferenceManager.instance.TimeElapsedLightBuzz.text, rightKneeAbdValue);
             }
             else
             {
                 if(leftLeg )
                  kneeAbdAtTime[ReferenceManager.instance.TimeElapsedLightBuzz.text] = leftKneeAbdValue;
-                 else if (rightLeg)
+                else if (rightLeg)
                  kneeAbdAtTime[ReferenceManager.instance.TimeElapsedLightBuzz.text] = rightKneeAbdValue;
             }
-             if(!pelvisAngleAtTime.ContainsKey(ReferenceManager.instance.TimeElapsedLightBuzz.text))
+            if(!pelvisAngleAtTime.ContainsKey(ReferenceManager.instance.TimeElapsedLightBuzz.text))
             {
                 if(leftLeg )
-                pelvisAngleAtTime.Add(ReferenceManager.instance.TimeElapsedLightBuzz.text, pelvisAngleValue);
+                    pelvisAngleAtTime.Add(ReferenceManager.instance.TimeElapsedLightBuzz.text, pelvisAngleValue);
                 else if(rightLeg)
-                pelvisAngleAtTime.Add(ReferenceManager.instance.TimeElapsedLightBuzz.text, pelvisAngleValue);
+                    pelvisAngleAtTime.Add(ReferenceManager.instance.TimeElapsedLightBuzz.text, pelvisAngleValue);
             }
             else
             {
                 if(leftLeg )
-                 pelvisAngleAtTime[ReferenceManager.instance.TimeElapsedLightBuzz.text] = pelvisAngleValue;
-                 else if (rightLeg)
-                 pelvisAngleAtTime[ReferenceManager.instance.TimeElapsedLightBuzz.text] = pelvisAngleValue;
+                    pelvisAngleAtTime[ReferenceManager.instance.TimeElapsedLightBuzz.text] = pelvisAngleValue;
+                else if (rightLeg)
+                    pelvisAngleAtTime[ReferenceManager.instance.TimeElapsedLightBuzz.text] = pelvisAngleValue;
             }
             var toBeRemoved = abdDiffAtTime.Where(x => x.Value == 0).ToDictionary(x => x.Key, x => x.Value);
             foreach (var item in toBeRemoved)
