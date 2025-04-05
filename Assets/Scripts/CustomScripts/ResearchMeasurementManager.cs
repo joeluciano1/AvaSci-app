@@ -17,6 +17,7 @@ public class ResearchMeasurementManager : MonoBehaviour
 {
     public static ResearchMeasurementManager instance;
     public Body LightbuzzBody;
+    public FrameData LightbuzzFrame;
 
     public List<TempBodyDataSaver> tempBodyDataSavers = new List<TempBodyDataSaver>();
     public List<ResearchProjectCompleteBodyData> researchProjectCompleteBodyDatas =
@@ -78,12 +79,14 @@ public class ResearchMeasurementManager : MonoBehaviour
     public float pelvisAngleValue;
     private void Awake()
     {
+        
         instance = this;
     }
 
     public void StartReading()
     {
         isStarted = true;
+        firstStepIgnored = false;
         ReferenceManager.instance.videoPlayingCount = 0;
         // if (!informationShown)
         // {
@@ -355,7 +358,7 @@ public class ResearchMeasurementManager : MonoBehaviour
             }
             float zPosOfPelvis = pelvis.transform.position.z;
             await Task.Delay(500);
-            if(Math.Abs(zPosOfPelvis - pelvis.transform.position.z)<=0.01f)
+            if(Math.Abs(zPosOfPelvis - pelvis.transform.position.z)<=0.05f)
             {
                 StandingDetectionCreatePutValues(ReferenceManager.instance.videoPlayerView.VideoPlayer.TimeElapsed.ToString(@"mm\:ss\:fff"));
             }
@@ -699,7 +702,7 @@ public class ResearchMeasurementManager : MonoBehaviour
 
     Coroutine coroutine;
     public Vector3 previousPosition;
-    
+    private bool firstStepIgnored;
     public IEnumerator DetectFootOnGround()
     {
         processingNotifier.NotifierText.text = "Detecting Foot On Ground...";
@@ -754,9 +757,13 @@ public class ResearchMeasurementManager : MonoBehaviour
             //     jointForStrideLengthL.Position3D,
             //     jointForStrideLengthR.Position3D
             // );
+            Floor floor = Floor.Create(LightbuzzFrame);
             if (
-                Vector3.Distance(jointForStrideLengthL.Position3D, jointForStrideLengthR.Position3D)
-                > footDistances.Average()
+                jointForStrideLengthL.Position3D.y > floor.Y
+                // && Vector3.Distance(jointForStrideLengthL.Position3D,previousPosition) > 0.1f 
+                && jointForStrideLengthR.Position3D.z - jointForStrideLengthL.Position3D.z > 0.05f 
+                // Vector3.Distance(jointForStrideLengthL.Position3D, jointForStrideLengthR.Position3D)
+                // > footDistances.Average()
             )
             {
                 // Debug.Log("Foot Detected");
@@ -768,13 +775,19 @@ public class ResearchMeasurementManager : MonoBehaviour
             }
             else
             {
+                firstStepIgnored = true;
                 previousPosition = jointForStrideLengthL.Position3D;
                 jointForStrideLengthL.ShockWaveEffect.SetActive(false);
             }
         }
         else
         {
-            if (jointForStrideLengthR.Position3D.z > jointForStrideLengthL.Position3D.z)
+            Floor floor = Floor.Create(LightbuzzFrame);
+            if (
+                jointForStrideLengthR.Position3D.y > floor.Y
+                && jointForStrideLengthL.Position3D.z - jointForStrideLengthR.Position3D.z > 0.05f 
+                // jointForStrideLengthR.Position3D.z > jointForStrideLengthL.Position3D.z
+                )
             {
                 // Debug.Log("Because z is less or behind");
                 jointForStrideLengthL.ShockWaveEffect.SetActive(false);

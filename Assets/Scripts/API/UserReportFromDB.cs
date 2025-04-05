@@ -149,7 +149,7 @@ public class UserReportFromDB : MonoBehaviour
             HtmlBaseResponse responseWithNoObject = JsonConvert.DeserializeObject<HtmlBaseResponse>(response);
             if (responseWithNoObject.isSuccess)
             {
-                ReferenceManager.instance.PopupManager.Show("Reports Fetch Success!", $"Reports Fetched Successfully");
+                ReferenceManager.instance.PopupManager.Show("Reports Fetch Success!", $"HTML Reports Fetched Successfully");
                 foreach (var item in responseWithNoObject.result.htmlContents)
                 {
                     if (addedHtmlReports.FirstOrDefault(x => x.HTMLLink == item.HtmlReport) == null)
@@ -172,13 +172,13 @@ public class UserReportFromDB : MonoBehaviour
                 {
                     reasons += $"\n {item.code} {item.description}";
                 }
-                ReferenceManager.instance.PopupManager.Show("Report Fetch Failed!", $"Reasons are: {reasons}");
+                ReferenceManager.instance.PopupManager.Show("HTML Report Fetch Failed!", $"Reasons are: {reasons}");
                 Debug.Log($"{responseWithNoObject.serviceErrors}");
             }
 
         }, onError: (error) =>
         {
-            ReferenceManager.instance.PopupManager.Show("Report Fetch Failed!", $"Reasons are: {error}");
+            ReferenceManager.instance.PopupManager.Show("HTML Report Fetch Failed!", $"Reasons are: {error}");
         });
     }
     public void ToggleDropDown(bool value)

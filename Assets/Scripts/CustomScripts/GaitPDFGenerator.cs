@@ -43,7 +43,7 @@ public class GaitPDFGenerator : MonoBehaviour
         table.Columns.Add("Leg in Question");
         //Include rows to the DataTable
         
-        var item1 = ReferenceManager.instance.standingDetectionBodies.FirstOrDefault(x=>x.angleDifferenceValue !=0 && x.distanceValue!=0&&!x.added);
+        var item1 = ReferenceManager.instance.standingDetectionBodies.FirstOrDefault();
         TimeSpan initialTime =new TimeSpan();
         if(item1 != null)
         {
@@ -320,7 +320,7 @@ public class GaitPDFGenerator : MonoBehaviour
                         reasons += $"\n {item.code} {item.description}";
                     }
                     ReferenceManager.instance.PopupManager.Show(
-                        "Failed!",
+                        "Gait Report Upload Failed!",
                         $"Reasons are: {reasons}"
                     );
                     Debug.Log($"{responseWithNoObject.serviceErrors}");
@@ -328,7 +328,7 @@ public class GaitPDFGenerator : MonoBehaviour
             },
             onError: (error) =>
             {
-                ReferenceManager.instance.PopupManager.Show("Failed!", $"Reasons are: {error}");
+                ReferenceManager.instance.PopupManager.Show("Gait Report Upload Failed!", $"Reasons are: {error}");
                 Debug.LogError($"Error: {error} value was: {body.HeelPassingAtTime}");
             }
         );

@@ -49,7 +49,7 @@ namespace LightBuzz.AvaSci
         private bool _pointCloudEnabled = false;
 
         public readonly Movement _movement = new Movement();
-
+        public GameObject Plane;
         private void Awake()
         {
             Application.targetFrameRate = 60;
@@ -77,7 +77,12 @@ namespace LightBuzz.AvaSci
                 if (body != null)
                 {
                     if (ResearchMeasurementManager.instance != null)
+                    {
                         ResearchMeasurementManager.instance.LightbuzzBody = body;
+                        ResearchMeasurementManager.instance.LightbuzzFrame = frame;
+                        
+                    }
+
                     _movement.Update(body);
                     _debug.text = _movement.ToString();
                 }

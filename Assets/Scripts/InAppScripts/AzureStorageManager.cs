@@ -131,7 +131,7 @@ public class AzureStorageManager : MonoBehaviour
                     {
                         reasons += $"\n {item.code} {item.description}";
                     }
-                    ReferenceManager.instance.PopupManager.Show("Video Save Failed!", $"Reasons are: {reasons}");
+                    ReferenceManager.instance.PopupManager.Show("Video Save To DB Failed!", $"Reasons are: {reasons}");
                     AzureConnector.Instance.NumberOfVideosUploading -= 1;
                     if (AzureConnector.Instance.NumberOfVideosUploading <= 0)
                     {
@@ -141,7 +141,7 @@ public class AzureStorageManager : MonoBehaviour
                 }
             }, onError: (error) =>
             {
-                ReferenceManager.instance.PopupManager.Show("Video Save Failed!", $"Reasons are: {error}");
+                ReferenceManager.instance.PopupManager.Show("Video Save To DB Failed!", $"Reasons are: {error}");
                 AzureConnector.Instance.NumberOfVideosUploading -= 1;
                 if (AzureConnector.Instance.NumberOfVideosUploading <= 0)
                 {

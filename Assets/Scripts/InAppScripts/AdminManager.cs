@@ -147,12 +147,12 @@ public class AdminManager : MonoBehaviour
                     {
                         reasons += $"\n {item.code} {item.description}";
                     }
-                    ReferenceManager.instance.PopupManager.Show("Getting Reasons Failed!", $"Reasons are: {reasons}");
+                    ReferenceManager.instance.PopupManager.Show("Getting Tables Failed!", $"Reasons are: {reasons}");
                     Debug.Log($"{adminResponse.serviceErrors}");
                 }
             }, onError: (error) =>
             {
-                ReferenceManager.instance.PopupManager.Show("Getting Reasons Failed!", $"Reasons are: {error}");
+                ReferenceManager.instance.PopupManager.Show("Getting Tables Failed!", $"Reasons are: {error}");
                 Debug.LogError($"Error: {error}");
             });
         }

@@ -47,13 +47,13 @@ public class CreatePatientQuestionnaire : MonoBehaviour
                 ReferenceManager.instance.reportSectionManager.FeedClinicData();
             }
             else{
-                ReferenceManager.instance.PopupManager.Show("Failed!", $"UnknownError");
+                ReferenceManager.instance.PopupManager.Show("Failed To Add Clinic Patient!", $"UnknownError");
             }
 
         },
         onError: (error) =>
         {
-            ReferenceManager.instance.PopupManager.Show("Failed!", $"Reasons are: {error}");
+            ReferenceManager.instance.PopupManager.Show("Failed To Add Clinic Patient!", $"Reasons are: {error}");
             Debug.LogError($"Error: {error}");
         }
         );
