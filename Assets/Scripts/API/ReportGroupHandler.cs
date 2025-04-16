@@ -42,6 +42,7 @@ public class ReportGroupHandler : MonoBehaviour
     private bool hasSpoken;
     public void ToggleDropDown(bool value)
     {
+        ReferenceManager.instance.userReportController.reportSectionManager.SearchReportInputField.placeholder.GetComponent<TMP_Text>().text = "Search " +GroupName.text+"...";
         RectTransform myRect = GetComponent<RectTransform>();
         isDropped = true;
         ContentSizeFitter.enabled = false;

@@ -24,6 +24,7 @@ public class ReportSectionManager : MonoBehaviour
     public ClinicDataFromDB clinicDataFromDB;
     public Button htmlBackButton;
     bool clinicDataFilled;
+    public TMP_InputField SearchReportInputField;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -363,7 +364,7 @@ public class ReportSectionManager : MonoBehaviour
                             ReferenceManager.instance.userReportController.itemToSnapTo = userReportFromDB;
                             ReferenceManager.instance.userReportController.RecentlyPlayedButton = userReportFromDB;
                             userReportFromDB.WatchBtn.onClick.AddListener(
-                                () => { ReferenceManager.instance.userReportController.CreateFileAndView(null, "", userReportFromDB.UserNameOfSubject); 
+                                () => { ReferenceManager.instance.userReportController.CreateFileAndView((int)userReportFromDB.videoId,null, "", userReportFromDB.UserNameOfSubject); 
                                 ReferenceManager.instance.SelectedVideoID = userReportFromDB.videoId;
                                 ReferenceManager.instance.azureStorageManager.selectedVideo = userReportFromDB; }
                             );

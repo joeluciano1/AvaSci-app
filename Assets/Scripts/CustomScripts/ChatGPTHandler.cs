@@ -67,7 +67,7 @@ public class ChatGPTHandler : MonoBehaviour
     {
         var requestData = new
         {
-            model = "gpt-3.5-turbo",  // Use GPT-4 turbo for faster responses
+            model = "gpt-4o",  // Use GPT-4 turbo for faster responses
             messages = new[]
             {
                 new { role = "system", content = "You are an expert data analyst, doctor, and HTML report generator." },

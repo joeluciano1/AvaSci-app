@@ -21,7 +21,7 @@ public class PopupManager : MonoBehaviour
 
     public GameObject Toast;
     public TMP_Text ToastText;
-    public async void Show(string heading, string content,string noButtonName = "", System.Action okPressed = null, string yesButtonName = "Yes" )
+    public async void Show(string heading, string content,string noButtonName = "", System.Action okPressed = null, string yesButtonName = "Yes",System.Action noPressed = null )
     {
     
         Debug.Log("Popup Message: " + content);
@@ -41,7 +41,7 @@ public class PopupManager : MonoBehaviour
                 {
                     NoButton.gameObject.SetActive(true);
                     NoButton.GetComponentInChildren<TextMeshProUGUI>().text = noButtonName;
-
+                    
 
                     NoButton.onClick.AddListener(() => gameObject.SetActive(false));
                 }
@@ -53,6 +53,11 @@ public class PopupManager : MonoBehaviour
             SampleButton.GetComponentInChildren<TextMeshProUGUI>().text = "Ok";
             
             SampleButton.onClick.AddListener(()=>gameObject.SetActive(false));
+        }
+
+        if (noPressed != null)
+        {
+            NoButton.onClick.AddListener(noPressed.Invoke);
         }
 
         

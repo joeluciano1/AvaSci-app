@@ -316,7 +316,7 @@ namespace FastForward.CAS
             string contentType = "application/octet-stream";
 
             // Append timestamp if `useMillis` is true
-            string timestamp = useMillis ? "-" + DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString() : "";
+            string timestamp = useMillis ? "-" + DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString()+DateTimeOffset.UtcNow.Ticks : "";
             string fullFileName = $"{fileName}{timestamp}.txt"; // Change extension if needed
 
             string saas = "sp=racwdli&st=2025-03-25T11:53:05Z&se=2027-02-01T19:53:05Z&sv=2024-11-04&sr=c&sig=A1D3oHtaf0cMEuPaC%2BS%2ByLzq0ABgsjMz2AMcRm4kL%2F4%3D";
@@ -425,7 +425,7 @@ namespace FastForward.CAS
                 int totalSize = dataBytes.Length;
                 int totalChunks = (int)Math.Ceiling((double)totalSize / blockSize);
 
-                uri = $"https://{_accountName}.blob.core.windows.net/{containerName}/{fileName}?{saas}";
+                uri = $"https://{_accountName}.blob.core.windows.net/{containerName}/{fullFileName}?{saas}";
                 int index = 0;
 
                 while (index * blockSize < totalSize)

@@ -132,7 +132,7 @@ public class GaitPDFGenerator : MonoBehaviour
                 }
             );
             var item = ReferenceManager.instance.heelPressDetectionBodies.FirstOrDefault(x=>TimeSpan.ParseExact(x.TimeOfHeelPressed,@"mm\:ss\:fff", CultureInfo.InvariantCulture) > TimeSpan.ParseExact(ReferenceManager.instance.AngleAtFootStrikingTime.ElementAt(i).Key,@"mm\:ss\:fff", CultureInfo.InvariantCulture)&&!x.added);
-            if(item == null)
+            if(item == null || i == ReferenceManager.instance.AngleAtFootStrikingTime.Count-1)
             {
                 continue;
             }

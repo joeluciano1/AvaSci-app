@@ -62,6 +62,8 @@ public class UserReportController : MonoBehaviour
 
     public GameObject ShareRecordingPopup;
     public Button ShareRecordingButton;
+
+    public bool isSilentReportFetch;
     // Start is called before the first frame update
     public void Start()
     {
@@ -69,7 +71,7 @@ public class UserReportController : MonoBehaviour
         {
             hasSpokenWelcomeNote = true;
             ReferenceManager.instance.TTSTutorialHandler.NextLine(
-                "Hello welcome to AvaSci research project app. Getting reports from or server. This might take a little while.");
+                "Hello welcome to AvaSci research project app. Getting reports from our server. This might take a little while.");
         }
 
         GetReportsBody getReportsBody = new GetReportsBody()
@@ -83,6 +85,7 @@ public class UserReportController : MonoBehaviour
             json,
             onSuccess: (response) =>
             {
+                isSilentReportFetch = false;
                 UserReportResponse userReportResponse =
                     JsonConvert.DeserializeObject<UserReportResponse>(response);
                      
@@ -111,18 +114,18 @@ public class UserReportController : MonoBehaviour
                             {
                                 user.HtmlButton.gameObject.SetActive(false);
                             }
-                            if (!PlayerPrefs.GetString("LastVidURL").Equals(user.VideoURL))
-                            {
-                                user.WatchBtn.onClick.RemoveAllListeners();
-                                user.WatchBtn.onClick.AddListener(
-                                    () =>
-                                        StartCoroutine(GetText(user.VideoURL, user.WatchBtn, user))
-                                );
-                                user.ButtonText.text = "Download";
-                                user.Download.SetActive(true);
-                                user.Error.SetActive(false);
-                                user.Watch.SetActive(false);
-                            }
+                            // if (!PlayerPrefs.GetString("LastVidURL").Equals(user.VideoURL) || !PlayerPrefs.GetInt("LastVidID").Equals(user.videoId))
+                            // {
+                            //     user.WatchBtn.onClick.RemoveAllListeners();
+                            //     user.WatchBtn.onClick.AddListener(
+                            //         () =>
+                            //             StartCoroutine(GetText(user.VideoURL, user.WatchBtn, user))
+                            //     );
+                            //     user.ButtonText.text = "Download";
+                            //     user.Download.SetActive(true);
+                            //     user.Error.SetActive(false);
+                            //     user.Watch.SetActive(false);
+                            // }
                             if(item.TimeBasedReadings!=null && item.TimeBasedReadings.Count > 0)
                             {
                                 user.CompareViewToggle.transform.GetChild(0).GetComponent<TMP_Text>().text = "Select To Compare";
@@ -214,6 +217,21 @@ public class UserReportController : MonoBehaviour
                             userReportFromDB.MyScrollRect = alreadyExisting.MyScrollRect;
                             alreadyExisting.ScaleDownItems();
                             alreadyExisting.ForceRebuildLayout();
+                            if (alreadyExisting.isDropped)
+                            {
+                                alreadyExisting.DropDownItems.ForEach(x=>
+                                {
+                                    x.transform.SetParent(alreadyExisting.ShowcaseScrollRect.content,false);
+                                    x.MyScrollRect = alreadyExisting.ShowcaseScrollRect;
+                                });
+                            }
+                            if (alreadyExisting.DropDownItems.Contains(ReferenceManager.instance.userReportController.itemToSnapTo) && ReferenceManager.instance.userReportController.itemToSnapTo.gameObject.activeSelf)
+                            {
+                                ReferenceManager.instance.userReportController.SnapToChild(
+                                    ReferenceManager.instance.userReportController.itemToSnapTo.transform,
+                                    ReferenceManager.instance.userReportController.itemToSnapTo.MyScrollRect,
+                                    ReferenceManager.instance.userReportController.itemToSnapTo.MyScrollRect.content);
+                            }
                         }
                         else
                         {
@@ -318,7 +336,7 @@ public class UserReportController : MonoBehaviour
                         }
 
                         userReportFromDB.WatchBtn.interactable = true;
-                        if (!PlayerPrefs.GetString("LastVidURL").Equals(item.VideoURL))
+                        if (!PlayerPrefs.GetString("LastVidURL").Equals(item.VideoURL) || !PlayerPrefs.GetInt("LastVidID").Equals((int)item.Id))
                         {
                             userReportFromDB.WatchBtn.onClick.AddListener(
                                 () =>
@@ -338,7 +356,7 @@ public class UserReportController : MonoBehaviour
                             userReportFromDB.Error.SetActive(false);
                             userReportFromDB.Watch.SetActive(false);
                         }
-                        else
+                        else if(PlayerPrefs.GetString("LastVidURL").Equals(userReportFromDB.VideoURL)&& PlayerPrefs.GetInt("LastVidID").Equals((int)item.Id))
                         {
                             userReportFromDB.WatchBtn.onClick.RemoveAllListeners();
                             userReportFromDB.ButtonText.text = "Watch";
@@ -348,7 +366,7 @@ public class UserReportController : MonoBehaviour
                             itemToSnapTo = userReportFromDB;
                             RecentlyPlayedButton = userReportFromDB;
                             userReportFromDB.WatchBtn.onClick.AddListener(
-                                () => { CreateFileAndView(null, "", userReportFromDB.UserNameOfSubject); 
+                                () => { CreateFileAndView((int)userReportFromDB.videoId,null, "", userReportFromDB.UserNameOfSubject); 
                                 ReferenceManager.instance.SelectedVideoID = userReportFromDB.videoId;
                                 ReferenceManager.instance.azureStorageManager.selectedVideo = userReportFromDB; }
                             );
@@ -395,13 +413,14 @@ public class UserReportController : MonoBehaviour
             },
             onError: (error) =>
             {
+                isSilentReportFetch = false;
                 ReferenceManager.instance.PopupManager.Show(
                     "Fetching Users Failed!",
                     $"Reasons are: {error}"
                 );
                 
             }
-        );
+        ,isSilentReportFetch);
     }
     List<GameObject> addedJointReadings = new();
     public void ShowJointReadingsFromDB(List<JointReading> jointReading)
@@ -686,7 +705,7 @@ public class UserReportController : MonoBehaviour
 
     public List<string> GaitColumnOfTimeName = new();
     public List<string> CsvDatas = new ();
-    void CreateTimeBasedCSV(string fileName, List<TimeBasedReadingRequest> readings, List<GetGaitReportResponse> gaitReadings,List<string> columnNames, bool showCSV)
+    async void CreateTimeBasedCSV(string fileName, List<TimeBasedReadingRequest> readings, List<GetGaitReportResponse> gaitReadings,List<string> columnNames, bool showCSV)
     {
         Debug.Log("Itnni bar");
         // Path to save the file
@@ -809,7 +828,30 @@ public class UserReportController : MonoBehaviour
 //                 RunRScript(csvPaths, true);
 // #endif
                 #endregion
-                RunRScript(csvPaths, true);
+
+                bool? isChatGPT = new bool();
+                isChatGPT = null;
+                ReferenceManager.instance.PopupManager.Show("Select Report Type!","Please Select One","R Script",okPressed:
+                    () =>
+                    {
+                        isChatGPT = true;
+                    },"Chat GPT",noPressed: () =>
+                    {
+                        isChatGPT = false;
+                    });
+                while (isChatGPT == null)
+                {
+                    await Task.Delay(500);
+                }
+                if (isChatGPT == true)
+                {
+                    bool isGait = selectedReadings.Count == 0 ? true : false;
+                    chatGPTHandler.AnalyzeCSV(CsvDatas,isGait);
+                }
+                else
+                {
+                    RunRScript(csvPaths, true);
+                }
                 
             }
             else
@@ -1469,6 +1511,7 @@ string EscapeMarkdown(string input)
         LightBuzzViewer.SetActive(false);
         StopRecButton.onClick.Invoke();
         ResetButton.onClick.Invoke();
+        ReferenceManager.instance.userReportController.isSilentReportFetch = true;
         Start();
     }
 
@@ -1492,6 +1535,8 @@ string EscapeMarkdown(string input)
         ReferenceManager.instance.sensorTypeDropDown.SetValueWithoutNotify(0);
         ReferenceManager.instance.lightBuzzViewer.Visualization = FrameVisualization.Color;
         videoRecorderView.Show();
+        ResearchMeasurementManager.instance.isDoneWithLeft =false;
+        ResearchMeasurementManager.instance.isDoneWithRight = false;
     }
 
     public List<UnityWebRequest> requests = new List<UnityWebRequest>();
@@ -1533,7 +1578,7 @@ string EscapeMarkdown(string input)
             var reportFile = videoSaveBodies.FirstOrDefault(x => x.FileName.Equals("Sample.pdf"));
             btn.onClick.RemoveAllListeners();
             btn.onClick.AddListener(
-                () => { CreateFileAndView(videoSaveBodies, url, userReportFromDB.UserNameOfSubject); ReferenceManager.instance.SelectedVideoID = userReportFromDB.videoId; ReferenceManager.instance.azureStorageManager.selectedVideo = userReportFromDB; }
+                () => { CreateFileAndView((int)userReportFromDB.videoId,videoSaveBodies, url, userReportFromDB.UserNameOfSubject); ReferenceManager.instance.SelectedVideoID = userReportFromDB.videoId; ReferenceManager.instance.azureStorageManager.selectedVideo = userReportFromDB; }
             );
             btn.interactable = true;
             userReportFromDB.ProgressImage.gameObject.SetActive(false);
@@ -1586,6 +1631,7 @@ string EscapeMarkdown(string input)
             RecentlyPlayedButton.Watch.SetActive(false);
             RecentlyPlayedButton.PreviewButton.gameObject.SetActive(false);
             PlayerPrefs.SetString("LastVidURL", "None");
+            PlayerPrefs.SetInt("LastVidID",0);
         }
     }
 
@@ -1672,6 +1718,7 @@ string EscapeMarkdown(string input)
     }
 
     public async void CreateFileAndView(
+        int vidID,
         List<VideoSaveBody> videoSaveBodies = null,
         string url = "",
         string username = ""
@@ -1688,6 +1735,8 @@ string EscapeMarkdown(string input)
         if (!string.IsNullOrEmpty(url))
         {
             PlayerPrefs.SetString("LastVidURL", url);
+            PlayerPrefs.SetInt("LastVidID", vidID);
+            
         }
         if (Directory.Exists(path1) && videoSaveBodies != null)
         {
