@@ -11,6 +11,7 @@ using LightBuzz.BodyTracking;
 using TMPro;
 using Unity.VisualScripting.Dependencies.NCalc;
 using UnityEngine;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 public class ResearchMeasurementManager : MonoBehaviour
@@ -85,7 +86,16 @@ public class ResearchMeasurementManager : MonoBehaviour
 
     public void StartReading()
     {
+        
+        if (ReferenceManager.instance.videoSlider.value > 0.02f)
+        {
+            ReferenceManager.instance.PopupManager.Show("Warning!", "Please scroll the video at the beginning in order for detection to work properly.");
+            return;
+        }
+        pelvisBaseHeight = 0;
+        possibleFootStepPoints.Clear();
         ReferenceManager.instance.canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+        previousPosition = Vector3.zero;
         isStarted = true;
         footCount = 0;
         firstStepIgnored = false;
@@ -118,6 +128,7 @@ public class ResearchMeasurementManager : MonoBehaviour
         researchProjectCompleteBodyDatas.ForEach(x => x.gameObject.SetActive(true));
         ReferenceManager.instance.StartTimer();
         TakeUserConsent();
+        
     }
 
     public void StopReading()
@@ -127,14 +138,29 @@ public class ResearchMeasurementManager : MonoBehaviour
         researchProjectCompleteBodyDatas.ForEach(x => x.gameObject.SetActive(false));
     }
 
-    public void LateUpdate()
+    public TMP_Text testing;
+    private float? initialYPosition;
+    public void FixedUpdate()
     {
+        if (LightbuzzBody != null)
+        {
+            // var ankleLeft = LightbuzzBody.Joints[JointType.AnkleLeft];
+            // Floor floor = Floor.Create(LightbuzzFrame);
+            //
+            // testing.text = $"Ankle Left Position = {ankleLeft.Position3D.Y}\nFloor Position = {floor.Y}";
+            // var ankle = LightbuzzBody.Joints[JointType.AnkleLeft];
+            // var hip = LightbuzzBody.Joints[JointType.HipLeft];
+            // testing.text = $"{ankle.Position3D.Y - hip.Position3D.Y}";
+        }
         if (!isStarted)
         {
             return;
         }
         if (LightbuzzBody != null)
         {
+         
+            if (ReferenceManager.instance.videoPlayingCount == 0)
+                RecordFoots();
             foreach (var item in LightbuzzBody.Joints)
             {
                 if (item.Value.TrackingState != TrackingState.Inferred)
@@ -334,14 +360,13 @@ public class ResearchMeasurementManager : MonoBehaviour
         {
             StepAngleLNotifier.text = $"Step AngleL\nNo Joint";
         }
-        if (!ReferenceManager.instance.graphManagers.Any(x => x.MySineWave.isVideoDoneLoading))
-            RecordFoots();
+        
         //SetInitialFootPlace();
-        if (
-            coroutine == null
-            && ReferenceManager.instance.graphManagers.Any(x => x.MySineWave.isVideoDoneLoading) /*&& ReferenceManager.instance.videoPlayingCount ==1*/
-        )
-            coroutine = StartCoroutine(DetectFootOnGround());
+        // if (
+        //     coroutine == null
+        //     && ReferenceManager.instance.graphManagers.Any(x => x.MySineWave.isVideoDoneLoading) && ReferenceManager.instance.videoPlayingCount ==1
+        // )
+        //     coroutine = StartCoroutine(DetectFootOnGround());
         // DetectFootFullyPressed();
         AddAllTimeReadings();
         GenerateAvatar();
@@ -353,7 +378,7 @@ public class ResearchMeasurementManager : MonoBehaviour
     public bool isDoneWithLeft,isDoneWithRight;
     public async void DetectIfUserIsStanding()
     {
-        if (ReferenceManager.instance.videoPlayingCount == 3)
+        if (ReferenceManager.instance.videoPlayingCount == 2)
         {
             processingNotifier.NotifierText.text = "Detecting Initial Pose Of User...";
             processingNotifier.gameObject.SetActive(true);
@@ -369,7 +394,7 @@ public class ResearchMeasurementManager : MonoBehaviour
                 StandingDetectionCreatePutValues(ReferenceManager.instance.videoPlayerView.VideoPlayer.TimeElapsed.ToString(@"mm\:ss\:fff"));
             }
         }
-        if(ReferenceManager.instance.videoPlayingCount == 4)
+        if(ReferenceManager.instance.videoPlayingCount == 3)
         {
             StopButon.onClick.Invoke();
             ReferenceManager.instance.placeHeelDetectionValues = false;
@@ -377,6 +402,7 @@ public class ResearchMeasurementManager : MonoBehaviour
             processingNotifier.gameObject.SetActive(true);
             processingNotifier.LoadingFill.transform.parent.gameObject.SetActive(false);
             processingNotifier.buttons.SetActive(true);
+            ReferenceManager.instance.videoPlayerView.VideoPlayer.Speed = 1f;
             if (leftLeg)
             {
                 isDoneWithLeft = true;
@@ -408,7 +434,7 @@ public class ResearchMeasurementManager : MonoBehaviour
         {
             return;
         }    
-        if(ReferenceManager.instance.videoPlayingCount <= 2){
+        if(ReferenceManager.instance.videoPlayingCount <= 1){
             if(!abdDiffAtTime.ContainsKey(ReferenceManager.instance.TimeElapsedLightBuzz.text))
             {
                 if(leftLeg )
@@ -506,7 +532,7 @@ public class ResearchMeasurementManager : MonoBehaviour
             kneeAbdAtTime =  kneeAbdAtTime.OrderBy(x=>x.Key).ToDictionary(x=>x.Key,x=>x.Value); 
             pelvisAngleAtTime =  pelvisAngleAtTime.OrderBy(x=>x.Key).ToDictionary(x=>x.Key,x=>x.Value); 
         }
-        if(ReferenceManager.instance.videoPlayingCount == 2){
+        if(ReferenceManager.instance.videoPlayingCount == 1){
              processingNotifier.NotifierText.text = "Gathering Heel Pressed Data...";
            
             processingNotifier.gameObject.SetActive(true);
@@ -573,7 +599,7 @@ public class ResearchMeasurementManager : MonoBehaviour
         {
             return;
         }
-        if(ReferenceManager.instance.videoPlayingCount ==2 &&footStrikeAtTimes.Count!=0)
+        if(ReferenceManager.instance.videoPlayingCount ==1 &&footStrikeAtTimes.Count!=0)
         {
                 string finalValue = timeDetectedOn;
                 
@@ -682,89 +708,131 @@ public class ResearchMeasurementManager : MonoBehaviour
 #endregion
     public List<float> footDistances = new List<float>();
     // public List<float> footZDistances = new List<float>();
-
+    [FormerlySerializedAs("pelvisBaseFootHeight")] [FormerlySerializedAs("baseFootHeight")] public float pelvisBaseHeight;
+    public List<float> possibleFootStepPoints = new List<float>();
+    public float previousRecordedZofStep;
     public void RecordFoots()
     {
-        ResearchProjectCompleteBodyData jointForStrideLengthL =
-            researchProjectCompleteBodyDatas.FirstOrDefault(x =>
-                x.gameObject.name == JointType.AnkleLeft.ToString()
-            );
+        
+        var ankleLeft = LightbuzzBody.Joints[JointType.AnkleLeft];
+        var ankleRight = LightbuzzBody.Joints[JointType.AnkleRight];
 
-        ResearchProjectCompleteBodyData jointForStrideLengthR =
-            researchProjectCompleteBodyDatas.FirstOrDefault(x =>
-                x.gameObject.name == JointType.AnkleRight.ToString()
-            );
-        if (
-            jointForStrideLengthL == null
-            || !jointForStrideLengthL.gameObject.activeSelf
-            || jointForStrideLengthR == null
-            || !jointForStrideLengthR.gameObject.activeSelf
-        )
+        if (ankleLeft == null || ankleRight == null)
         {
             return;
         }
-        float distance = Vector3.Distance(
-            jointForStrideLengthL.Position3D,
-            jointForStrideLengthR.Position3D
-        );
+      
         
-        if (!footDistances.Contains(distance))
+        // float distance = Vector3.Distance(
+        //     jointForStrideLengthL.Position3D,
+        //     jointForStrideLengthR.Position3D
+        // );
+        //
+        // if (!footDistances.Contains(distance))
+        // {
+        //     footDistances.Add(distance);
+        //     footDistances.Sort();
+        // }
+
+        if (leftLeg)
         {
-            footDistances.Add(distance);
-            footDistances.Sort();
+            
+           
+            if (pelvisBaseHeight == 0)
+            {
+                pelvisBaseHeight = Mathf.RoundToInt(ankleLeft.Position3D.Z);
+                previousRecordedZofStep = Mathf.RoundToInt(ankleLeft.Position3D.Z);
+            }
+
+            if ((int)ankleLeft.Position3D.Z < pelvisBaseHeight && (int)ankleLeft.Position3D.Z <previousRecordedZofStep && ankleLeft.Position3D.Z < ankleRight.Position3D.Z && Math.Round(ankleLeft.Position3D.Z%1,1) < 0.9f)
+            {
+                previousRecordedZofStep = (int)ankleLeft.Position3D.Z;
+                if (firstStepIgnored)
+                {
+                    Debug.Log("FootDetected");
+                    StepButon.onClick.Invoke();
+                }
+                else
+                {
+                    Debug.Log("Ignored");
+                    firstStepIgnored = true;
+                }
+            }
+            
         }
-        processingNotifier.NotifierText.text = "Reading Video Data...";
-        processingNotifier.gameObject.SetActive(true);
+        else
+        {
+            if (pelvisBaseHeight == 0)
+            {
+                pelvisBaseHeight = Mathf.RoundToInt(ankleRight.Position3D.Z);
+                previousRecordedZofStep = Mathf.RoundToInt(ankleRight.Position3D.Z);
+            }
+
+            if ((int)ankleRight.Position3D.Z < pelvisBaseHeight && (int)ankleRight.Position3D.Z <previousRecordedZofStep && ankleRight.Position3D.Z < ankleLeft.Position3D.Z && Math.Round(ankleRight.Position3D.Z%1,1) < 0.9f)
+            {
+                previousRecordedZofStep = (int)ankleRight.Position3D.Z;
+                if (firstStepIgnored)
+                {
+                    Debug.Log("FootDetected");
+                    StepButon.onClick.Invoke();
+                }
+                else
+                {
+                    Debug.Log("Ignored");
+                    firstStepIgnored = true;
+                }
+            }
+        }
+        
+        
     }
 
     Coroutine coroutine;
     public Vector3 previousPosition;
-    private bool firstStepIgnored;
+    public bool firstStepIgnored;
+    
+    
     public IEnumerator DetectFootOnGround()
     {
         processingNotifier.NotifierText.text = "Detecting Foot On Ground...";
         processingNotifier.gameObject.SetActive(true);
-        
-        if(footDistances.Count == 0)
-        {
-            ReferenceManager.instance.graphManagers.ForEach(x=>x.MySineWave.isVideoDoneLoading = false);
-            coroutine = null;
-            yield break;
-        }
+       
+        // if(footDistances.Count == 0)
+        // {
+        //     ReferenceManager.instance.graphManagers.ForEach(x=>x.MySineWave.isVideoDoneLoading = false);
+        //     coroutine = null;
+        //     yield break;
+        // }
         if (ReferenceManager.instance.videoPlayerView.VideoPlayer.IsPaused)
         {
             // Debug.Log("Video Is paused");
             coroutine = null;
             yield break;
         }
-        ResearchProjectCompleteBodyData jointForStrideLengthL =
-            researchProjectCompleteBodyDatas.FirstOrDefault(x =>
-                x.gameObject.name == JointType.AnkleLeft.ToString()
-            );
-        ResearchProjectCompleteBodyData jointForStrideLengthR =
-            researchProjectCompleteBodyDatas.FirstOrDefault(x =>
-                x.gameObject.name == JointType.AnkleRight.ToString()
-            );
-        if (
-            jointForStrideLengthL == null
-            || !jointForStrideLengthL.gameObject.activeSelf
-            || jointForStrideLengthR == null
-            || !jointForStrideLengthR.gameObject.activeSelf
-        )
-        {
-            jointForStrideLengthL?.ShockWaveEffect.SetActive(false);
-            jointForStrideLengthR?.ShockWaveEffect.SetActive(false);
-            coroutine = null;
-            yield break;
-        }
+
+        var jointForStrideLengthL = LightbuzzBody.Joints[JointType.AnkleLeft];
+        var jointForStrideLengthR = LightbuzzBody.Joints[JointType.AnkleRight];
+        
+        // if (
+        //     jointForStrideLengthL == null
+        //     || !jointForStrideLengthL.gameObject.activeSelf
+        //     || jointForStrideLengthR == null
+        //     || !jointForStrideLengthR.gameObject.activeSelf
+        // )
+        // {
+        //     jointForStrideLengthL?.ShockWaveEffect.SetActive(false);
+        //     jointForStrideLengthR?.ShockWaveEffect.SetActive(false);
+        //     coroutine = null;
+        //     yield break;
+        // }
         // Debug.Log(
         //     $"Left Z Pos: {jointForStrideLengthL.Position3D.z}\nRight Z Pos: {jointForStrideLengthR.Position3D.z}"
         // );
 
-        yield return new WaitForEndOfFrame();
+        // yield return new WaitForEndOfFrame();
         if (leftLeg)
         {
-            // if (isDoneWithLeft)
+            // if (isDoneWithLeft) //to ignore the socond time reading is taken
             // {
             //     jointForStrideLengthL.ShockWaveEffect.SetActive(false);
             //     jointForStrideLengthR.ShockWaveEffect.SetActive(false);
@@ -772,10 +840,9 @@ public class ResearchMeasurementManager : MonoBehaviour
             //     yield break;
             // }
             
-            if (jointForStrideLengthL.Position3D.z > jointForStrideLengthR.Position3D.z || previousPosition.z.Equals(jointForStrideLengthL.Position3D.z))
+            if (jointForStrideLengthL.Position3D.Z > jointForStrideLengthR.Position3D.Z || previousPosition.z.Equals(jointForStrideLengthL.Position3D.Z))
             {
-                jointForStrideLengthL.ShockWaveEffect.SetActive(false);
-                jointForStrideLengthR.ShockWaveEffect.SetActive(false);
+                
                 coroutine = null;
                 yield break;
             }
@@ -783,35 +850,29 @@ public class ResearchMeasurementManager : MonoBehaviour
             //     jointForStrideLengthL.Position3D,
             //     jointForStrideLengthR.Position3D
             // );
-            Floor floor = Floor.Create(LightbuzzFrame);
+            
+            yield return null;
             if (
-                jointForStrideLengthL.Position3D.y >= floor.Y
-                // && Vector3.Distance(jointForStrideLengthL.Position3D,previousPosition) > 0.1f 
-                && jointForStrideLengthR.Position3D.z - jointForStrideLengthL.Position3D.z > 0.03f
-                // Vector3.Distance(jointForStrideLengthL.Position3D, jointForStrideLengthR.Position3D)
-                // > footDistances.Average()
+                possibleFootStepPoints.Contains(jointForStrideLengthL.Position3D.Y)
             )
             {
-                if (firstStepIgnored || !firstStepIgnored)
-                {
-                    Debug.Log("Foot Detected");
-                    StepButon.onClick.Invoke();
-
-                    jointForStrideLengthL.ShockWaveEffect.SetActive(true);
-                    jointForStrideLengthR.ShockWaveEffect.SetActive(false);
-                    
-                }
-                else
-                {
-                    firstStepIgnored = true;
-                }
-                yield return new WaitForSeconds(1f);
+                Debug.Log("Foot Detected");
+                StepButon.onClick.Invoke();
+                // if (firstStepIgnored)
+                // {
+                //     Debug.Log("Foot Detected");
+                //     StepButon.onClick.Invoke();
+                // }
+                // else
+                // {
+                //     firstStepIgnored = true;
+                // }
+                // yield return new WaitForSeconds(0.1f);
             }
             else
             {
                 
                 previousPosition = jointForStrideLengthL.Position3D;
-                jointForStrideLengthL.ShockWaveEffect.SetActive(false);
             }
         }
         else if(rightLeg)
@@ -823,43 +884,37 @@ public class ResearchMeasurementManager : MonoBehaviour
             //     coroutine = null;
             //     yield break;
             // }
-            Floor floor = Floor.Create(LightbuzzFrame);
+            
             if (
-                jointForStrideLengthR.Position3D.z > jointForStrideLengthL.Position3D.z || previousPosition.z.Equals(jointForStrideLengthR.Position3D.z)
+                jointForStrideLengthR.Position3D.Z > jointForStrideLengthL.Position3D.Z || previousPosition.z.Equals(jointForStrideLengthR.Position3D.Z)
                 )
             {
                 // Debug.Log("Because z is less or behind");
-                jointForStrideLengthL.ShockWaveEffect.SetActive(false);
-                jointForStrideLengthR.ShockWaveEffect.SetActive(false);
                 coroutine = null;
                 yield break;
             }
+           
+            yield return null;
             if (
-                jointForStrideLengthR.Position3D.y >= floor.Y
-                && jointForStrideLengthL.Position3D.z - jointForStrideLengthR.Position3D.z > 0.05f
-                // Vector3.Distance(jointForStrideLengthL.Position3D, jointForStrideLengthR.Position3D)
-                // >= footDistances.Average()
+                possibleFootStepPoints.Contains(jointForStrideLengthR.Position3D.Y)
             )
             {
-                if (firstStepIgnored)
-                {
-                    Debug.Log("Foot Detected");
-                    StepButon.onClick.Invoke();
-
-                    jointForStrideLengthR.ShockWaveEffect.SetActive(true);
-                    jointForStrideLengthL.ShockWaveEffect.SetActive(false);
-                    
-                }
-                else
-                {
-                    firstStepIgnored = true;
-                }
-                yield return new WaitForSeconds(1f);
+                Debug.Log("Foot Detected");
+                StepButon.onClick.Invoke();
+                // if (firstStepIgnored)
+                // {
+                //     Debug.Log("Foot Detected");
+                //     StepButon.onClick.Invoke();
+                // }
+                // else
+                // {
+                //     firstStepIgnored = true;
+                // }
+                // yield return new WaitForSeconds(0.1f);
             }
             else
             {
                 previousPosition = jointForStrideLengthR.Position3D;
-                jointForStrideLengthR.ShockWaveEffect.SetActive(false);
             }
         }
         coroutine = null;
@@ -952,7 +1007,7 @@ public class ResearchMeasurementManager : MonoBehaviour
         string footstrikesAtTime = "";
         if (ReferenceManager.instance.videoPlayerView.gameObject.activeSelf)
         {
-            footstrikesAtTime = ReferenceManager.instance.TimeElapsedLightBuzz.text;
+            footstrikesAtTime = ReferenceManager.instance.videoPlayerView.VideoPlayer.TimeElapsed.ToString(@"mm\:ss\:fff");
             if (!footStrikeAtTimes.Contains(footstrikesAtTime))
                 footStrikeAtTimes.Add(footstrikesAtTime);
             footStrikeAtTimes.Sort();

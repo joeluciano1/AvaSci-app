@@ -231,7 +231,9 @@ public class GaitPDFGenerator : MonoBehaviour
                 AnkleAbductionAtTime = item2.ankleAbductionValue,
                 PelvisAngleAtTime = item2.pelvisAngleValue,
                 VarusValgusAtTime = item2.distanceValue,
-                SelectedLeg = ResearchMeasurementManager.instance.leftLeg ? "Left Leg" : "Right Leg"
+                SelectedLeg = ResearchMeasurementManager.instance.leftLeg ? "Left Leg" : "Right Leg",
+                Condition = item2.angleDifferenceValue < -1 ? "Valgus" : item2.angleDifferenceValue > 1 ? "Varus" : "Normal"
+
             };
             UploadGaitJson(i, bodyStand);
             }
@@ -258,14 +260,15 @@ public class GaitPDFGenerator : MonoBehaviour
                 HipAbductionAtTime = ReferenceManager
                     .instance.KneeAbductionAtFootStrikingTime.ElementAt(i)
                     .Value,
-                AnkleAbductionAtTime = ReferenceManager
-                    .instance.AnkleAbductionAtFootStrikingTime.ElementAt(i)
-                    .Value,
+                // AnkleAbductionAtTime = ReferenceManager
+                //     .instance.AnkleAbductionAtFootStrikingTime.ElementAt(i)
+                //     .Value,
                 PelvisAngleAtTime = ReferenceManager
                     .instance.PelvisAngleAtFootStrikingTime.ElementAt(i)
                     .Value,
                 SelectedLeg = ResearchMeasurementManager.instance.leftLeg ? "Left Leg" : "Right Leg",
-                VarusValgusAtTime = ReferenceManager.instance.DistanceAtFootStrikingTime.ElementAt(i).Value
+                VarusValgusAtTime = ReferenceManager.instance.DistanceAtFootStrikingTime.ElementAt(i).Value,
+                Condition = ReferenceManager.instance.AngleAtFootStrikingTime.ElementAt(i).Value < -1 ? "Valgus" :ReferenceManager.instance.AngleAtFootStrikingTime.ElementAt(i).Value > 1 ? "Varus" : "Normal"
             };
             UploadGaitJson(i, body);
             var item = ReferenceManager.instance.heelPressDetectionBodies.FirstOrDefault(x => TimeSpan.ParseExact(x.TimeOfHeelPressed, @"mm\:ss\:fff", CultureInfo.InvariantCulture) > TimeSpan.ParseExact(ReferenceManager.instance.AngleAtFootStrikingTime.ElementAt(i).Key, @"mm\:ss\:fff", CultureInfo.InvariantCulture) && !x.added);
@@ -287,7 +290,8 @@ public class GaitPDFGenerator : MonoBehaviour
                 AnkleAbductionAtTime = item.ankleAbductionValue,
                 PelvisAngleAtTime = item.pelvisAngleValue,
                 SelectedLeg = ResearchMeasurementManager.instance.leftLeg ? "Left Leg" : "Right Leg",
-                VarusValgusAtTime = item.distanceValue
+                VarusValgusAtTime = item.distanceValue,
+                Condition = item.angleDifferenceValue < -1 ? "Valgus" : item.angleDifferenceValue > 1 ? "Varus" : "Normal"
             };
             UploadGaitJson(i, bodyHeel);
         }

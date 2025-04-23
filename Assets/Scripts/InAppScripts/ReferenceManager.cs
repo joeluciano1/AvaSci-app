@@ -397,9 +397,10 @@ public class ReferenceManager : MonoBehaviour
         {
             ResearchMeasurementManager.instance.processingNotifier.LoadingFill.fillAmount = value;
         }
-        if (Math.Abs(1 - value) <= 0.05f && !reachedEnd)
+        if (Math.Abs(1 - value) <= 0.02f && !reachedEnd)
         {
             videoPlayingCount += 1;
+            ResearchMeasurementManager.instance.firstStepIgnored = false;
             reachedEnd = true;
         }
         else if (Math.Abs(1 - value) > 0.05f && reachedEnd)

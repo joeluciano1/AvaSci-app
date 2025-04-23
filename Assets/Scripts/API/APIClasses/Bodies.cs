@@ -183,6 +183,7 @@ public class CreateGaitReportBody
     public float AnkleAbductionAtTime { get; set; }
     public float VarusValgusAtTime { get; set; }
     public string SelectedLeg { get; set; }
+    public string Condition { get; set; }
 }
 [System.Serializable]
 public class HeelPressDetectionBody{
