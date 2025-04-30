@@ -4,8 +4,11 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using DG.Tweening;
 using LightBuzz.AvaSci.Csv;
 using Newtonsoft.Json;
+using TMPro;
+using UnityEngine.UI;
 
 public class ChatGPTHandler : MonoBehaviour
 {
@@ -131,21 +134,134 @@ public class ChatGPTHandler : MonoBehaviour
         Debug.Log("PDF Report saved at: " + path);
     }
 
+   
+    
+    [Header("UI Elements")]
+    public TMP_InputField userInputField;
+
+    public GameObject GPTText;
+    public GameObject UserText;
+    public Button sendButton;
+
+    [Header("Settings")]
+    private string apiUrl = "https://api.openai.com/v1/chat/completions";
+
+    // Track full chat history
+    private List<Message> conversationHistory = new List<Message>();
+    public TMP_Dropdown modelDropdown;
+    public GameObject Thinking;
+    void Start()
+    {
+        // Initialize conversation with system prompt
+        conversationHistory.Add(new Message
+        {
+            role = "system",
+            content = "You are a helpful Avasci Assistant."
+        });
+
+        sendButton.onClick.AddListener(OnSendClicked);
+    }
+
+    void OnSendClicked()
+    {
+        string userMessage = userInputField.text.Trim();
+        
+        if (string.IsNullOrEmpty(userMessage)) return;
+
+        AppendMessage("You", userMessage);
+        userInputField.text = "";
+
+        // Add user message to history
+        conversationHistory.Add(new Message
+        {
+            role = "user",
+            content = userMessage
+        });
+
+        StartCoroutine(SendMessageToOpenAI());
+    }
+
+    IEnumerator SendMessageToOpenAI()
+    {
+        var payload = new
+        {
+            model = modelDropdown.captionText.text, // or "gpt-4" if you have access
+            messages = conversationHistory
+        };
+        Thinking.SetActive(true);
+        string jsonBody = JsonConvert.SerializeObject(payload);
+
+        UnityWebRequest request = new UnityWebRequest(apiUrl, "POST");
+        byte[] bodyRaw = Encoding.UTF8.GetBytes(jsonBody);
+        request.uploadHandler = new UploadHandlerRaw(bodyRaw);
+        request.downloadHandler = new DownloadHandlerBuffer();
+        request.SetRequestHeader("Content-Type", "application/json");
+        request.SetRequestHeader("Authorization", "Bearer " + apiKey);
+
+        yield return request.SendWebRequest();
+        Thinking.SetActive(false);
+        if (request.result != UnityWebRequest.Result.Success)
+        {
+            
+            AppendMessage("Error", request.error);
+        }
+        else
+        {
+            string resultJson = request.downloadHandler.text;
+            var gptResponse = JsonConvert.DeserializeObject<ChatGPTResponse>(resultJson);
+            string reply = gptResponse.choices[0].message.content.Trim();
+
+            // Add GPT reply to history
+            conversationHistory.Add(new Message
+            {
+                role = "assistant",
+                content = reply
+            });
+
+            AppendMessage("AI", reply);
+        }
+    }
+
+    void AppendMessage(string sender, string message)
+    {
+        if (sender == "You")
+        {
+            GameObject go = Instantiate(UserText,UserText.transform.parent);
+            go.SetActive(true);
+            go.GetComponentInChildren<TMP_Text>().text = $"\n<b>{sender}:</b> {message}\n";
+        }
+        else
+        {
+            GameObject go = Instantiate(GPTText, GPTText.transform.parent);
+            go.SetActive(true);
+            go.transform.GetChild(0).GetComponent<TMP_Text>().text = $"\n<b>{sender}:</b> {message}\n";
+        }
+        ScrollToBottom();
+        // chatOutputText.text += $"\n<b>{sender}:</b> {message}\n";
+    }
+    public ScrollRect scrollRect;
+
+    void ScrollToBottom()
+    {
+        Canvas.ForceUpdateCanvases(); // force layout rebuild
+        scrollRect.DOVerticalNormalizedPos(0f, 1f);
+    }
     [System.Serializable]
-    private class ChatGPTResponse
+    public class Message
+    {
+        public string role;
+        public string content;
+    }
+
+    [System.Serializable]
+    public class ChatGPTResponse
     {
         public Choice[] choices;
     }
 
     [System.Serializable]
-    private class Choice
+    public class Choice
     {
         public Message message;
-    }
-
-    [System.Serializable]
-    private class Message
-    {
-        public string content;
     }
 }

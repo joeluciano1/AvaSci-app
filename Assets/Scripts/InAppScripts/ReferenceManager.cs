@@ -113,6 +113,8 @@ public class ReferenceManager : MonoBehaviour
         new Dictionary<string, float>();
     public Dictionary<string, float> VarusValgusAtFootStrikingTime =
         new Dictionary<string, float>();
+    public Dictionary<string, float> StrideLengthAtFootStrikingTime = 
+        new Dictionary<string, float>();
     public AngleManager angleManager;
     public Text TimeElapsedLightBuzz;
 

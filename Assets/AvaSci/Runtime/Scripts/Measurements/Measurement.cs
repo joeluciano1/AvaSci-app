@@ -164,6 +164,12 @@ namespace LightBuzz.AvaSci.Measurements
                     return new VarusValgusLeftAngle();
                 case MeasurementType.VarusValgusRightAngleDistance:
                     return new VarusValgusRightAngle();
+                case MeasurementType.StepLength:
+                    return new StepLength();
+                case MeasurementType.StepLeftAngle:
+                    return new StepLeftAngle();
+                case MeasurementType.StepRightAngle:
+                    return new StepRightAngle();
                 default:
                     throw new NotImplementedException(
                         $"The {type} measurement is not implemented!"

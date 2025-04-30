@@ -135,6 +135,9 @@ public class JointReading
         public float? AnkleRightAbduction { get; set; }
         public float? VarusValgusRight { get; set; }
         public float? VarusValgusLeft { get; set; }
+        public float? StepLength { get; set; }
+        public float? StepLeftAngle { get; set; }
+        public float? StepRightAngle { get; set; }
         [CanBeNull] public string VideoName { get; set; }
         public DateTime CreatedOn { get; set; }
     }
@@ -182,6 +185,7 @@ public class CreateGaitReportBody
     public float PelvisAngleAtTime { get; set; }
     public float AnkleAbductionAtTime { get; set; }
     public float VarusValgusAtTime { get; set; }
+    public float? StrideLenghtAtTime { get; set; }
     public string SelectedLeg { get; set; }
     public string Condition { get; set; }
 }

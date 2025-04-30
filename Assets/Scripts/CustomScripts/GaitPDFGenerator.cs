@@ -38,12 +38,13 @@ public class GaitPDFGenerator : MonoBehaviour
         table.Columns.Add("Var/Val Distance");
         table.Columns.Add("Condition");
         table.Columns.Add("Hip ABD at (time)");
+        table.Columns.Add("Stride Length at (time)");
         // table.Columns.Add("Ankle ABD at (time)");
         table.Columns.Add("Pelvis Angle at (time)");
         table.Columns.Add("Leg in Question");
         //Include rows to the DataTable
         
-        var item1 = ReferenceManager.instance.standingDetectionBodies.FirstOrDefault();
+        StandingDetectionBody item1 = ReferenceManager.instance.standingDetectionBodies.FirstOrDefault();
         TimeSpan initialTime =new TimeSpan();
         if(item1 != null)
         {
@@ -72,7 +73,8 @@ public class GaitPDFGenerator : MonoBehaviour
                     item1.angleDifferenceValue.ToString("0.00"),
                     item1.distanceValue.ToString("0.00"),
                     condition,
-                    item1.kneeAbductionValue.ToString("0.00"),
+                    item1.kneeAbductionValue.ToString("0.00"), // here knee is actually hip todo: rename the variable to hipAbductionvalue
+                    "Not Calculated Yet",
                     // item1.ankleAbductionValue.ToString("0.00"),
                     item1.pelvisAngleValue.ToString("0.00"),
                     item1.nameOfTheFoot,
@@ -120,8 +122,9 @@ public class GaitPDFGenerator : MonoBehaviour
                         .Value.ToString("0.00"),
                     condition1,
                         ReferenceManager
-                        .instance.KneeAbductionAtFootStrikingTime.ElementAt(i)
+                        .instance.KneeAbductionAtFootStrikingTime.ElementAt(i)  // here knee is actually hip todo: rename the variable to hipAbductionvalue
                         .Value.ToString("0.00") + "º",
+                        i > ReferenceManager.instance.StrideLengthAtFootStrikingTime.Count-1 ? "Not Calculated Here": ReferenceManager.instance.StrideLengthAtFootStrikingTime.ElementAt(i).Value.ToString(),
                         // ReferenceManager
                         // .instance.AnkleAbductionAtFootStrikingTime.ElementAt(i)
                         // .Value.ToString("0.00") + "º",
@@ -161,6 +164,7 @@ public class GaitPDFGenerator : MonoBehaviour
                     item.distanceValue.ToString("0.00"),
                     condition2,
                     item.kneeAbductionValue.ToString("0.00"),
+                    "Not calculated here",
                     // item.ankleAbductionValue.ToString("0.00"),
                     item.pelvisAngleValue.ToString("0.00"),
                     item.nameOfTheFoot,
@@ -215,7 +219,7 @@ public class GaitPDFGenerator : MonoBehaviour
         }
         for (int i = 0; i < ReferenceManager.instance.AngleAtFootStrikingTime.Count; i++)
         {
-            var item2 = ReferenceManager.instance.standingDetectionBodies.FirstOrDefault(x =>!x.added);
+            StandingDetectionBody item2 = ReferenceManager.instance.standingDetectionBodies.FirstOrDefault(x =>!x.added);
             if (item2 != null)
             {
                 item2.added = true;
@@ -232,7 +236,8 @@ public class GaitPDFGenerator : MonoBehaviour
                 PelvisAngleAtTime = item2.pelvisAngleValue,
                 VarusValgusAtTime = item2.distanceValue,
                 SelectedLeg = ResearchMeasurementManager.instance.leftLeg ? "Left Leg" : "Right Leg",
-                Condition = item2.angleDifferenceValue < -1 ? "Valgus" : item2.angleDifferenceValue > 1 ? "Varus" : "Normal"
+                Condition = item2.angleDifferenceValue < -1 ? "Valgus" : item2.angleDifferenceValue > 1 ? "Varus" : "Normal",
+                StrideLenghtAtTime = null
 
             };
             UploadGaitJson(i, bodyStand);
@@ -260,6 +265,7 @@ public class GaitPDFGenerator : MonoBehaviour
                 HipAbductionAtTime = ReferenceManager
                     .instance.KneeAbductionAtFootStrikingTime.ElementAt(i)
                     .Value,
+                StrideLenghtAtTime = i > ReferenceManager.instance.StrideLengthAtFootStrikingTime.Count-1 ? null: ReferenceManager.instance.StrideLengthAtFootStrikingTime.ElementAt(i).Value,
                 // AnkleAbductionAtTime = ReferenceManager
                 //     .instance.AnkleAbductionAtFootStrikingTime.ElementAt(i)
                 //     .Value,
@@ -291,7 +297,8 @@ public class GaitPDFGenerator : MonoBehaviour
                 PelvisAngleAtTime = item.pelvisAngleValue,
                 SelectedLeg = ResearchMeasurementManager.instance.leftLeg ? "Left Leg" : "Right Leg",
                 VarusValgusAtTime = item.distanceValue,
-                Condition = item.angleDifferenceValue < -1 ? "Valgus" : item.angleDifferenceValue > 1 ? "Varus" : "Normal"
+                Condition = item.angleDifferenceValue < -1 ? "Valgus" : item.angleDifferenceValue > 1 ? "Varus" : "Normal",
+                StrideLenghtAtTime = null
             };
             UploadGaitJson(i, bodyHeel);
         }

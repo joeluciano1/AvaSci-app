@@ -69,6 +69,15 @@ public class UIDragger : MonoBehaviour, IDragHandler
         lineRenderer.SetPosition(0, startWorldPosition);
         lineRenderer.SetPosition(1, endWorldPosition);
     }
+    public void DrawLineWithJointPosition(Vector3 startPoint, Vector3 endPoint)
+    {
+        
+        startPoint.z = 90;
+        endPoint.z = 90;
+        // Set the positions of the line renderer
+        lineRenderer.SetPosition(0, startPoint);
+        lineRenderer.SetPosition(1, endPoint);
+    }
 
     private Vector3 GetWorldPosition(RectTransform rectTransform)
     {
@@ -206,6 +215,7 @@ public class UIDragger : MonoBehaviour, IDragHandler
 
     private void OnDestroy()
     {
+        
         ReferenceManager.instance.UIDraggers.ForEach(x=>x.UIDraggersNearMe.Remove(this));
         ReferenceManager.instance.UIDraggers.Remove(this);
     }

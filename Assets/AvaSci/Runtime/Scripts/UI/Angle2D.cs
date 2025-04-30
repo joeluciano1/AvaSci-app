@@ -51,7 +51,8 @@ namespace LightBuzz.AvaSci.UI
         public UIDragger uIDragger;
         public Color ValgusColor;
         public Color VarusColor;
-
+        private RectTransform startRect;
+        private RectTransform endRect;
         /// <summary>
         /// The scaled image view.
         /// This member is used for scaling the angle arc according to the image view's scale.
@@ -123,6 +124,12 @@ namespace LightBuzz.AvaSci.UI
             // Debug.Log("destroyed " + gameObject.name);
             if (ReferenceManager.instance.AnglesAdded.Contains(this))
                 ReferenceManager.instance.AnglesAdded.Remove(this);
+            if(startRect != null)
+                Destroy(startRect.gameObject);
+            if(endRect != null)
+                Destroy(endRect.gameObject);
+            if(ReferencePosition != null)
+                Destroy(ReferencePosition.gameObject);
         }
 
         private void Awake()
@@ -343,6 +350,27 @@ namespace LightBuzz.AvaSci.UI
                 uIDragger.DrawLineWithJoint(_rect, ReferencePosition);
             }
 
+            if (gameObject.name.Contains("Length"))
+            {
+                _displayMessage = $"{measurement.Value:N2}mm \n{name}";
+                if (startRect == null)
+                {
+                 startRect = Instantiate(ReferencePosition, ReferencePosition.parent);
+                }
+
+                
+                
+                if(endRect == null)
+                {
+                    endRect = Instantiate(ReferencePosition, ReferencePosition.parent);
+                }
+                startRect.parent = ReferenceManager.instance.LightBuzzPanel;
+                endRect.parent = ReferenceManager.instance.LightBuzzPanel;
+                startRect.anchoredPosition = new Vector2(_start.x, _start.y);
+                endRect.anchoredPosition = new Vector2(_end.x, _end.y);
+                uIDragger.offset = 0;
+                uIDragger.DrawLineWithJoint(startRect, endRect);
+            }
             if (measurement.Type.ToString().Contains("Difference"))
             {
                 // MinScale = 2;
@@ -452,8 +480,18 @@ namespace LightBuzz.AvaSci.UI
                 {
                     uIDragger._rect.anchoredPosition = new Vector2(uIDragger._rect.anchoredPosition.x -50,uIDragger._rect.anchoredPosition.y - 13);
                 }
+                else if (measurement.Type == MeasurementType.StepLeftAngle)
+                {
+                    uIDragger._rect.anchoredPosition = new Vector2(uIDragger._rect.anchoredPosition.x +62,uIDragger._rect.anchoredPosition.y);
+                }
+                else if (measurement.Type == MeasurementType.StepRightAngle)
+                {
+                    uIDragger._rect.anchoredPosition = new Vector2(uIDragger._rect.anchoredPosition.x - 62,uIDragger._rect.anchoredPosition.y);
+                }
                 once = true;
             }
         }
+        
     }
+    
 }

@@ -69,6 +69,7 @@ public class ResearchMeasurementManager : MonoBehaviour
     public Dictionary<string,float> kneeAbdAtTime = new Dictionary<string,float>();
     public Dictionary<string,float> ankleAbdAtTime = new Dictionary<string,float>();
     public Dictionary<string,float> pelvisAngleAtTime = new Dictionary<string,float>();
+    public Dictionary<string,float> strideLengthAtTime = new Dictionary<string,float>();
     public float leftAngleValue;
 	public float rightAngleValue;
 	public float leftDisValue;
@@ -506,6 +507,21 @@ public class ResearchMeasurementManager : MonoBehaviour
                 else if (rightLeg)
                     pelvisAngleAtTime[ReferenceManager.instance.TimeElapsedLightBuzz.text] = pelvisAngleValue;
             }
+
+            if (!strideLengthAtTime.ContainsKey(ReferenceManager.instance.TimeElapsedLightBuzz.text))
+            {
+                if(leftLeg )
+                    strideLengthAtTime.Add(ReferenceManager.instance.TimeElapsedLightBuzz.text,strideLengthDistance);
+                else if(rightLeg)
+                    strideLengthAtTime.Add(ReferenceManager.instance.TimeElapsedLightBuzz.text,strideLengthDistance);
+            }
+            else
+            {
+                if(leftLeg )
+                    strideLengthAtTime[ReferenceManager.instance.TimeElapsedLightBuzz.text] = strideLengthDistance;
+                else if (rightLeg)
+                    strideLengthAtTime[ReferenceManager.instance.TimeElapsedLightBuzz.text] = strideLengthDistance;
+            }
             var toBeRemoved = abdDiffAtTime.Where(x => x.Value == 0).ToDictionary(x => x.Key, x => x.Value);
             foreach (var item in toBeRemoved)
                 abdDiffAtTime.Remove(item.Key);
@@ -524,13 +540,18 @@ public class ResearchMeasurementManager : MonoBehaviour
 
             var toBeRemovedPelv = pelvisAngleAtTime.Where(x => x.Value == 0).ToDictionary(x => x.Key, x => x.Value);
             foreach (var item in toBeRemovedPelv)
-                pelvisAngleAtTime.Remove(item.Key);                    
+                pelvisAngleAtTime.Remove(item.Key);   
+            
+            var toBeRemovedStride = strideLengthAtTime.Where(x => x.Value == 0).ToDictionary(x => x.Key, x => x.Value);
+            foreach (var item in toBeRemoved)
+                strideLengthAtTime.Remove(item.Key);
 
             abdDiffAtTime = abdDiffAtTime.OrderBy(x=>x.Key).ToDictionary(x=>x.Key,x=>x.Value); 
             varValAtTime = varValAtTime.OrderBy(x=>x.Key).ToDictionary(x=>x.Key,x=>x.Value); 
             ankleAbdAtTime =  ankleAbdAtTime.OrderBy(x=>x.Key).ToDictionary(x=>x.Key,x=>x.Value); 
             kneeAbdAtTime =  kneeAbdAtTime.OrderBy(x=>x.Key).ToDictionary(x=>x.Key,x=>x.Value); 
-            pelvisAngleAtTime =  pelvisAngleAtTime.OrderBy(x=>x.Key).ToDictionary(x=>x.Key,x=>x.Value); 
+            pelvisAngleAtTime =  pelvisAngleAtTime.OrderBy(x=>x.Key).ToDictionary(x=>x.Key,x=>x.Value);
+            strideLengthAtTime =  strideLengthAtTime.OrderBy(x=>x.Key).ToDictionary(x=>x.Key,x=>x.Value);
         }
         if(ReferenceManager.instance.videoPlayingCount == 1){
              processingNotifier.NotifierText.text = "Gathering Heel Pressed Data...";
@@ -992,9 +1013,9 @@ public class ResearchMeasurementManager : MonoBehaviour
             }
             AddTimerReading();
             newFootPosition = jointForStrideLengthL.Position3D;
-            float distance = Vector3.Distance(newFootPosition, lastFootPosition);
-            distance = Mathf.Round(distance * 100.0f) * 0.01f;
-            strideLengthNotifier.text = $"Stride Length\n{distance}m";
+            strideLengthDistance = Vector3.Distance(newFootPosition, lastFootPosition);
+            strideLengthDistance = Mathf.Round(strideLengthDistance * 100.0f) * 0.01f;
+            strideLengthNotifier.text = $"Stride Length\n{strideLengthDistance}m";
 
             footCount += 1;
             TriggerButton.transform.GetChild(0).GetComponent<TMP_Text>().text =
@@ -1002,6 +1023,7 @@ public class ResearchMeasurementManager : MonoBehaviour
         }
     }
 
+    private float strideLengthDistance;
     public void AddTimerReading()
     {
         string footstrikesAtTime = "";
@@ -1026,6 +1048,7 @@ public class ResearchMeasurementManager : MonoBehaviour
         float currentKneeAbd;
         float currentAnkleAbd;
         float currentPelvAngle;
+        float currentStrideLength;
         if (leftLeg)
         {
             maxAngle = GeneralStaticManager
@@ -1043,6 +1066,8 @@ public class ResearchMeasurementManager : MonoBehaviour
 
             currentPelvAngle = pelvisAngleAtTime.ContainsKey(footstrikesAtTime)? pelvisAngleAtTime[footstrikesAtTime]:0;
             currentPelvAngle = currentPelvAngle == 0 ? ReferenceManager.instance.angleManager._angles[MeasurementType.PelvisAngle].Angle : currentPelvAngle;
+            
+            currentStrideLength = strideLengthAtTime.ContainsKey(footstrikesAtTime) ? strideLengthAtTime[footstrikesAtTime]:strideLengthDistance;
         }
         else
         {
@@ -1058,9 +1083,11 @@ public class ResearchMeasurementManager : MonoBehaviour
 
             // currentAnkleAbd = ankleAbdAtTime.ContainsKey(footstrikesAtTime)? ankleAbdAtTime[footstrikesAtTime]:0;
             // currentAnkleAbd = currentAnkleAbd == 0 ? ReferenceManager.instance.angleManager._angles[MeasurementType.AnkleRightAbduction].Angle : currentAnkleAbd;
-
+            
             currentPelvAngle = pelvisAngleAtTime.ContainsKey(footstrikesAtTime)? pelvisAngleAtTime[footstrikesAtTime]:0;
             currentPelvAngle = currentPelvAngle == 0 ? ReferenceManager.instance.angleManager._angles[MeasurementType.PelvisAngle].Angle : currentPelvAngle;
+            
+            currentStrideLength = strideLengthAtTime.ContainsKey(footstrikesAtTime) ? strideLengthAtTime[footstrikesAtTime]:strideLengthDistance;
         }
         if (leftLeg)
         {
@@ -1082,6 +1109,11 @@ public class ResearchMeasurementManager : MonoBehaviour
         }
         if (!ReferenceManager.instance.KneeAbductionAtFootStrikingTime.Any(x=> x.Key == footstrikesAtTime))
             ReferenceManager.instance.KneeAbductionAtFootStrikingTime.Add(footstrikesAtTime, currentKneeAbd);
+        
+        if (!ReferenceManager.instance.StrideLengthAtFootStrikingTime.Any(x=> x.Key == footstrikesAtTime) && currentStrideLength !=0)
+            ReferenceManager.instance.StrideLengthAtFootStrikingTime.Add(footstrikesAtTime, currentStrideLength);
+        
+
 
         // if (!ReferenceManager.instance.AnkleAbductionAtFootStrikingTime.Any(x=> x.Key == footstrikesAtTime))
         //     ReferenceManager.instance.AnkleAbductionAtFootStrikingTime.Add(footstrikesAtTime, currentAnkleAbd);
@@ -1122,6 +1154,7 @@ public class ResearchMeasurementManager : MonoBehaviour
         ReferenceManager.instance.KneeAbductionAtFootStrikingTime = ReferenceManager.instance.KneeAbductionAtFootStrikingTime.OrderBy(x=>x.Key).ToDictionary(x=>x.Key,x => x.Value);
         ReferenceManager.instance.AnkleAbductionAtFootStrikingTime = ReferenceManager.instance.AnkleAbductionAtFootStrikingTime.OrderBy(x=>x.Key).ToDictionary(x=>x.Key,x => x.Value);
         ReferenceManager.instance.PelvisAngleAtFootStrikingTime = ReferenceManager.instance.PelvisAngleAtFootStrikingTime.OrderBy(x=>x.Key).ToDictionary(x=>x.Key,x => x.Value);
+        ReferenceManager.instance.StrideLengthAtFootStrikingTime = ReferenceManager.instance.StrideLengthAtFootStrikingTime.OrderBy(x=>x.Key).ToDictionary(x=>x.Key,x => x.Value);
     }
 
     public void Reset()
