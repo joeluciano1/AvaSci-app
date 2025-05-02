@@ -144,7 +144,7 @@ public class ChatGPTHandler : MonoBehaviour
     public Button sendButton;
 
     [Header("Settings")]
-    private string apiUrl = "https://api.openai.com/v1/chat/completions";
+    private string apiUrl = "https://www.askyourdatabase.com/api/chatbot/v2/session";
 
     // Track full chat history
     private List<Message> conversationHistory = new List<Message>();
@@ -152,43 +152,25 @@ public class ChatGPTHandler : MonoBehaviour
     public GameObject Thinking;
     void Start()
     {
-        // Initialize conversation with system prompt
-        conversationHistory.Add(new Message
-        {
-            role = "system",
-            content = "You are a helpful Avasci Assistant."
-        });
-
-        sendButton.onClick.AddListener(OnSendClicked);
+       
     }
 
-    void OnSendClicked()
+    public void OnSendClicked()
     {
-        string userMessage = userInputField.text.Trim();
-        
-        if (string.IsNullOrEmpty(userMessage)) return;
-
-        AppendMessage("You", userMessage);
-        userInputField.text = "";
-
-        // Add user message to history
-        conversationHistory.Add(new Message
-        {
-            role = "user",
-            content = userMessage
-        });
-
-        StartCoroutine(SendMessageToOpenAI());
+      StartCoroutine(SendMessageToOpenAI());
     }
 
+    public string chatBotAPIKey;
     IEnumerator SendMessageToOpenAI()
     {
         var payload = new
         {
-            model = modelDropdown.captionText.text, // or "gpt-4" if you have access
-            messages = conversationHistory
+            chatbotid = "9476ce025fdaa442aaaeadbdf7963513", // or "gpt-4" if you have access
+            name = "Ehtisham Yasin",
+            email = "stunner.ey@gmail.com"
         };
         Thinking.SetActive(true);
+        ReferenceManager.instance.LoadingManager.Show("Connecting to Live Database");
         string jsonBody = JsonConvert.SerializeObject(payload);
 
         UnityWebRequest request = new UnityWebRequest(apiUrl, "POST");
@@ -196,32 +178,39 @@ public class ChatGPTHandler : MonoBehaviour
         request.uploadHandler = new UploadHandlerRaw(bodyRaw);
         request.downloadHandler = new DownloadHandlerBuffer();
         request.SetRequestHeader("Content-Type", "application/json");
-        request.SetRequestHeader("Authorization", "Bearer " + apiKey);
+        request.SetRequestHeader("Authorization", "Bearer " + chatBotAPIKey);
 
         yield return request.SendWebRequest();
         Thinking.SetActive(false);
+        ReferenceManager.instance.LoadingManager.Hide();
         if (request.result != UnityWebRequest.Result.Success)
         {
-            
-            AppendMessage("Error", request.error);
+            Debug.LogError("Error: " + request.result + " - " + request.downloadHandler.text);
+            // AppendMessage("Error", request.error);
         }
         else
         {
             string resultJson = request.downloadHandler.text;
-            var gptResponse = JsonConvert.DeserializeObject<ChatGPTResponse>(resultJson);
-            string reply = gptResponse.choices[0].message.content.Trim();
+            var response = JsonConvert.DeserializeObject<AskReponse>(resultJson);
+            var webView = gameObject.AddComponent<UniWebView>();
+            webView.Frame = new Rect(0, 0, Screen.width, Screen.height);
 
-            // Add GPT reply to history
-            conversationHistory.Add(new Message
-            {
-                role = "assistant",
-                content = reply
-            });
+// 2. Load a URL.
+            webView.Load(response.url);
 
-            AppendMessage("AI", reply);
+// 3. Show it. 🎉
+            webView.Show();
+            webView.EmbeddedToolbar.Show();
+            
+            webView.OnShouldClose += (view) => {
+                webView = null;
+                return true;
+            };
+            // AppendMessage("AI", resultJson);
         }
     }
 
+    
     void AppendMessage(string sender, string message)
     {
         if (sender == "You")
@@ -263,5 +252,10 @@ public class ChatGPTHandler : MonoBehaviour
     public class Choice
     {
         public Message message;
+    }
+
+    public class AskReponse
+    {
+        public string url { get; set; }
     }
 }

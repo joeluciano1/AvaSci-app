@@ -12938,8 +12938,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 429.4108, y: -37.4351}
-  m_SizeDelta: {x: 95.42462, y: 34.8702}
+  m_AnchoredPosition: {x: 432.888, y: -37.4351}
+  m_SizeDelta: {x: 96.197334, y: 34.8702}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &313331422
 MonoBehaviour:
@@ -14148,8 +14148,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 143.13693, y: -37.4351}
-  m_SizeDelta: {x: 95.42462, y: 34.8702}
+  m_AnchoredPosition: {x: 144.296, y: -37.4351}
+  m_SizeDelta: {x: 96.197334, y: 34.8702}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &346701463
 MonoBehaviour:
@@ -27115,8 +27115,8 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294943813
-  m_fontColor: {r: 0.27058825, g: 0.6431373, b: 1, a: 1}
+    rgba: 16753733
+  m_fontColor: {r: 0.27058825, g: 0.6431373, b: 1, a: 0}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -36778,8 +36778,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 238.56155, y: -37.4351}
-  m_SizeDelta: {x: 95.42462, y: 34.8702}
+  m_AnchoredPosition: {x: 240.49333, y: -37.4351}
+  m_SizeDelta: {x: 96.197334, y: 34.8702}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &835919066
 MonoBehaviour:
@@ -61459,8 +61459,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 47.71231, y: -37.4351}
-  m_SizeDelta: {x: 95.42462, y: 34.8702}
+  m_AnchoredPosition: {x: 48.098663, y: -37.4351}
+  m_SizeDelta: {x: 96.197334, y: 34.8702}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1429907707
 MonoBehaviour:
@@ -74905,8 +74905,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 333.98618, y: -37.435112}
-  m_SizeDelta: {x: 95.42462, y: 34.870224}
+  m_AnchoredPosition: {x: 336.69067, y: -37.435112}
+  m_SizeDelta: {x: 96.197334, y: 34.870224}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1705974500
 MonoBehaviour:
@@ -74975,10 +74975,10 @@ MonoBehaviour:
   onValueChanged:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1883473318}
-        m_TargetAssemblyTypeName: UnityEngine.GameObject, UnityEngine
-        m_MethodName: SetActive
-        m_Mode: 0
+      - m_Target: {fileID: 2009232034}
+        m_TargetAssemblyTypeName: ChatGPTHandler, Assembly-CSharp
+        m_MethodName: OnSendClicked
+        m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
@@ -89124,6 +89124,7 @@ MonoBehaviour:
   sendButton: {fileID: 1538139028}
   modelDropdown: {fileID: 1210249907}
   Thinking: {fileID: 809066859}
+  chatBotAPIKey: fb511f36e0dd1fdfc0f83984021c6ad5a82896004496d7e08fd644cd07b2ecb8
   scrollRect: {fileID: 214047217}
 --- !u!1 &2009712570
 GameObject:
