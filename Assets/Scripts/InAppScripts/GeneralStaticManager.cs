@@ -6,10 +6,12 @@ using System.IO.Compression;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading.Tasks;
 using LightBuzz.AvaSci.Csv;
 using LightBuzz.AvaSci.Measurements;
 using Newtonsoft.Json;
 using UnityEngine;
+
 
 public static class GeneralStaticManager
 {
@@ -58,54 +60,58 @@ public static class GeneralStaticManager
     {
     return collection.OrderBy(x => Math.Abs(target - x)).First();
     }
-public static string ConvertCsvStringToJson(string csvString)
+public static async Task<string> ConvertCsvStringToJson(string csvString)
+{
+    
+    var rows = new List<Dictionary<string, string>>();
+
+    using (var reader = new StringReader(csvString))
     {
-        csvString = csvString.Replace(";", ",");
-        csvString = csvString.Replace("Timestamp", "TimeOfReading");
-        csvString = csvString.Replace("VarusValgusLeftAngleDistance", "VarusValgusLeft");
-        csvString = csvString.Replace("VarusValgusRightAngleDistance", "VarusValgusRight");
-        csvString = csvString.Replace("HipAnkleHipKneeLeftAbductionDifference", "AnkleHipLeftAbductionDifference");
-        csvString = csvString.Replace("HipAnkleHipKneeRightAbductionDifference", "AnkleHipRightAbductionDifference");
-        var rows = new List<Dictionary<string, string>>();
+        string headerLine = await reader.ReadLineAsync();
+        if (string.IsNullOrEmpty(headerLine))
+            throw new InvalidOperationException("CSV string is empty or invalid.");
 
-        // Use StringReader to process the CSV string line by line
-        using (var reader = new StringReader(csvString))
+        // Replace field names safely
+        headerLine = headerLine.Replace(";", ",")
+                               .Replace("Timestamp", "TimeOfReading")
+                               .Replace("VarusValgusLeftAngleDistance", "VarusValgusLeft")
+                               .Replace("VarusValgusRightAngleDistance", "VarusValgusRight")
+                               .Replace("HipAnkleHipKneeLeftAbductionDifference", "AnkleHipLeftAbductionDifference")
+                               .Replace("HipAnkleHipKneeRightAbductionDifference", "AnkleHipRightAbductionDifference")
+                               .Replace("AnkleRight 3D Z", "AnkleRight3DZ")
+                               .Replace("AnkleLeft 3D Z", "AnkleLeft3DZ")
+                               .Replace("HeelLeft 3D Z", "HeelLeft3DZ")
+                               .Replace("HeelRight 3D Z", "HeelRight3DZ");
+
+        string[] headers = headerLine.Split(',');
+
+        string line;
+        while ((line = await reader.ReadLineAsync()) != null)
         {
-            // Read the header line
-            string headerLine = reader.ReadLine();
-            if (string.IsNullOrEmpty(headerLine))
-                throw new InvalidOperationException("CSV string is empty or invalid.");
+            if (string.IsNullOrWhiteSpace(line)) continue;
 
-            string[] headers = headerLine.Split(',');
+            // Now split actual data by semicolon (original delimiter)
+            string[] values = line.Split(';');
 
-            // Process each data row
-            string line;
-            while ((line = reader.ReadLine()) != null)
+            var row = new Dictionary<string, string>();
+            for (int i = 0; i < headers.Length; i++)
             {
-                if (string.IsNullOrWhiteSpace(line)) continue;
+                string key = headers[i].Trim();
+                string value = i < values.Length ? values[i].Trim() : "";
 
-                string[] values = line.Split(',');
+                if (value.Equals("N/A", StringComparison.OrdinalIgnoreCase))
+                    value = null;
 
-                var row = new Dictionary<string, string>();
-
-                for (int i = 0; i < headers.Length; i++)
-                {
-                    string key = headers[i].Trim();
-                    string value = i < values.Length ? values[i].Trim() : "";
-                    if (value == "N/A")
-                    {
-                        value = null;
-                    }
-                    row[key] = value;
-                }
-
-                rows.Add(row);
+                row[key] = value;
             }
-        }
 
-        // Convert the rows list to JSON
-        return JsonConvert.SerializeObject(rows, Formatting.Indented);
+            rows.Add(row);
+        }
     }
+
+    return JsonConvert.SerializeObject(rows, Formatting.Indented);
+}
+
     public static void CreateZipFile(string outputZipPath, List<string> csvFilePaths)
     {
         if (csvFilePaths == null || csvFilePaths.Count == 0)
@@ -169,5 +175,70 @@ public static string ConvertCsvStringToJson(string csvString)
     public static long GetStringSizeInBytes(string data, Encoding encoding)
     {
         return encoding.GetByteCount(data);
+    }
+    public static T MiddleOrDefault<T>(this IEnumerable<T> source)
+    {
+        if (source == null) throw new ArgumentNullException(nameof(source));
+        var list = source as IList<T> ?? source.ToList();
+        if (list.Count == 0) return default;
+
+        return list[list.Count / 2];
+    }
+    public static T MiddleOrDefault<T>(this IEnumerable<T> source, Func<T, bool> predicate)
+    {
+        if (source == null) throw new ArgumentNullException(nameof(source));
+        if (predicate == null) throw new ArgumentNullException(nameof(predicate));
+
+        var filteredList = source.Where(predicate).ToList();
+        if (filteredList.Count == 0) return default;
+
+        return filteredList[filteredList.Count / 2];
+    }
+
+    public static T MiddleOfFirstQuarterOrDefault<T>(this IEnumerable<T> source, Func<T, bool> predicate)
+    {
+        if (source == null) throw new ArgumentNullException(nameof(source));
+        if (predicate == null) throw new ArgumentNullException(nameof(predicate));
+
+        var filteredList = source.Where(predicate).ToList();
+        if (filteredList.Count == 0) return default;
+
+        int quarterCount = filteredList.Count / 4;
+        if (quarterCount == 0) return filteredList[0]; // If less than 4 items, return first
+
+        int middleIndex = quarterCount / 2;
+        return filteredList[middleIndex];
+    }
+    public static T LastOfFirstQuarterOrDefault<T>(this IEnumerable<T> source, Func<T, bool> predicate)
+    {
+        if (source == null) throw new ArgumentNullException(nameof(source));
+        if (predicate == null) throw new ArgumentNullException(nameof(predicate));
+
+        var filteredList = source.Where(predicate).ToList();
+        if (filteredList.Count == 0) return default;
+
+        int quarterCount = filteredList.Count / 4;
+        if (quarterCount == 0) return filteredList[0]; // Fallback if less than 4 items
+
+        return filteredList[quarterCount - 1]; // Last of the first quarter
+    }
+    public static T MiddleOfSecondQuarterOrDefault<T>(this IEnumerable<T> source, Func<T, bool> predicate)
+    {
+        if (source == null) throw new ArgumentNullException(nameof(source));
+        if (predicate == null) throw new ArgumentNullException(nameof(predicate));
+
+        var filteredList = source.Where(predicate).ToList();
+        if (filteredList.Count == 0) return default;
+
+        int quarterLength = filteredList.Count / 4;
+        if (quarterLength == 0) return filteredList[0]; // fallback if too small
+
+        int start = quarterLength; // second quarter starts here
+        int middleIndex = start + quarterLength / 2;
+
+        if (middleIndex >= filteredList.Count)
+            middleIndex = filteredList.Count - 1; // prevent overflow
+
+        return filteredList[middleIndex];
     }
 }

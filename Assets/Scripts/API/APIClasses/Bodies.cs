@@ -140,6 +140,10 @@ public class JointReading
         public float? StepRightAngle { get; set; }
         [CanBeNull] public string VideoName { get; set; }
         public DateTime CreatedOn { get; set; }
+        public float? AnkleRight3DZ { get; set; }	
+        public float? AnkleLeft3DZ { get; set; }
+        public float? HeelLeft3DZ { get; set; }
+        public float? HeelRight3DZ { get; set; }
     }
     public class RReportGenerateRequest
     {

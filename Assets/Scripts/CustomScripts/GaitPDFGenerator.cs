@@ -44,11 +44,11 @@ public class GaitPDFGenerator : MonoBehaviour
         table.Columns.Add("Leg in Question");
         //Include rows to the DataTable
         
-        StandingDetectionBody item1 = ReferenceManager.instance.standingDetectionBodies.FirstOrDefault();
-        TimeSpan initialTime =new TimeSpan();
+        StandingDetectionBody item1 = ReferenceManager.instance.standingDetectionBodies[1];
+        // TimeSpan initialTime =new TimeSpan();
         if(item1 != null)
         {
-            TimeSpan.ParseExact(item1.TimeofStanding,@"mm\:ss\:fff",null);
+            
             item1.added = true;
             string condition = "";
             if (item1.angleDifferenceValue < -1)
@@ -67,27 +67,22 @@ public class GaitPDFGenerator : MonoBehaviour
                 new string[]
                 {
                     GeneralStaticManager.GlobalVar["Subject"],
-                    item1.TimeofStanding,
+                    TimeSpan.FromSeconds(float.Parse(item1.TimeofStanding)).ToString(@"mm\:ss\:fff"),
                     "",
                     "",
-                    item1.angleDifferenceValue.ToString("0.00"),
-                    item1.distanceValue.ToString("0.00"),
+                    item1.angleDifferenceValue.ToString("00.00"),
+                    item1.distanceValue.ToString("00.00"),
                     condition,
-                    item1.kneeAbductionValue.ToString("0.00"), // here knee is actually hip todo: rename the variable to hipAbductionvalue
+                    item1.kneeAbductionValue.ToString("00.00"), // here knee is actually hip todo: rename the variable to hipAbductionvalue
                     "Not Calculated Yet",
-                    // item1.ankleAbductionValue.ToString("0.00"),
-                    item1.pelvisAngleValue.ToString("0.00"),
+                    // item1.ankleAbductionValue.ToString("00.00"),
+                    item1.pelvisAngleValue.ToString("00.00"),
                     item1.nameOfTheFoot,
                 }
             );
         }
         for (int i = 0; i < ReferenceManager.instance.AngleAtFootStrikingTime.Count; i++)
         {
-            if (TimeSpan.ParseExact(ReferenceManager.instance.AngleAtFootStrikingTime.ElementAt(i).Key, @"mm\:ss\:fff",
-                    null) < initialTime)
-            {
-                continue;
-            }
             string condition1 = "";
             if (ReferenceManager
                     .instance.AngleAtFootStrikingTime.ElementAt(i)
@@ -110,64 +105,69 @@ public class GaitPDFGenerator : MonoBehaviour
                 {
                     GeneralStaticManager.GlobalVar["Subject"],
                     "",
-                    ReferenceManager
+                    TimeSpan.FromSeconds(float.Parse(ReferenceManager
                         .instance.AngleAtFootStrikingTime.ElementAt(i)
-                        .Key,
+                        .Key)).ToString(@"mm\:ss\:fff"),
                         "",
                     ReferenceManager
                         .instance.AngleAtFootStrikingTime.ElementAt(i)
-                        .Value.ToString("0.00") + "º",
+                        .Value.ToString("00.00") + "º",
                     ReferenceManager
                         .instance.DistanceAtFootStrikingTime.ElementAt(i)
-                        .Value.ToString("0.00"),
+                        .Value.ToString("00.00"),
                     condition1,
                         ReferenceManager
                         .instance.KneeAbductionAtFootStrikingTime.ElementAt(i)  // here knee is actually hip todo: rename the variable to hipAbductionvalue
-                        .Value.ToString("0.00") + "º",
+                        .Value.ToString("00.00") + "º",
                         i > ReferenceManager.instance.StrideLengthAtFootStrikingTime.Count-1 ? "Not Calculated Here": ReferenceManager.instance.StrideLengthAtFootStrikingTime.ElementAt(i).Value.ToString(),
                         // ReferenceManager
                         // .instance.AnkleAbductionAtFootStrikingTime.ElementAt(i)
-                        // .Value.ToString("0.00") + "º",
+                        // .Value.ToString("00.00") + "º",
                         ReferenceManager
                         .instance.PelvisAngleAtFootStrikingTime.ElementAt(i)
-                        .Value.ToString("0.00") + "º",
+                        .Value.ToString("00.00") + "º",
                     ResearchMeasurementManager.instance.leftLeg ? "Left Leg":"Right Leg",    
                 }
             );
-            var item = ReferenceManager.instance.heelPressDetectionBodies.FirstOrDefault(x=>TimeSpan.ParseExact(x.TimeOfHeelPressed,@"mm\:ss\:fff", CultureInfo.InvariantCulture) > TimeSpan.ParseExact(ReferenceManager.instance.AngleAtFootStrikingTime.ElementAt(i).Key,@"mm\:ss\:fff", CultureInfo.InvariantCulture)&&!x.added);
+            var item = ReferenceManager.instance.heelPressDetectionBodies.FirstOrDefault(x=>float.Parse(x.TimeOfHeelPressed) > float.Parse(ReferenceManager.instance.AngleAtFootStrikingTime.ElementAt(i).Key) &&!x.added);
+          
+            
             if(item == null || i == ReferenceManager.instance.AngleAtFootStrikingTime.Count-1)
             {
                 continue;
             }
-            item.added = true;
+            // item.added = true;
             string condition2 = "";
-            if (item.angleDifferenceValue < -1)
-            {
-                condition2 = "Valgus";
-            }
-            else if (item.angleDifferenceValue > 1)
-            {
-                condition2 = "Varus";
-            }
-            else
-            {
-                condition2 = "Normal";
-            }
-             table.Rows.Add(
+            
+                if (item.angleDifferenceValue < -1)
+                {
+                    condition2 = "Valgus";
+                }
+                else if (item.angleDifferenceValue > 1)
+                {
+                    condition2 = "Varus";
+                }
+                else
+                {
+                    condition2 = "Normal";
+                }
+           
+
+            table.Rows.Add(
                 new string[]
                 {
                     GeneralStaticManager.GlobalVar["Subject"],
                     "",
                     "",
-                    item.TimeOfHeelPressed,
-                    item.angleDifferenceValue.ToString("0.00"),
-                    item.distanceValue.ToString("0.00"),
+                    TimeSpan.FromSeconds(float.Parse(item.TimeOfHeelPressed)).ToString(@"mm\:ss\:fff"),
+                    item.angleDifferenceValue.ToString(),
+                    item.distanceValue.ToString(),
                     condition2,
-                    item.kneeAbductionValue.ToString("0.00"),
+                    item.angleDifferenceValue.ToString(),
                     "Not calculated here",
-                    // item.ankleAbductionValue.ToString("0.00"),
-                    item.pelvisAngleValue.ToString("0.00"),
-                    item.nameOfTheFoot,
+                    // item.ankleAbductionValue.ToString("00.00"),
+                    ((float)item.pelvisAngleValue).ToString("00.00"),
+                    ResearchMeasurementManager.instance.leftLeg ? "Left Leg":"Right Leg",
                 }
             );
            
@@ -219,7 +219,7 @@ public class GaitPDFGenerator : MonoBehaviour
         }
         for (int i = 0; i < ReferenceManager.instance.AngleAtFootStrikingTime.Count; i++)
         {
-            StandingDetectionBody item2 = ReferenceManager.instance.standingDetectionBodies.FirstOrDefault(x =>!x.added);
+            StandingDetectionBody item2 = ReferenceManager.instance.standingDetectionBodies[1];
             if (item2 != null)
             {
                 item2.added = true;
@@ -228,7 +228,7 @@ public class GaitPDFGenerator : MonoBehaviour
                 ReportsRecordId = ReferenceManager.instance.SelectedVideoID,
                 CreatedBy = GeneralStaticManager.GlobalVar["UserName"],
                 Subject = GeneralStaticManager.GlobalVar["Subject"],
-                SubjectStandingAtTime = (float)TimeSpan.ParseExact(item2.TimeofStanding,@"mm\:ss\:fff", CultureInfo.InvariantCulture).TotalSeconds,
+                SubjectStandingAtTime = float.Parse(item2.TimeofStanding),
                 AngleDifferenceAtTime =item2.angleDifferenceValue,
                 // MMDistaceAtTime = item2.distanceValue,
                 HipAbductionAtTime = item2.kneeAbductionValue,
@@ -247,9 +247,9 @@ public class GaitPDFGenerator : MonoBehaviour
                 ReportsRecordId = ReferenceManager.instance.SelectedVideoID,
                 CreatedBy = GeneralStaticManager.GlobalVar["UserName"],
                 Subject = GeneralStaticManager.GlobalVar["Subject"],
-                FootStrikeAtTime = (float)TimeSpan.ParseExact(ReferenceManager
+                FootStrikeAtTime = float.Parse(ReferenceManager
                     .instance.AngleAtFootStrikingTime.ElementAt(i)
-                    .Key,@"mm\:ss\:fff", CultureInfo.InvariantCulture).TotalSeconds,
+                    .Key),
                 MaxAngleDifference = ReferenceManager
                     .instance.maxAngleAtFootStrikingTime.ElementAt(i)
                     .Value,
@@ -277,7 +277,7 @@ public class GaitPDFGenerator : MonoBehaviour
                 Condition = ReferenceManager.instance.AngleAtFootStrikingTime.ElementAt(i).Value < -1 ? "Valgus" :ReferenceManager.instance.AngleAtFootStrikingTime.ElementAt(i).Value > 1 ? "Varus" : "Normal"
             };
             UploadGaitJson(i, body);
-            var item = ReferenceManager.instance.heelPressDetectionBodies.FirstOrDefault(x => TimeSpan.ParseExact(x.TimeOfHeelPressed, @"mm\:ss\:fff", CultureInfo.InvariantCulture) > TimeSpan.ParseExact(ReferenceManager.instance.AngleAtFootStrikingTime.ElementAt(i).Key, @"mm\:ss\:fff", CultureInfo.InvariantCulture) && !x.added);
+            var item = ReferenceManager.instance.heelPressDetectionBodies.FirstOrDefault(x=>float.Parse(x.TimeOfHeelPressed) > float.Parse(ReferenceManager.instance.AngleAtFootStrikingTime.ElementAt(i).Key) &&!x.added);
             
             if (item == null)
             {
@@ -289,7 +289,7 @@ public class GaitPDFGenerator : MonoBehaviour
                 ReportsRecordId = ReferenceManager.instance.SelectedVideoID,
                 CreatedBy = GeneralStaticManager.GlobalVar["UserName"],
                 Subject = GeneralStaticManager.GlobalVar["Subject"],
-                HeelPassingAtTime = (float)TimeSpan.ParseExact(item.TimeOfHeelPressed,@"mm\:ss\:fff", CultureInfo.InvariantCulture).TotalSeconds,
+                HeelPassingAtTime = float.Parse(item.TimeOfHeelPressed),
                 AngleDifferenceAtTime =item.angleDifferenceValue,
                 MMDistaceAtTime = item.distanceValue,
                 HipAbductionAtTime = item.kneeAbductionValue,

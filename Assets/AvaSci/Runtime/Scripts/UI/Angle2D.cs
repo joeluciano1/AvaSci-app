@@ -342,7 +342,7 @@ namespace LightBuzz.AvaSci.UI
             }
             else
             {
-                _displayMessage = $"{measurement.Value:N2}mm \n{name}";
+                _displayMessage = $"{measurement.Value.ToString("00.00")}mm \n{name}";
                 if (_rect == null)
                     _rect = gameObject.transform as RectTransform;
                 ReferencePosition.transform.parent = ReferenceManager.instance.LightBuzzPanel;

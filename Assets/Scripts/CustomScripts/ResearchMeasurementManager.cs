@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using DG.Tweening;
 using LightBuzz.AvaSci.Measurements;
 using LightBuzz.BodyTracking;
+using Newtonsoft.Json;
 using TMPro;
 using Unity.VisualScripting.Dependencies.NCalc;
 using UnityEngine;
@@ -79,6 +80,8 @@ public class ResearchMeasurementManager : MonoBehaviour
     public float leftAnkleAbdValue;
     public float rightAnkleAbdValue;
     public float pelvisAngleValue;
+
+    public List<TimeBasedReadingRequest> timebasedReadings = new List<TimeBasedReadingRequest>();
     private void Awake()
     {
         
@@ -88,11 +91,8 @@ public class ResearchMeasurementManager : MonoBehaviour
     public void StartReading()
     {
         
-        if (ReferenceManager.instance.videoSlider.value > 0.02f)
-        {
-            ReferenceManager.instance.PopupManager.Show("Warning!", "Please scroll the video at the beginning in order for detection to work properly.");
-            return;
-        }
+        assigned = false;
+        timebasedReadings.Clear();
         pelvisBaseHeight = 0;
         possibleFootStepPoints.Clear();
         ReferenceManager.instance.canvas.renderMode = RenderMode.ScreenSpaceOverlay;
@@ -160,8 +160,7 @@ public class ResearchMeasurementManager : MonoBehaviour
         if (LightbuzzBody != null)
         {
          
-            if (ReferenceManager.instance.videoPlayingCount == 0)
-                RecordFoots();
+            
             foreach (var item in LightbuzzBody.Joints)
             {
                 if (item.Value.TrackingState != TrackingState.Inferred)
@@ -369,10 +368,12 @@ public class ResearchMeasurementManager : MonoBehaviour
         // )
         //     coroutine = StartCoroutine(DetectFootOnGround());
         // DetectFootFullyPressed();
-        AddAllTimeReadings();
-        GenerateAvatar();
-        DetectIfCubePassed();
-        DetectIfUserIsStanding();
+        if (ReferenceManager.instance.videoPlayingCount == 1 && !ReferenceManager.instance.videoPlayerView.VideoPlayer.IsPaused )
+            RecordFoots();
+        // AddAllTimeReadings(); 
+        // GenerateAvatar();
+        // DetectIfCubePassed();
+        // DetectIfUserIsStanding();
         // FootFullyPressedNewDetection();
     }
     public Button StopButon;
@@ -392,7 +393,7 @@ public class ResearchMeasurementManager : MonoBehaviour
             await Task.Delay(500);
             if(Math.Abs(zPosOfPelvis - pelvis.transform.position.z)<=0.05f)
             {
-                StandingDetectionCreatePutValues(ReferenceManager.instance.videoPlayerView.VideoPlayer.TimeElapsed.ToString(@"mm\:ss\:fff"));
+                StandingDetectionCreatePutValues(ReferenceManager.instance.videoPlayerView.VideoPlayer.TimeElapsed.TotalSeconds.ToString());
             }
         }
         if(ReferenceManager.instance.videoPlayingCount == 3)
@@ -424,103 +425,214 @@ public class ResearchMeasurementManager : MonoBehaviour
         {
             return;
         }
-        if(Math.Abs(cubeLeft.transform.localPosition.z - cubeRight.transform.localPosition.z)<=0.02f){
+        if(Math.Abs(cubeLeft.transform.localPosition.z - cubeRight.transform.localPosition.z)<=0.03f){
             Debug.Log("Wajya Nai par phar lya");
-             FootFullyPressedNewDetection(ReferenceManager.instance.TimeElapsedLightBuzz.text);
+             FootFullyPressedNewDetection(ReferenceManager.instance.videoPlayerView.VideoPlayer.TimeElapsed.TotalSeconds.ToString());
         }
     }
     public void AddAllTimeReadings()
     {
+        if (timebasedReadings == null)
+        {
+            return;
+        }
         if(ReferenceManager.instance.videoPlayerView.VideoPlayer.IsPaused && !ReferenceManager.instance.angleManager._angles.ContainsKey(MeasurementType.HipAnkleHipKneeLeftAbductionDifference)||!ReferenceManager.instance.angleManager._angles.ContainsKey(MeasurementType.VarusValgusLeftAngleDistance))
         {
             return;
         }    
-        if(ReferenceManager.instance.videoPlayingCount <= 1){
-            if(!abdDiffAtTime.ContainsKey(ReferenceManager.instance.TimeElapsedLightBuzz.text))
+        if(ReferenceManager.instance.videoPlayingCount == 0)
+        {
+            double timeValue = ReferenceManager.instance.videoPlayerView.VideoPlayer.TimeElapsed.TotalSeconds;
+            if(!abdDiffAtTime.ContainsKey(timeValue.ToString()))
             {
-                if(leftLeg )
-                    abdDiffAtTime.Add(ReferenceManager.instance.TimeElapsedLightBuzz.text, leftAngleValue);
-                else if(rightLeg )
-                    abdDiffAtTime.Add(ReferenceManager.instance.TimeElapsedLightBuzz.text, rightAngleValue);
-            }
-            else
-            {
-                if(leftLeg )
-                    abdDiffAtTime[ReferenceManager.instance.TimeElapsedLightBuzz.text] = leftAngleValue;
-                else if(rightLeg ) 
-                    abdDiffAtTime[ReferenceManager.instance.TimeElapsedLightBuzz.text] = rightAngleValue;
-                
-            }
-            if(!varValAtTime.ContainsKey(ReferenceManager.instance.TimeElapsedLightBuzz.text))
-            {
-                if(leftLeg )
-                    varValAtTime.Add(ReferenceManager.instance.TimeElapsedLightBuzz.text, leftDisValue);
-                else if(rightLeg)
-                    varValAtTime.Add(ReferenceManager.instance.TimeElapsedLightBuzz.text, rightDisValue);
-            }
-            else
-            {
-                if(leftLeg )
-                    varValAtTime[ReferenceManager.instance.TimeElapsedLightBuzz.text] = leftDisValue;
+                if (leftLeg)
+                {
+                    leftAngleValue = timebasedReadings.FirstOrDefault(x => Math.Round(double.Parse(x.TimeOfReading),5).Equals(Math.Round(timeValue,5)))?
+                        .AnkleHipLeftAbductionDifference??0f;
+                    abdDiffAtTime.Add(timeValue.ToString(), leftAngleValue);
+                    
+                }
                 else if (rightLeg)
-                    varValAtTime[ReferenceManager.instance.TimeElapsedLightBuzz.text] = rightDisValue;
-            }
-            if(!ankleAbdAtTime.ContainsKey(ReferenceManager.instance.TimeElapsedLightBuzz.text))
-            {
-                if(leftLeg )
-                    ankleAbdAtTime.Add(ReferenceManager.instance.TimeElapsedLightBuzz.text, leftAnkleAbdValue);
-                else if(rightLeg)
-                    ankleAbdAtTime.Add(ReferenceManager.instance.TimeElapsedLightBuzz.text, rightAnkleAbdValue);
+                {
+                    rightAngleValue = timebasedReadings.FirstOrDefault(x => Math.Round(double.Parse(x.TimeOfReading),5).Equals(Math.Round(timeValue,5)))?
+                        .AnkleHipRightAbductionDifference??0f;
+                    abdDiffAtTime.Add(timeValue.ToString(), rightAngleValue);
+                    
+                }
             }
             else
             {
-                if(leftLeg )
-                    ankleAbdAtTime[ReferenceManager.instance.TimeElapsedLightBuzz.text] = leftAnkleAbdValue;
+                if (leftLeg)
+                {
+                    leftAngleValue = timebasedReadings.FirstOrDefault(x => Math.Round(double.Parse(x.TimeOfReading),5).Equals(Math.Round(timeValue,5)))?
+                        .AnkleHipLeftAbductionDifference??0f;
+                    abdDiffAtTime[timeValue.ToString()] = leftAngleValue;
+                    
+                }
                 else if (rightLeg)
-                    ankleAbdAtTime[ReferenceManager.instance.TimeElapsedLightBuzz.text] = rightAnkleAbdValue;
+                {
+                    rightAngleValue = timebasedReadings.FirstOrDefault(x => Math.Round(double.Parse(x.TimeOfReading),5).Equals(Math.Round(timeValue,5)))?
+                        .AnkleHipRightAbductionDifference??0;
+                    abdDiffAtTime[timeValue.ToString()] = rightAngleValue;
+                    
+                }
+
             }
-            if(!kneeAbdAtTime.ContainsKey(ReferenceManager.instance.TimeElapsedLightBuzz.text))
+            if(!varValAtTime.ContainsKey(timeValue.ToString()))
             {
-                if(leftLeg )
-                    kneeAbdAtTime.Add(ReferenceManager.instance.TimeElapsedLightBuzz.text, leftKneeAbdValue);
-                else if(rightLeg)
-                    kneeAbdAtTime.Add(ReferenceManager.instance.TimeElapsedLightBuzz.text, rightKneeAbdValue);
+                if (leftLeg)
+                {
+                    leftDisValue = timebasedReadings.FirstOrDefault(x => Math.Round(double.Parse(x.TimeOfReading),5).Equals(Math.Round(timeValue,5)))?
+                        .VarusValgusLeft??0;
+                    varValAtTime.Add(timeValue.ToString(), rightAngleValue);
+                    
+                }
+                else if (rightLeg)
+                {
+                    rightAngleValue = timebasedReadings.FirstOrDefault(x => Math.Round(double.Parse(x.TimeOfReading),5).Equals(Math.Round(timeValue,5)))?
+                        .VarusValgusRight??0;
+                    varValAtTime.Add(timeValue.ToString(), rightAngleValue);
+                    
+                }
             }
             else
             {
-                if(leftLeg )
-                 kneeAbdAtTime[ReferenceManager.instance.TimeElapsedLightBuzz.text] = leftKneeAbdValue;
+                if (leftLeg)
+                {
+                    leftDisValue = timebasedReadings.FirstOrDefault(x => Math.Round(double.Parse(x.TimeOfReading),5).Equals(Math.Round(timeValue,5)))?
+                        .VarusValgusLeft??0;
+                    varValAtTime[timeValue.ToString()] = leftDisValue;
+                    
+                }
                 else if (rightLeg)
-                 kneeAbdAtTime[ReferenceManager.instance.TimeElapsedLightBuzz.text] = rightKneeAbdValue;
+                {
+                    rightAngleValue = timebasedReadings.FirstOrDefault(x => Math.Round(double.Parse(x.TimeOfReading),5).Equals(Math.Round(timeValue,5)))?
+                        .VarusValgusRight??0;
+                    varValAtTime[timeValue.ToString()] = rightDisValue;
+                    
+                }
             }
-            if(!pelvisAngleAtTime.ContainsKey(ReferenceManager.instance.TimeElapsedLightBuzz.text))
+            // if(!ankleAbdAtTime.ContainsKey(timeValue.ToString()))
+            // {
+            //     if (leftLeg)
+            //     {
+            //         leftAnkleAbdValue = (float)timebasedReadings.FirstOrDefault(x => Math.Round(float.Parse(x.TimeOfReading),5).Equals(Math.Round(timeValue,5)))
+            //             .AnkleLeftAbduction;
+            //         ankleAbdAtTime.Add(timeValue.ToString(), leftAnkleAbdValue);
+            //         
+            //     }
+            //     else if (rightLeg)
+            //     {
+            //         rightAnkleAbdValue = (float)timebasedReadings.FirstOrDefault(x => Math.Round(float.Parse(x.TimeOfReading),5).Equals(Math.Round(timeValue,5)))
+            //             .AnkleRightAbduction;
+            //         ankleAbdAtTime.Add(timeValue.ToString(), rightAnkleAbdValue);
+            //         
+            //     }
+            // }
+            // else
+            // {
+            //     if (leftLeg)
+            //     {
+            //         leftAnkleAbdValue = (float)timebasedReadings.FirstOrDefault(x => Math.Round(float.Parse(x.TimeOfReading),5).Equals(Math.Round(timeValue,5)))
+            //             .AnkleLeftAbduction;
+            //         ankleAbdAtTime[timeValue.ToString()] = leftAnkleAbdValue;
+            //         
+            //     }
+            //     else if (rightLeg)
+            //     {
+            //         rightAnkleAbdValue = (float)timebasedReadings.FirstOrDefault(x => Math.Round(float.Parse(x.TimeOfReading),5).Equals(Math.Round(timeValue,5)))
+            //             .AnkleRightAbduction;
+            //         ankleAbdAtTime[timeValue.ToString()] = rightAnkleAbdValue;
+            //         
+            //     }
+            // }
+            if(!kneeAbdAtTime.ContainsKey(timeValue.ToString()))
             {
-                if(leftLeg )
-                    pelvisAngleAtTime.Add(ReferenceManager.instance.TimeElapsedLightBuzz.text, pelvisAngleValue);
-                else if(rightLeg)
-                    pelvisAngleAtTime.Add(ReferenceManager.instance.TimeElapsedLightBuzz.text, pelvisAngleValue);
+                if (leftLeg)
+                {
+                    leftKneeAbdValue = timebasedReadings.FirstOrDefault(x => Math.Round(double.Parse(x.TimeOfReading),5).Equals(Math.Round(timeValue,5)))?
+                        .HipLeftAbduction??0;
+                    kneeAbdAtTime.Add(timeValue.ToString(), leftKneeAbdValue);
+                    
+                }
+                else if (rightLeg)
+                {
+                    rightKneeAbdValue = timebasedReadings.FirstOrDefault(x => Math.Round(double.Parse(x.TimeOfReading),5).Equals(Math.Round(timeValue,5)))?
+                        .HipRightAbduction??0;
+                    kneeAbdAtTime.Add(timeValue.ToString(), rightKneeAbdValue);
+                    
+                }
             }
             else
             {
-                if(leftLeg )
-                    pelvisAngleAtTime[ReferenceManager.instance.TimeElapsedLightBuzz.text] = pelvisAngleValue;
+                if (leftLeg)
+                {
+                    rightKneeAbdValue = timebasedReadings.FirstOrDefault(x => Math.Round(double.Parse(x.TimeOfReading),5).Equals(Math.Round(timeValue,5)))?
+                        .HipLeftAbduction??0;
+                    kneeAbdAtTime[timeValue.ToString()] = leftKneeAbdValue;
+                    
+                }
                 else if (rightLeg)
-                    pelvisAngleAtTime[ReferenceManager.instance.TimeElapsedLightBuzz.text] = pelvisAngleValue;
+                {
+                    rightKneeAbdValue = timebasedReadings.FirstOrDefault(x => Math.Round(double.Parse(x.TimeOfReading),5).Equals(Math.Round(timeValue,5)))?
+                        .HipRightAbduction??0;
+                    kneeAbdAtTime[timeValue.ToString()] = rightKneeAbdValue;
+                    
+                }
+            }
+            if(!pelvisAngleAtTime.ContainsKey(timeValue.ToString()))
+            {
+                if (leftLeg)
+                {
+                    pelvisAngleValue = timebasedReadings.FirstOrDefault(x => Math.Round(double.Parse(x.TimeOfReading),5).Equals(Math.Round(timeValue,5)))?
+                        .PelvisAngle??0;
+                    pelvisAngleAtTime.Add(timeValue.ToString(), pelvisAngleValue);
+                }
+
+                else if (rightLeg)
+                {
+                    pelvisAngleValue = timebasedReadings.FirstOrDefault(x => Math.Round(double.Parse(x.TimeOfReading),5).Equals(Math.Round(timeValue,5)))?
+                        .PelvisAngle??0;
+                    pelvisAngleAtTime.Add(timeValue.ToString(), pelvisAngleValue);
+                }
+            }
+            else
+            {
+                if (leftLeg)
+                {
+                    pelvisAngleValue = timebasedReadings.FirstOrDefault(x => Math.Round(double.Parse(x.TimeOfReading),5).Equals(Math.Round(timeValue,5)))?
+                        .PelvisAngle??0;
+                    pelvisAngleAtTime[timeValue.ToString()] = pelvisAngleValue;
+                }
+                else if (rightLeg)
+                {
+                    pelvisAngleValue = timebasedReadings.FirstOrDefault(x => Math.Round(double.Parse(x.TimeOfReading),5).Equals(Math.Round(timeValue,5)))?
+                        .PelvisAngle??0;
+                    pelvisAngleAtTime[timeValue.ToString()] = pelvisAngleValue;
+                }
             }
 
-            if (!strideLengthAtTime.ContainsKey(ReferenceManager.instance.TimeElapsedLightBuzz.text))
+            if (!strideLengthAtTime.ContainsKey(timeValue.ToString()))
             {
-                if(leftLeg )
-                    strideLengthAtTime.Add(ReferenceManager.instance.TimeElapsedLightBuzz.text,strideLengthDistance);
-                else if(rightLeg)
-                    strideLengthAtTime.Add(ReferenceManager.instance.TimeElapsedLightBuzz.text,strideLengthDistance);
+                if (leftLeg)
+                {
+                    strideLengthAtTime.Add(timeValue.ToString(), strideLengthDistance);
+                }
+                else if (rightLeg)
+                {
+                    strideLengthAtTime.Add(timeValue.ToString(), strideLengthDistance);
+                }
             }
             else
             {
-                if(leftLeg )
-                    strideLengthAtTime[ReferenceManager.instance.TimeElapsedLightBuzz.text] = strideLengthDistance;
+                if (leftLeg)
+                {
+                    strideLengthAtTime[timeValue.ToString()] = strideLengthDistance;
+                }
                 else if (rightLeg)
-                    strideLengthAtTime[ReferenceManager.instance.TimeElapsedLightBuzz.text] = strideLengthDistance;
+                {
+                    strideLengthAtTime[timeValue.ToString()] = strideLengthDistance;
+                }
             }
             var toBeRemoved = abdDiffAtTime.Where(x => x.Value == 0).ToDictionary(x => x.Key, x => x.Value);
             foreach (var item in toBeRemoved)
@@ -612,7 +724,7 @@ public class ResearchMeasurementManager : MonoBehaviour
         if(!ReferenceManager.instance.standingDetectionBodies.Any(x=>x.TimeofStanding == standingDetectionBody.TimeofStanding))
                     ReferenceManager.instance.standingDetectionBodies.Add(standingDetectionBody);
 
-                ReferenceManager.instance.standingDetectionBodies = ReferenceManager.instance.standingDetectionBodies.OrderBy(x => TimeSpan.ParseExact(x.TimeofStanding,@"mm\:ss\:fff",null)).ToList();
+                ReferenceManager.instance.standingDetectionBodies = ReferenceManager.instance.standingDetectionBodies.OrderBy(x => x.TimeofStanding).ToList();
    }
    public void FootFullyPressedNewDetection(string timeDetectedOn = "")
    {
@@ -629,7 +741,11 @@ public class ResearchMeasurementManager : MonoBehaviour
                 var kneeAbdDict = kneeAbdAtTime.FirstOrDefault(x => finalValue==x.Key);
                 var ankleAbdDict = ankleAbdAtTime.FirstOrDefault(x => finalValue==x.Key);
                 var pelvAngleDict = pelvisAngleAtTime.FirstOrDefault(x => finalValue==x.Key);
-
+                if (abdDict.Value == 0 || varDict.Value == 0 || kneeAbdDict.Value == 0 || ankleAbdDict.Value == 0 ||
+                    pelvAngleDict.Value == 0)
+                {
+                    return;
+                }
                 // Debug.Log("Adding " + abdDict.Value + " at " + abdDict.Key + " With Float Value " + finalValue);
                 HeelPressDetectionBody heelPressDetectionBody = new HeelPressDetectionBody()
                 {
@@ -727,14 +843,272 @@ public class ResearchMeasurementManager : MonoBehaviour
 
 }
 #endregion
+
+    public float footDistanceThreshold = 0.07f;
     public List<float> footDistances = new List<float>();
     // public List<float> footZDistances = new List<float>();
     [FormerlySerializedAs("pelvisBaseFootHeight")] [FormerlySerializedAs("baseFootHeight")] public float pelvisBaseHeight;
     public List<float> possibleFootStepPoints = new List<float>();
     public float previousRecordedZofStep;
-    public void RecordFoots()
+    private bool assigned;
+    public Button cancelButton;
+    public void ChangeThreshold(string value)
     {
+        if (string.IsNullOrEmpty(value))
+        {
+            return;
+        }
+        footDistanceThreshold = float.Parse(value);
+    }
+    public async void RecordFoots()
+    {
+        if (!assigned)
+        {
+            string theCSVJson =
+                await GeneralStaticManager.ConvertCsvStringToJson(ReferenceManager.instance.LightBuzzMain
+                    .GenerateCSVString());
+            timebasedReadings = JsonConvert.DeserializeObject<List<TimeBasedReadingRequest>>(theCSVJson);
+            // timebasedReadings.ForEach(x=>
+            // {
+            //     if(x.AnkleLeft3DZ!=null)
+            //        x.AnkleLeft3DZ = Mathf.RoundToInt((float)x.AnkleLeft3DZ);
+            //     if(x.AnkleRight3DZ != null)
+            //         x.AnkleRight3DZ = Mathf.RoundToInt((float)x.AnkleRight3DZ);
+            // });
+            //
+            
+            var groupedTimesLeft = timebasedReadings
+                .Where(x => x.AnkleLeft3DZ != null)
+                .GroupBy(x => Mathf.RoundToInt((float)x.AnkleLeft3DZ))
+                .ToDictionary(g => g.Key, g => g.OrderBy(x=>float.Parse(x.TimeOfReading)).ToList());
+           
+            var groupedTimesRight = timebasedReadings
+                .Where(x => x.AnkleRight3DZ != null)
+                .GroupBy(x => Mathf.RoundToInt((float)x.AnkleRight3DZ))
+                .ToDictionary(g => g.Key, g => g.OrderBy(x=>float.Parse(x.TimeOfReading)).ToList());
+            
+            
+            int leftDone = 0;
+            int rightDone = 0;
+            float lastZPostion = 0;
+         if (leftLeg)
+            {
+                foreach (var item in groupedTimesLeft)
+                {
+                    if (leftDone < 1)
+                    {
+                        leftDone += 1;
+                        continue;
+                    }
+                    var angleData = item.Value.FirstOrDefault(x => x.AnkleLeft3DZ < x.AnkleRight3DZ && Mathf.Abs((float)x.AnkleLeft3DZ-(float)x.AnkleRight3DZ) > footDistanceThreshold);
+                    var distanceData = item.Value.MiddleOrDefault(x => x.AnkleLeft3DZ < x.AnkleRight3DZ && Mathf.Abs((float)x.AnkleLeft3DZ-(float)x.AnkleRight3DZ) > footDistanceThreshold);
+                    var kneeData = item.Value.MiddleOrDefault(x => x.AnkleLeft3DZ < x.AnkleRight3DZ && Mathf.Abs((float)x.AnkleLeft3DZ-(float)x.AnkleRight3DZ) > footDistanceThreshold);
+                    var pelvisData = item.Value.MiddleOrDefault(x => x.AnkleLeft3DZ < x.AnkleRight3DZ && Mathf.Abs((float)x.AnkleLeft3DZ-(float)x.AnkleRight3DZ) > footDistanceThreshold);
+                    
+                    if (angleData != null)
+                    {
+                        if (lastZPostion != 0)
+                        {
+                            strideLengthDistance = lastZPostion - (float)angleData.HeelLeft3DZ;
+                        }
+
+                        lastZPostion = (float)angleData.HeelLeft3DZ;
+                        var key = angleData.TimeOfReading.ToString();
+                        if (!ReferenceManager.instance.AngleAtFootStrikingTime.ContainsKey(key))
+                            ReferenceManager.instance.AngleAtFootStrikingTime.Add(key, (float)angleData.AnkleHipLeftAbductionDifference);
+                    }
+                    else
+                    {
+                        ReferenceManager.instance.PopupManager.Show("High Threshold","Please lower the threshold (because subject is taking short steps) and try again","",okPressed:
+                            () =>
+                            {
+                                Debug.Log("Canceled");
+                                   
+                            },"Ok");
+                        cancelButton.onClick.Invoke();
+                        return;
+                    }
+
+                    if (distanceData != null)
+                    {
+                        var key = distanceData.TimeOfReading.ToString();
+                        if (!ReferenceManager.instance.DistanceAtFootStrikingTime.ContainsKey(key))
+                            ReferenceManager.instance.DistanceAtFootStrikingTime.Add(key, (float)distanceData.VarusValgusLeft);
+                    }
+
+                    if (kneeData != null)
+                    {
+                        var key = kneeData.TimeOfReading.ToString();
+                        if (!ReferenceManager.instance.KneeAbductionAtFootStrikingTime.ContainsKey(key))
+                            ReferenceManager.instance.KneeAbductionAtFootStrikingTime.Add(key, (float)kneeData.HipLeftAbduction);
+                    }
+
+                    if (pelvisData != null)
+                    {
+                        var key = pelvisData.TimeOfReading.ToString();
+                        if (!ReferenceManager.instance.PelvisAngleAtFootStrikingTime.ContainsKey(key))
+                            ReferenceManager.instance.PelvisAngleAtFootStrikingTime.Add(key, (float)pelvisData.PelvisAngle);
+                    }
+
+                    // Use the middle item for heel press/standing detection
+                    var middleItem = item.Value.FirstOrDefault(x => x.AnkleHipLeftAbductionDifference != null && float.Parse(x.TimeOfReading)> float.Parse(angleData.TimeOfReading) && Mathf.Abs((float)x.AnkleRight3DZ - (float)x.AnkleLeft3DZ)<0.05);
+                    
+                    if (middleItem != null)
+                    {
+                        string timeKey = middleItem.TimeOfReading.ToString();
+
+                        var heelPressDetectionBody = new HeelPressDetectionBody()
+                        {
+                            angleDifferenceValue = (float)middleItem.AnkleHipLeftAbductionDifference,
+                            pelvisAngleValue = (float)middleItem.PelvisAngle,
+                            kneeAbductionValue = (float)middleItem.HipLeftAbduction,
+                            distanceValue = (float)middleItem.VarusValgusLeft,
+                            nameOfTheFoot = "left foot",
+                            varusValgusValue = (float)middleItem.VarusValgusLeft,
+                            TimeOfHeelPressed = timeKey
+                        };
+
+                       
+
+                        ReferenceManager.instance.heelPressDetectionBodies.Add(heelPressDetectionBody);
+                        
+                    }
+                    var firstitem = timebasedReadings.Skip(1).FirstOrDefault(x=>x.AnkleHipRightAbductionDifference != null);
+                    var standingDetectionBody = new StandingDetectionBody()
+                    {
+                        angleDifferenceValue = (float)firstitem.AnkleHipLeftAbductionDifference,
+                        pelvisAngleValue = (float)firstitem.PelvisAngle,
+                        kneeAbductionValue = (float)firstitem.HipLeftAbduction,
+                        distanceValue = (float)firstitem.VarusValgusLeft,
+                        nameOfTheFoot = "left foot",
+                        varusValgusValue = (float)firstitem.VarusValgusLeft,
+                        TimeofStanding = firstitem.TimeOfReading
+                    };
+                    ReferenceManager.instance.standingDetectionBodies.Add(standingDetectionBody);
+                    if (!ReferenceManager.instance.StrideLengthAtFootStrikingTime.ContainsKey(pelvisData.TimeOfReading))
+                        ReferenceManager.instance.StrideLengthAtFootStrikingTime.Add(pelvisData.TimeOfReading, strideLengthDistance);
+                }
+            }
+            else
+            {
+                foreach (var item in groupedTimesRight)
+                {
+                    if (rightDone<1)
+                    {
+                        rightDone += 1;
+                        continue;
+                    }
+                    var angleData = item.Value.MiddleOrDefault(x => x.AnkleRight3DZ < x.AnkleLeft3DZ && Mathf.Abs((float)x.AnkleLeft3DZ-(float)x.AnkleRight3DZ) > footDistanceThreshold);
+                    var distanceData = item.Value.MiddleOrDefault(x => x.AnkleRight3DZ < x.AnkleLeft3DZ && Mathf.Abs((float)x.AnkleLeft3DZ-(float)x.AnkleRight3DZ) > footDistanceThreshold);
+                    var kneeData = item.Value.MiddleOrDefault(x => x.AnkleRight3DZ < x.AnkleLeft3DZ && Mathf.Abs((float)x.AnkleLeft3DZ-(float)x.AnkleRight3DZ) > footDistanceThreshold);
+                    var pelvisData = item.Value.MiddleOrDefault(x => x.AnkleRight3DZ < x.AnkleLeft3DZ && Mathf.Abs((float)x.AnkleLeft3DZ-(float)x.AnkleRight3DZ) > footDistanceThreshold);
+                    
+                    if (angleData != null)
+                    {
+                        if (lastZPostion != 0)
+                        {
+                            strideLengthDistance = lastZPostion - (float)angleData.HeelLeft3DZ;
+                        }
+                        lastZPostion = (float)angleData.HeelRight3DZ;
+                        var key = angleData.TimeOfReading.ToString();
+                        if (!ReferenceManager.instance.AngleAtFootStrikingTime.ContainsKey(key))
+                            ReferenceManager.instance.AngleAtFootStrikingTime.Add(key, (float)angleData.AnkleHipRightAbductionDifference);
+                    }
+                    else
+                    {
+                        ReferenceManager.instance.PopupManager.Show("High Threshold","Please lower the threshold (because subject is taking short steps) and try again","",okPressed:
+                            () =>
+                            {
+                               Debug.Log("Canceled");
+                                   
+                            },"Ok");
+                        cancelButton.onClick.Invoke();
+                        return;
+                    }
+                    if (distanceData != null)
+                    {
+                        var key = distanceData.TimeOfReading.ToString();
+                        if (!ReferenceManager.instance.DistanceAtFootStrikingTime.ContainsKey(key))
+                            ReferenceManager.instance.DistanceAtFootStrikingTime.Add(key, (float)distanceData.VarusValgusRight);
+                    }
+
+                    if (kneeData != null)
+                    {
+                        var key = kneeData.TimeOfReading.ToString();
+                        if (!ReferenceManager.instance.KneeAbductionAtFootStrikingTime.ContainsKey(key))
+                            ReferenceManager.instance.KneeAbductionAtFootStrikingTime.Add(key, (float)kneeData.HipRightAbduction);
+                    }
+
+                    if (pelvisData != null)
+                    {
+                        var key = pelvisData.TimeOfReading.ToString();
+                        if (!ReferenceManager.instance.PelvisAngleAtFootStrikingTime.ContainsKey(key))
+                            ReferenceManager.instance.PelvisAngleAtFootStrikingTime.Add(key, (float)pelvisData.PelvisAngle);
+                    }
+
+                    // Use the middle item for heel press/standing detection
+                    var middleItem = item.Value.FirstOrDefault(x => x.AnkleHipRightAbductionDifference != null && float.Parse(x.TimeOfReading)> float.Parse(angleData.TimeOfReading) && Mathf.Abs((float)x.AnkleRight3DZ - (float)x.AnkleLeft3DZ)<0.05f);
+                    
+                    if (middleItem != null)
+                    {
+                        string timeKey = middleItem.TimeOfReading.ToString();
+
+                        var heelPressDetectionBody = new HeelPressDetectionBody()
+                        {
+                            angleDifferenceValue = (float)middleItem.AnkleHipRightAbductionDifference,
+                            pelvisAngleValue = (float)middleItem.PelvisAngle,
+                            kneeAbductionValue = (float)middleItem.HipRightAbduction,
+                            distanceValue = (float)middleItem.VarusValgusRight,
+                            nameOfTheFoot = "right foot",
+                            varusValgusValue = (float)middleItem.VarusValgusRight,
+                            TimeOfHeelPressed = timeKey
+                        };
+
+                      
+
+                        ReferenceManager.instance.heelPressDetectionBodies.Add(heelPressDetectionBody);
+                       
+                    }
+                    var firstitem = timebasedReadings.Skip(1).FirstOrDefault(x=>x.AnkleHipRightAbductionDifference != null);
+                    var standDetectionBody = new StandingDetectionBody()
+                    {
+                        angleDifferenceValue = (float)firstitem.AnkleHipRightAbductionDifference,
+                        pelvisAngleValue = (float)firstitem.PelvisAngle,
+                        kneeAbductionValue = (float)firstitem.HipRightAbduction,
+                        distanceValue = (float)firstitem.VarusValgusRight,
+                        nameOfTheFoot = "right foot",
+                        varusValgusValue = (float)firstitem.VarusValgusRight,
+                        TimeofStanding = firstitem.TimeOfReading
+                    };
+                    ReferenceManager.instance.standingDetectionBodies.Add(standDetectionBody);
+                    if (!ReferenceManager.instance.StrideLengthAtFootStrikingTime.ContainsKey(pelvisData.TimeOfReading))
+                        ReferenceManager.instance.StrideLengthAtFootStrikingTime.Add(pelvisData.TimeOfReading, strideLengthDistance);
+                }
+            }
+
+
+
+            assigned = true;
+            StopButon.onClick.Invoke();
+            ReferenceManager.instance.placeHeelDetectionValues = false;
+            processingNotifier.NotifierText.text = "Select An Option";
+            processingNotifier.gameObject.SetActive(true);
+            processingNotifier.LoadingFill.transform.parent.gameObject.SetActive(false);
+            processingNotifier.buttons.SetActive(true);
+            ReferenceManager.instance.videoPlayerView.VideoPlayer.Speed = 1f;
+            if (leftLeg)
+            {
+                isDoneWithLeft = true;
+            }
+            else if (rightLeg)
+            {
+                isDoneWithRight = true;
+            }
+
+            ReferenceManager.instance.canvas.renderMode = RenderMode.ScreenSpaceCamera;
+        }
         
+        return;
         var ankleLeft = LightbuzzBody.Joints[JointType.AnkleLeft];
         var ankleRight = LightbuzzBody.Joints[JointType.AnkleRight];
 
@@ -765,7 +1139,8 @@ public class ResearchMeasurementManager : MonoBehaviour
                 previousRecordedZofStep = Mathf.RoundToInt(ankleLeft.Position3D.Z);
             }
 
-            if ((int)ankleLeft.Position3D.Z < pelvisBaseHeight && (int)ankleLeft.Position3D.Z <previousRecordedZofStep && ankleLeft.Position3D.Z < ankleRight.Position3D.Z && Math.Round(ankleLeft.Position3D.Z%1,1) < 0.9f)
+           
+            if (Mathf.RoundToInt(ankleLeft.Position3D.Z) < pelvisBaseHeight && Mathf.RoundToInt(ankleLeft.Position3D.Z) <previousRecordedZofStep && ankleLeft.Position3D.Z < ankleRight.Position3D.Z && Math.Round(ankleLeft.Position3D.Z%1,1) < 0.9f)
             {
                 previousRecordedZofStep = (int)ankleLeft.Position3D.Z;
                 if (firstStepIgnored)
@@ -788,8 +1163,8 @@ public class ResearchMeasurementManager : MonoBehaviour
                 pelvisBaseHeight = Mathf.RoundToInt(ankleRight.Position3D.Z);
                 previousRecordedZofStep = Mathf.RoundToInt(ankleRight.Position3D.Z);
             }
-
-            if ((int)ankleRight.Position3D.Z < pelvisBaseHeight && (int)ankleRight.Position3D.Z <previousRecordedZofStep && ankleRight.Position3D.Z < ankleLeft.Position3D.Z && Math.Round(ankleRight.Position3D.Z%1,1) < 0.9f)
+           
+            if (Mathf.RoundToInt(ankleRight.Position3D.Z) < pelvisBaseHeight && Mathf.RoundToInt(ankleRight.Position3D.Z) <previousRecordedZofStep && ankleRight.Position3D.Z < ankleLeft.Position3D.Z && Math.Round(ankleRight.Position3D.Z%1,1) < 0.9f)
             {
                 previousRecordedZofStep = (int)ankleRight.Position3D.Z;
                 if (firstStepIgnored)
@@ -1027,9 +1402,11 @@ public class ResearchMeasurementManager : MonoBehaviour
     public void AddTimerReading()
     {
         string footstrikesAtTime = "";
+        double totalseconds=0;
         if (ReferenceManager.instance.videoPlayerView.gameObject.activeSelf)
         {
-            footstrikesAtTime = ReferenceManager.instance.videoPlayerView.VideoPlayer.TimeElapsed.ToString(@"mm\:ss\:fff");
+            footstrikesAtTime = ReferenceManager.instance.videoPlayerView.VideoPlayer.TimeElapsed.TotalSeconds.ToString();
+            totalseconds = ReferenceManager.instance.videoPlayerView.VideoPlayer.TimeElapsed.TotalSeconds;
             if (!footStrikeAtTimes.Contains(footstrikesAtTime))
                 footStrikeAtTimes.Add(footstrikesAtTime);
             footStrikeAtTimes.Sort();
@@ -1055,17 +1432,22 @@ public class ResearchMeasurementManager : MonoBehaviour
                 .GraphsReadings[MeasurementType.HipAnkleHipKneeLeftAbductionDifference.ToString()]
                 .Max();
 
-            currentAngle = abdDiffAtTime.ContainsKey(footstrikesAtTime)? abdDiffAtTime[footstrikesAtTime]:0;
-            currentAngle = currentAngle == 0 ? ReferenceManager.instance.angleManager._angles[MeasurementType.HipAnkleHipKneeLeftAbductionDifference].Angle : currentAngle;
-
-            currentKneeAbd = kneeAbdAtTime.ContainsKey(footstrikesAtTime)? kneeAbdAtTime[footstrikesAtTime]:0;
-            currentKneeAbd = currentKneeAbd == 0 ? ReferenceManager.instance.angleManager._angles[MeasurementType.HipLeftAbduction].Angle : currentKneeAbd;
+            // currentAngle = abdDiffAtTime.ContainsKey(footstrikesAtTime)? abdDiffAtTime[footstrikesAtTime]:0;
+            currentAngle = (float)timebasedReadings.FirstOrDefault(x => Math.Round(float.Parse(x.TimeOfReading),5) == Math.Round(totalseconds,5))
+                .AnkleHipLeftAbductionDifference;
+            // Debug.Log($"{footstrikesAtTime} and {currentAngle}");
+            // currentKneeAbd = kneeAbdAtTime.ContainsKey(footstrikesAtTime)? kneeAbdAtTime[footstrikesAtTime]:0;
+            currentKneeAbd = (float)timebasedReadings
+                .FirstOrDefault(x => Math.Round(float.Parse(x.TimeOfReading), 5) == Math.Round(totalseconds, 5))
+                .HipLeftAbduction;
 
             // currentAnkleAbd = ankleAbdAtTime.ContainsKey(footstrikesAtTime)? ankleAbdAtTime[footstrikesAtTime]:0;
             // currentAnkleAbd = currentAnkleAbd == 0 ? ReferenceManager.instance.angleManager._angles[MeasurementType.AnkleLeftAbduction].Angle : currentAnkleAbd;
 
-            currentPelvAngle = pelvisAngleAtTime.ContainsKey(footstrikesAtTime)? pelvisAngleAtTime[footstrikesAtTime]:0;
-            currentPelvAngle = currentPelvAngle == 0 ? ReferenceManager.instance.angleManager._angles[MeasurementType.PelvisAngle].Angle : currentPelvAngle;
+            // currentPelvAngle = pelvisAngleAtTime.ContainsKey(footstrikesAtTime)? pelvisAngleAtTime[footstrikesAtTime]:0;
+            currentPelvAngle = (float)timebasedReadings
+                .FirstOrDefault(x => Math.Round(float.Parse(x.TimeOfReading), 5) == Math.Round(totalseconds, 5))
+                .PelvisAngle;
             
             currentStrideLength = strideLengthAtTime.ContainsKey(footstrikesAtTime) ? strideLengthAtTime[footstrikesAtTime]:strideLengthDistance;
         }
@@ -1075,17 +1457,24 @@ public class ResearchMeasurementManager : MonoBehaviour
                 .GraphsReadings[MeasurementType.HipAnkleHipKneeRightAbductionDifference.ToString()]
                 .Max();
 
-            currentAngle = abdDiffAtTime.ContainsKey(footstrikesAtTime)? abdDiffAtTime[footstrikesAtTime]:0;
-            currentAngle = currentAngle == 0 ? ReferenceManager.instance.angleManager._angles[MeasurementType.HipAnkleHipKneeRightAbductionDifference].Angle : currentAngle;
-
-            currentKneeAbd = kneeAbdAtTime.ContainsKey(footstrikesAtTime)? kneeAbdAtTime[footstrikesAtTime]:0;
-            currentKneeAbd = currentKneeAbd == 0 ? ReferenceManager.instance.angleManager._angles[MeasurementType.HipRightAbduction].Angle : currentKneeAbd;
+            // currentAngle = abdDiffAtTime.ContainsKey(footstrikesAtTime)? abdDiffAtTime[footstrikesAtTime]:0;
+            Debug.Log($"{totalseconds} and nothing");
+            currentAngle =  (float)timebasedReadings.FirstOrDefault(x => Math.Round(float.Parse(x.TimeOfReading),5) == Math.Round(totalseconds,5))
+                .AnkleHipRightAbductionDifference;
+            Debug.Log($"{footstrikesAtTime} and {currentAngle}");
+            
+            // currentKneeAbd = kneeAbdAtTime.ContainsKey(footstrikesAtTime)? kneeAbdAtTime[footstrikesAtTime]:0;
+            currentKneeAbd =(float)timebasedReadings
+                .FirstOrDefault(x => Math.Round(float.Parse(x.TimeOfReading), 5) == Math.Round(totalseconds, 5))
+                .HipRightAbduction;
 
             // currentAnkleAbd = ankleAbdAtTime.ContainsKey(footstrikesAtTime)? ankleAbdAtTime[footstrikesAtTime]:0;
             // currentAnkleAbd = currentAnkleAbd == 0 ? ReferenceManager.instance.angleManager._angles[MeasurementType.AnkleRightAbduction].Angle : currentAnkleAbd;
             
-            currentPelvAngle = pelvisAngleAtTime.ContainsKey(footstrikesAtTime)? pelvisAngleAtTime[footstrikesAtTime]:0;
-            currentPelvAngle = currentPelvAngle == 0 ? ReferenceManager.instance.angleManager._angles[MeasurementType.PelvisAngle].Angle : currentPelvAngle;
+            // currentPelvAngle = pelvisAngleAtTime.ContainsKey(footstrikesAtTime)? pelvisAngleAtTime[footstrikesAtTime]:0;
+            currentPelvAngle = (float)timebasedReadings
+                .FirstOrDefault(x => Math.Round(float.Parse(x.TimeOfReading), 5) == Math.Round(totalseconds, 5))
+                .PelvisAngle;
             
             currentStrideLength = strideLengthAtTime.ContainsKey(footstrikesAtTime) ? strideLengthAtTime[footstrikesAtTime]:strideLengthDistance;
         }
@@ -1095,8 +1484,10 @@ public class ResearchMeasurementManager : MonoBehaviour
                 .GraphsReadings[MeasurementType.VarusValgusLeftAngleDistance.ToString()]
                 .Max();
 
-            curreentDistance = varValAtTime.ContainsKey(footstrikesAtTime)? varValAtTime[footstrikesAtTime]:0;
-            curreentDistance = curreentDistance == 0 ? ReferenceManager.instance.angleManager._angles[MeasurementType.VarusValgusLeftAngleDistance].Angle : curreentDistance;
+            // curreentDistance = varValAtTime.ContainsKey(footstrikesAtTime)? varValAtTime[footstrikesAtTime]:0;
+            curreentDistance =  (float)timebasedReadings
+                .FirstOrDefault(x => Math.Round(float.Parse(x.TimeOfReading), 5) == Math.Round(totalseconds, 5))
+                .VarusValgusLeft;
         }
         else
         {
@@ -1104,8 +1495,10 @@ public class ResearchMeasurementManager : MonoBehaviour
                 .GraphsReadings[MeasurementType.VarusValgusRightAngleDistance.ToString()]
                 .Max();
 
-            curreentDistance = varValAtTime.ContainsKey(footstrikesAtTime)? varValAtTime[footstrikesAtTime]:0;
-            curreentDistance = curreentDistance == 0 ? ReferenceManager.instance.angleManager._angles[MeasurementType.VarusValgusRightAngleDistance].Angle : curreentDistance;
+            // curreentDistance = varValAtTime.ContainsKey(footstrikesAtTime)? varValAtTime[footstrikesAtTime]:0;
+            curreentDistance =  (float)timebasedReadings
+                .FirstOrDefault(x => Math.Round(float.Parse(x.TimeOfReading), 5) == Math.Round(totalseconds, 5))
+                .VarusValgusRight;
         }
         if (!ReferenceManager.instance.KneeAbductionAtFootStrikingTime.Any(x=> x.Key == footstrikesAtTime))
             ReferenceManager.instance.KneeAbductionAtFootStrikingTime.Add(footstrikesAtTime, currentKneeAbd);
@@ -1167,6 +1560,7 @@ public class ResearchMeasurementManager : MonoBehaviour
         ReferenceManager.instance.maxDistanceAtFootStrikingTime.Clear();
         ReferenceManager.instance.heelPressDetectionBodies.Clear();
         ReferenceManager.instance.videoPlayingCount = 0;
+        isStarted = false;
     }
 
     public void CalculateStepWidthL()

@@ -48,7 +48,7 @@ public class AzureStorageManager : MonoBehaviour
         AzureConnector.Instance.UploadText(json, container, fileName, true, UploadTextCallback);
 
     }
-    public void UploadTextCallback(bool success, string error, string uri)
+    public async void UploadTextCallback(bool success, string error, string uri)
     {
         if (success)
         {
@@ -98,7 +98,10 @@ public class AzureStorageManager : MonoBehaviour
             //////////////// TimeBasedReadingThing ////////////////////////////
             ///// Helper function to fetch values safely
             ///
-            reportRecordBody.TimeBasedReadings = JsonConvert.DeserializeObject<List<TimeBasedReadingRequest>>(GeneralStaticManager.ConvertCsvStringToJson(ReferenceManager.instance.LightBuzzMain.GenerateCSVString()));
+            string theCSVJson =
+                await GeneralStaticManager.ConvertCsvStringToJson(ReferenceManager.instance.LightBuzzMain
+                    .GenerateCSVString());
+            reportRecordBody.TimeBasedReadings = JsonConvert.DeserializeObject<List<TimeBasedReadingRequest>>(theCSVJson);
             reportRecordBody.TimeBasedReadings.ForEach(x =>
             {
                 x.UserName = selectedPatient != null

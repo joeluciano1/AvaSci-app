@@ -27,9 +27,9 @@ public class VarusValgusRightAngle : Measurement
             return; // Prevent further execution
         }
         HipKneeRightDistance hipKneeRightDistance = new HipKneeRightDistance();
-            hipKneeRightDistance.Update(body);
-            HipKneeRightDifference hipKneeRightDifference = new HipKneeRightDifference();
-            hipKneeRightDifference.Update(body);
+        hipKneeRightDistance.Update(body);
+        AnkleHipRightDifference hipKneeRightDifference = new AnkleHipRightDifference();
+        hipKneeRightDifference.Update(body);
         _value = (float)(hipKneeRightDistance.Value * Math.Sin((double)hipKneeRightDifference.Value*3.14159/180));
         
     Joint hipLeft = body.Joints[KeyJoint1];
