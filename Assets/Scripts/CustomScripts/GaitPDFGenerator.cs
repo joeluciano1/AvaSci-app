@@ -16,6 +16,7 @@ using UnityEngine;
 
 public class GaitPDFGenerator : MonoBehaviour
 {
+    HeelPressDetectionBody previousHeelPressDetectionBody;
     public async void GeneratePDF()
     {
         //Create a new PDF document
@@ -83,6 +84,11 @@ public class GaitPDFGenerator : MonoBehaviour
         }
         for (int i = 0; i < ReferenceManager.instance.AngleAtFootStrikingTime.Count; i++)
         {
+            if (i != 0 && previousHeelPressDetectionBody!=null && float.Parse(previousHeelPressDetectionBody.TimeOfHeelPressed) >=
+                float.Parse(ReferenceManager.instance.AngleAtFootStrikingTime.ElementAt(i).Key))
+            {
+                continue;
+            }
             string condition1 = "";
             if (ReferenceManager
                     .instance.AngleAtFootStrikingTime.ElementAt(i)
@@ -136,6 +142,7 @@ public class GaitPDFGenerator : MonoBehaviour
             {
                 continue;
             }
+            previousHeelPressDetectionBody = item;
             // item.added = true;
             string condition2 = "";
             
@@ -242,6 +249,11 @@ public class GaitPDFGenerator : MonoBehaviour
             };
             UploadGaitJson(i, bodyStand);
             }
+            if (i != 0 && previousHeelPressDetectionBody!=null && float.Parse(previousHeelPressDetectionBody.TimeOfHeelPressed) >=
+                float.Parse(ReferenceManager.instance.AngleAtFootStrikingTime.ElementAt(i).Key))
+            {
+                continue;
+            }
             CreateGaitReportBody body = new CreateGaitReportBody()
             {
                 ReportsRecordId = ReferenceManager.instance.SelectedVideoID,
@@ -278,11 +290,12 @@ public class GaitPDFGenerator : MonoBehaviour
             };
             UploadGaitJson(i, body);
             var item = ReferenceManager.instance.heelPressDetectionBodies.FirstOrDefault(x=>float.Parse(x.TimeOfHeelPressed) > float.Parse(ReferenceManager.instance.AngleAtFootStrikingTime.ElementAt(i).Key) &&!x.added);
-            
             if (item == null)
             {
                 continue;
             }
+
+            previousHeelPressDetectionBody = item;
             item.added = true;
             CreateGaitReportBody bodyHeel = new CreateGaitReportBody()
             {

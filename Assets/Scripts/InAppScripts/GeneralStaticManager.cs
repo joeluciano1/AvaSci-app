@@ -241,4 +241,19 @@ public static async Task<string> ConvertCsvStringToJson(string csvString)
 
         return filteredList[middleIndex];
     }
+    public static float GetMiddleValue(List<float> values)
+    {
+        if (values == null || values.Count == 0)
+            throw new ArgumentException("List is empty or null");
+
+        values.Sort(); // Ensure the list is sorted
+
+        int mid = values.Count / 2;
+
+        if (values.Count % 2 == 0)
+            return (values[mid - 1] + values[mid]) / 2f; // average of two middle elements
+        else
+            return values[mid]; // exact middle
+    }
+
 }

@@ -845,6 +845,7 @@ public class ResearchMeasurementManager : MonoBehaviour
 #endregion
 
     public float footDistanceThreshold = 0.07f;
+    public float footDistanceOffset=0.01f;
     public List<float> footDistances = new List<float>();
     // public List<float> footZDistances = new List<float>();
     [FormerlySerializedAs("pelvisBaseFootHeight")] [FormerlySerializedAs("baseFootHeight")] public float pelvisBaseHeight;
@@ -859,6 +860,10 @@ public class ResearchMeasurementManager : MonoBehaviour
             return;
         }
         footDistanceThreshold = float.Parse(value);
+    }
+    bool AlreadyExists(List<float> list, float value, float epsilon = 0.001f)
+    {
+        return list.Any(x => Mathf.Abs(x - value) < epsilon);
     }
     public async void RecordFoots()
     {
@@ -877,34 +882,63 @@ public class ResearchMeasurementManager : MonoBehaviour
             // });
             //
             
-            var groupedTimesLeft = timebasedReadings
-                .Where(x => x.AnkleLeft3DZ != null)
-                .GroupBy(x => Mathf.RoundToInt((float)x.AnkleLeft3DZ))
-                .ToDictionary(g => g.Key, g => g.OrderBy(x=>float.Parse(x.TimeOfReading)).ToList());
            
-            var groupedTimesRight = timebasedReadings
-                .Where(x => x.AnkleRight3DZ != null)
-                .GroupBy(x => Mathf.RoundToInt((float)x.AnkleRight3DZ))
-                .ToDictionary(g => g.Key, g => g.OrderBy(x=>float.Parse(x.TimeOfReading)).ToList());
             
+            footDistances.Clear();
+            
+            foreach (var timeBasedReading in timebasedReadings)
+            {
+                if (timeBasedReading.AnkleLeft3DZ != null && timeBasedReading.AnkleRight3DZ != null)
+                {
+                    float value = Mathf.Abs((float)timeBasedReading.AnkleLeft3DZ -
+                                            (float)timeBasedReading.AnkleRight3DZ);
+                    footDistances.Add(value);
+                }
+            }
+            footDistances.Sort();
+            
+            
+            
+            footDistanceThreshold = footDistances[footDistances.Count/2] + footDistanceOffset;
+            footDistanceThreshold = Mathf.Clamp(footDistanceThreshold, 0.01f, 0.1f);
+           
+            Debug.Log("Threshold: " + footDistanceThreshold);
             
             int leftDone = 0;
             int rightDone = 0;
             float lastZPostion = 0;
          if (leftLeg)
             {
-                foreach (var item in groupedTimesLeft)
+                foreach (var item in timebasedReadings)
                 {
+                   
+
+                    TimeBasedReadingRequest angleData;
+                    TimeBasedReadingRequest distanceData;
+                    TimeBasedReadingRequest kneeData;
+                    TimeBasedReadingRequest pelvisData;
+                    
+                    if (item.AnkleLeft3DZ < item.AnkleRight3DZ && Mathf.Abs((float)item.AnkleLeft3DZ - (float)item.AnkleRight3DZ) > footDistanceThreshold)
+                    {
+                        angleData = item;
+                        distanceData = item;
+                        kneeData = item;
+                        pelvisData = item;
+                    }
+                    else
+                    {
+                        continue;
+                    }
+                    var middleItem = timebasedReadings.FirstOrDefault(x => x.AnkleHipLeftAbductionDifference != null && float.Parse(x.TimeOfReading)> float.Parse(angleData.TimeOfReading) && Mathf.Abs((float)x.AnkleRight3DZ - (float)x.AnkleLeft3DZ)<=footDistanceThreshold/2);
+                    if (middleItem == null)
+                    {
+                        continue;
+                    }
                     if (leftDone < 1)
                     {
                         leftDone += 1;
                         continue;
                     }
-                    var angleData = item.Value.FirstOrDefault(x => x.AnkleLeft3DZ < x.AnkleRight3DZ && Mathf.Abs((float)x.AnkleLeft3DZ-(float)x.AnkleRight3DZ) > footDistanceThreshold);
-                    var distanceData = item.Value.MiddleOrDefault(x => x.AnkleLeft3DZ < x.AnkleRight3DZ && Mathf.Abs((float)x.AnkleLeft3DZ-(float)x.AnkleRight3DZ) > footDistanceThreshold);
-                    var kneeData = item.Value.MiddleOrDefault(x => x.AnkleLeft3DZ < x.AnkleRight3DZ && Mathf.Abs((float)x.AnkleLeft3DZ-(float)x.AnkleRight3DZ) > footDistanceThreshold);
-                    var pelvisData = item.Value.MiddleOrDefault(x => x.AnkleLeft3DZ < x.AnkleRight3DZ && Mathf.Abs((float)x.AnkleLeft3DZ-(float)x.AnkleRight3DZ) > footDistanceThreshold);
-                    
                     if (angleData != null)
                     {
                         if (lastZPostion != 0)
@@ -919,16 +953,10 @@ public class ResearchMeasurementManager : MonoBehaviour
                     }
                     else
                     {
-                        ReferenceManager.instance.PopupManager.Show("High Threshold","Please lower the threshold (because subject is taking short steps) and try again","",okPressed:
-                            () =>
-                            {
-                                Debug.Log("Canceled");
-                                   
-                            },"Ok");
-                        cancelButton.onClick.Invoke();
-                        return;
+                       
+                        continue;
                     }
-
+                    
                     if (distanceData != null)
                     {
                         var key = distanceData.TimeOfReading.ToString();
@@ -951,7 +979,7 @@ public class ResearchMeasurementManager : MonoBehaviour
                     }
 
                     // Use the middle item for heel press/standing detection
-                    var middleItem = item.Value.FirstOrDefault(x => x.AnkleHipLeftAbductionDifference != null && float.Parse(x.TimeOfReading)> float.Parse(angleData.TimeOfReading) && Mathf.Abs((float)x.AnkleRight3DZ - (float)x.AnkleLeft3DZ)<0.05);
+                  
                     
                     if (middleItem != null)
                     {
@@ -991,24 +1019,44 @@ public class ResearchMeasurementManager : MonoBehaviour
             }
             else
             {
-                foreach (var item in groupedTimesRight)
+                foreach (var item in timebasedReadings)
                 {
-                    if (rightDone<1)
+                   
+
+                    TimeBasedReadingRequest angleData;
+                    TimeBasedReadingRequest distanceData;
+                    TimeBasedReadingRequest kneeData;
+                    TimeBasedReadingRequest pelvisData;
+                    if (item.AnkleRight3DZ < item.AnkleLeft3DZ && Mathf.Abs((float)item.AnkleLeft3DZ - (float)item.AnkleRight3DZ) >
+                        footDistanceThreshold)
+                    {
+                        angleData = item;
+                        distanceData = item;
+                        kneeData = item;
+                        pelvisData = item;
+                    }
+                    else
+                    {
+                        continue;
+                    }
+                    // Use the middle item for heel press/standing detection
+                    var middleItem = timebasedReadings.FirstOrDefault(x => x.AnkleHipLeftAbductionDifference != null && float.Parse(x.TimeOfReading)> float.Parse(angleData.TimeOfReading) && Mathf.Abs((float)x.AnkleRight3DZ - (float)x.AnkleLeft3DZ)<=footDistanceThreshold/2);
+                    if (middleItem == null)
+                    {
+                        continue;
+                    }
+                    if (rightDone < 1)
                     {
                         rightDone += 1;
                         continue;
                     }
-                    var angleData = item.Value.MiddleOrDefault(x => x.AnkleRight3DZ < x.AnkleLeft3DZ && Mathf.Abs((float)x.AnkleLeft3DZ-(float)x.AnkleRight3DZ) > footDistanceThreshold);
-                    var distanceData = item.Value.MiddleOrDefault(x => x.AnkleRight3DZ < x.AnkleLeft3DZ && Mathf.Abs((float)x.AnkleLeft3DZ-(float)x.AnkleRight3DZ) > footDistanceThreshold);
-                    var kneeData = item.Value.MiddleOrDefault(x => x.AnkleRight3DZ < x.AnkleLeft3DZ && Mathf.Abs((float)x.AnkleLeft3DZ-(float)x.AnkleRight3DZ) > footDistanceThreshold);
-                    var pelvisData = item.Value.MiddleOrDefault(x => x.AnkleRight3DZ < x.AnkleLeft3DZ && Mathf.Abs((float)x.AnkleLeft3DZ-(float)x.AnkleRight3DZ) > footDistanceThreshold);
-                    
                     if (angleData != null)
                     {
                         if (lastZPostion != 0)
                         {
-                            strideLengthDistance = lastZPostion - (float)angleData.HeelLeft3DZ;
+                            strideLengthDistance = lastZPostion - (float)angleData.HeelRight3DZ;
                         }
+
                         lastZPostion = (float)angleData.HeelRight3DZ;
                         var key = angleData.TimeOfReading.ToString();
                         if (!ReferenceManager.instance.AngleAtFootStrikingTime.ContainsKey(key))
@@ -1016,15 +1064,10 @@ public class ResearchMeasurementManager : MonoBehaviour
                     }
                     else
                     {
-                        ReferenceManager.instance.PopupManager.Show("High Threshold","Please lower the threshold (because subject is taking short steps) and try again","",okPressed:
-                            () =>
-                            {
-                               Debug.Log("Canceled");
-                                   
-                            },"Ok");
-                        cancelButton.onClick.Invoke();
-                        return;
+                       
+                        continue;
                     }
+
                     if (distanceData != null)
                     {
                         var key = distanceData.TimeOfReading.ToString();
@@ -1046,8 +1089,7 @@ public class ResearchMeasurementManager : MonoBehaviour
                             ReferenceManager.instance.PelvisAngleAtFootStrikingTime.Add(key, (float)pelvisData.PelvisAngle);
                     }
 
-                    // Use the middle item for heel press/standing detection
-                    var middleItem = item.Value.FirstOrDefault(x => x.AnkleHipRightAbductionDifference != null && float.Parse(x.TimeOfReading)> float.Parse(angleData.TimeOfReading) && Mathf.Abs((float)x.AnkleRight3DZ - (float)x.AnkleLeft3DZ)<0.05f);
+                    
                     
                     if (middleItem != null)
                     {
@@ -1059,28 +1101,28 @@ public class ResearchMeasurementManager : MonoBehaviour
                             pelvisAngleValue = (float)middleItem.PelvisAngle,
                             kneeAbductionValue = (float)middleItem.HipRightAbduction,
                             distanceValue = (float)middleItem.VarusValgusRight,
-                            nameOfTheFoot = "right foot",
+                            nameOfTheFoot = "Right foot",
                             varusValgusValue = (float)middleItem.VarusValgusRight,
                             TimeOfHeelPressed = timeKey
                         };
 
-                      
+                       
 
                         ReferenceManager.instance.heelPressDetectionBodies.Add(heelPressDetectionBody);
-                       
+                        
                     }
                     var firstitem = timebasedReadings.Skip(1).FirstOrDefault(x=>x.AnkleHipRightAbductionDifference != null);
-                    var standDetectionBody = new StandingDetectionBody()
+                    var standingDetectionBody = new StandingDetectionBody()
                     {
                         angleDifferenceValue = (float)firstitem.AnkleHipRightAbductionDifference,
                         pelvisAngleValue = (float)firstitem.PelvisAngle,
                         kneeAbductionValue = (float)firstitem.HipRightAbduction,
                         distanceValue = (float)firstitem.VarusValgusRight,
-                        nameOfTheFoot = "right foot",
+                        nameOfTheFoot = "Right foot",
                         varusValgusValue = (float)firstitem.VarusValgusRight,
                         TimeofStanding = firstitem.TimeOfReading
                     };
-                    ReferenceManager.instance.standingDetectionBodies.Add(standDetectionBody);
+                    ReferenceManager.instance.standingDetectionBodies.Add(standingDetectionBody);
                     if (!ReferenceManager.instance.StrideLengthAtFootStrikingTime.ContainsKey(pelvisData.TimeOfReading))
                         ReferenceManager.instance.StrideLengthAtFootStrikingTime.Add(pelvisData.TimeOfReading, strideLengthDistance);
                 }
@@ -1107,7 +1149,17 @@ public class ResearchMeasurementManager : MonoBehaviour
 
             ReferenceManager.instance.canvas.renderMode = RenderMode.ScreenSpaceCamera;
         }
-        
+
+        if (ReferenceManager.instance.AngleAtFootStrikingTime.Count == 0)
+        {
+            ReferenceManager.instance.PopupManager.Show("High Threshold","Please lower the threshold (because subject is taking short steps) and try again","",okPressed:
+                () =>
+                {
+                    Debug.Log("Canceled");
+                                   
+                },"Ok");
+            cancelButton.onClick.Invoke();
+        }
         return;
         var ankleLeft = LightbuzzBody.Joints[JointType.AnkleLeft];
         var ankleRight = LightbuzzBody.Joints[JointType.AnkleRight];
@@ -1561,6 +1613,7 @@ public class ResearchMeasurementManager : MonoBehaviour
         ReferenceManager.instance.heelPressDetectionBodies.Clear();
         ReferenceManager.instance.videoPlayingCount = 0;
         isStarted = false;
+        ReferenceManager.instance.canvas.renderMode = RenderMode.ScreenSpaceCamera;
     }
 
     public void CalculateStepWidthL()
