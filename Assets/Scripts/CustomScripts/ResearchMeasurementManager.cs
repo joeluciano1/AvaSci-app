@@ -865,6 +865,41 @@ public class ResearchMeasurementManager : MonoBehaviour
     {
         return list.Any(x => Mathf.Abs(x - value) < epsilon);
     }
+    List<float> SmoothEMA(List<float> values, float alpha = 0.3f)
+    {
+        if (values == null || values.Count == 0) return values;
+
+        List<float> smoothed = new List<float> { values[0] };
+
+        for (int i = 1; i < values.Count; i++)
+        {
+            float ema = alpha * values[i] + (1 - alpha) * smoothed[i - 1];
+            smoothed.Add(ema);
+        }
+
+        return smoothed;
+    }
+    float GetMedian(List<float> values)
+    {
+        if (values == null || values.Count == 0)
+            throw new ArgumentException("List is empty or null");
+
+        var sorted = values.OrderBy(x => x).ToList();
+        int midIndex = sorted.Count / 2;
+
+        if (sorted.Count % 2 == 0)
+        {
+            // Even number of elements → average of two middles
+            return (sorted[midIndex - 1] + sorted[midIndex]) / 2f;
+        }
+        else
+        {
+            // Odd number of elements → exact middle
+            return sorted[midIndex];
+        }
+    }
+
+    
     public async void RecordFoots()
     {
         if (!assigned)
@@ -892,14 +927,16 @@ public class ResearchMeasurementManager : MonoBehaviour
                 {
                     float value = Mathf.Abs((float)timeBasedReading.AnkleLeft3DZ -
                                             (float)timeBasedReading.AnkleRight3DZ);
-                    footDistances.Add(value);
+                    
+                        footDistances.Add(value);
                 }
             }
             footDistances.Sort();
+
+
+            footDistances = SmoothEMA(footDistances);
             
-            
-            
-            footDistanceThreshold = footDistances[footDistances.Count/2] + footDistanceOffset;
+            footDistanceThreshold = GetMedian(footDistances);
             footDistanceThreshold = Mathf.Clamp(footDistanceThreshold, 0.01f, 0.1f);
            
             Debug.Log("Threshold: " + footDistanceThreshold);
@@ -918,7 +955,7 @@ public class ResearchMeasurementManager : MonoBehaviour
                     TimeBasedReadingRequest kneeData;
                     TimeBasedReadingRequest pelvisData;
                     
-                    if (item.AnkleLeft3DZ < item.AnkleRight3DZ && Mathf.Abs((float)item.AnkleLeft3DZ - (float)item.AnkleRight3DZ) > footDistanceThreshold)
+                    if (item.AnkleLeft3DZ < item.AnkleRight3DZ && Mathf.Abs((float)item.AnkleLeft3DZ - (float)item.AnkleRight3DZ) > footDistanceThreshold + footDistanceOffset && float.Parse(item.TimeOfReading)>1.0)
                     {
                         angleData = item;
                         distanceData = item;
@@ -929,12 +966,12 @@ public class ResearchMeasurementManager : MonoBehaviour
                     {
                         continue;
                     }
-                    var middleItem = timebasedReadings.FirstOrDefault(x => x.AnkleHipLeftAbductionDifference != null && float.Parse(x.TimeOfReading)> float.Parse(angleData.TimeOfReading) && Mathf.Abs((float)x.AnkleRight3DZ - (float)x.AnkleLeft3DZ)<=footDistanceThreshold/2);
+                    var middleItem = timebasedReadings.FirstOrDefault(x => x.AnkleHipLeftAbductionDifference != null && float.Parse(x.TimeOfReading)> float.Parse(angleData.TimeOfReading) && Mathf.Abs((float)x.AnkleRight3DZ - (float)x.AnkleLeft3DZ)<=footDistanceThreshold/1.5f);
                     if (middleItem == null)
                     {
                         continue;
                     }
-                    if (leftDone < 1)
+                    if (leftDone < 2)
                     {
                         leftDone += 1;
                         continue;
@@ -953,8 +990,7 @@ public class ResearchMeasurementManager : MonoBehaviour
                     }
                     else
                     {
-                       
-                        continue;
+                       continue;
                     }
                     
                     if (distanceData != null)
@@ -1027,8 +1063,7 @@ public class ResearchMeasurementManager : MonoBehaviour
                     TimeBasedReadingRequest distanceData;
                     TimeBasedReadingRequest kneeData;
                     TimeBasedReadingRequest pelvisData;
-                    if (item.AnkleRight3DZ < item.AnkleLeft3DZ && Mathf.Abs((float)item.AnkleLeft3DZ - (float)item.AnkleRight3DZ) >
-                        footDistanceThreshold)
+                    if (item.AnkleRight3DZ < item.AnkleLeft3DZ && Mathf.Abs((float)item.AnkleLeft3DZ - (float)item.AnkleRight3DZ) > footDistanceThreshold && float.Parse(item.TimeOfReading)>1.0)
                     {
                         angleData = item;
                         distanceData = item;
@@ -1040,12 +1075,12 @@ public class ResearchMeasurementManager : MonoBehaviour
                         continue;
                     }
                     // Use the middle item for heel press/standing detection
-                    var middleItem = timebasedReadings.FirstOrDefault(x => x.AnkleHipLeftAbductionDifference != null && float.Parse(x.TimeOfReading)> float.Parse(angleData.TimeOfReading) && Mathf.Abs((float)x.AnkleRight3DZ - (float)x.AnkleLeft3DZ)<=footDistanceThreshold/2);
+                    var middleItem = timebasedReadings.FirstOrDefault(x => x.AnkleHipLeftAbductionDifference != null && float.Parse(x.TimeOfReading)> float.Parse(angleData.TimeOfReading) && Mathf.Abs((float)x.AnkleRight3DZ - (float)x.AnkleLeft3DZ)<=footDistanceThreshold/1.5f);
                     if (middleItem == null)
                     {
                         continue;
                     }
-                    if (rightDone < 1)
+                    if (rightDone < 2)
                     {
                         rightDone += 1;
                         continue;
