@@ -8,6 +8,7 @@ using UnityEngine;
 using DG.Tweening;
 using System.Linq;
 using System.IO;
+using System.Threading.Tasks;
 using LightBuzz.BodyTracking.Video;
 using LightBuzz.AvaSci.Measurements;
 using LightBuzz.AvaSci.Csv;
@@ -194,9 +195,6 @@ public class AzureStorageManager : MonoBehaviour
         }
     }
 
-    // Update is called once per frame
-    void Update()
-    {
-
-    }
+   
+    
 }

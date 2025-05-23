@@ -90008,7 +90008,7 @@ MonoBehaviour:
   sendButton: {fileID: 1538139028}
   modelDropdown: {fileID: 1210249907}
   Thinking: {fileID: 809066859}
-  chatBotAPIKey: fb511f36e0dd1fdfc0f83984021c6ad5a82896004496d7e08fd644cd07b2ecb8
+  chatBotAPIKey: 489a862514db16cd7c72247df527e7c30fcb6ba03b070e4ff34f934a1f49747d
   scrollRect: {fileID: 214047217}
 --- !u!1 &2009712570
 GameObject:

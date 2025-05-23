@@ -165,9 +165,9 @@ public class ChatGPTHandler : MonoBehaviour
     {
         var payload = new
         {
-            chatbotid = "9476ce025fdaa442aaaeadbdf7963513", // or "gpt-4" if you have access
-            name = "Ehtisham Yasin",
-            email = "stunner.ey@gmail.com"
+            chatbotid = "2b18e064b48ec7fd9260c55094072c64", // or "gpt-4" if you have access
+            name = "Joe",
+            email = "joe@avasci.com"
         };
         Thinking.SetActive(true);
         ReferenceManager.instance.LoadingManager.Show("Connecting to Live Database");
@@ -194,14 +194,16 @@ public class ChatGPTHandler : MonoBehaviour
             var response = JsonConvert.DeserializeObject<AskReponse>(resultJson);
             var webView = gameObject.AddComponent<UniWebView>();
             webView.Frame = new Rect(0, 0, Screen.width, Screen.height);
-
+            
 // 2. Load a URL.
             webView.Load(response.url);
 
 // 3. Show it. 🎉
             webView.Show();
             webView.EmbeddedToolbar.Show();
-            
+            webView.BackgroundColor = Color.black;
+            webView.SetOpenLinksInExternalBrowser(true);
+            UniClipboard.SetText(response.url);
             webView.OnShouldClose += (view) => {
                 webView = null;
                 return true;

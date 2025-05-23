@@ -226,6 +226,7 @@ namespace FastForward.CAS
                 Debug.LogWarning("Attempting to use AzureConnector before calling Init to set account name and key.");
             }
         }
+        
 
         #endregion
 
