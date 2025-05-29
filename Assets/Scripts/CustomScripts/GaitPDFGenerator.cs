@@ -85,7 +85,7 @@ public class GaitPDFGenerator : MonoBehaviour
         for (int i = 0; i < ReferenceManager.instance.AngleAtFootStrikingTime.Count; i++)
         {
             if (i != 0 && previousHeelPressDetectionBody!=null && float.Parse(previousHeelPressDetectionBody.TimeOfHeelPressed) >=
-                float.Parse(ReferenceManager.instance.AngleAtFootStrikingTime.ElementAt(i).Key))
+                float.Parse(ReferenceManager.instance.AngleAtFootStrikingTime.ElementAt(i).Key) || ReferenceManager.instance.StrideLengthAtFootStrikingTime.ElementAt(i).Value < 0.05f)
             {
                 continue;
             }
@@ -250,7 +250,7 @@ public class GaitPDFGenerator : MonoBehaviour
             UploadGaitJson(i, bodyStand);
             }
             if (i != 0 && previousHeelPressDetectionBody!=null && float.Parse(previousHeelPressDetectionBody.TimeOfHeelPressed) >=
-                float.Parse(ReferenceManager.instance.AngleAtFootStrikingTime.ElementAt(i).Key))
+                float.Parse(ReferenceManager.instance.AngleAtFootStrikingTime.ElementAt(i).Key)|| ReferenceManager.instance.StrideLengthAtFootStrikingTime.ElementAt(i).Value < 0.05f)
             {
                 continue;
             }

@@ -188,10 +188,7 @@ public class UserReportController : MonoBehaviour
                             userReportFromDBPrefab.transform.parent
                         );
                         userReportFromDB.mydata = item;
-                        if (item.Id == 326)
-                        {
-                            Debug.Log(item.SubjectId);
-                        }
+                        
                         userReportFromDB.videoId = item.Id;
                         userReportFromDB.UserId = item.UserID;
                         userReportFromDB.UserNameOfSubject = item.UserName;
@@ -1615,13 +1612,16 @@ string EscapeMarkdown(string input)
         if (RecentlyPlayedButton != null)
         {
             RecentlyPlayedButton.WatchBtn.onClick.RemoveAllListeners();
+            string lastURL = PlayerPrefs.GetString("LastVidURL");
+            Button lastbutton = RecentlyPlayedButton.WatchBtn;
+            UserReportFromDB userReportFromDB = RecentlyPlayedButton;
             RecentlyPlayedButton.WatchBtn.onClick.AddListener(
                 () =>
                     StartCoroutine(
                         GetText(
-                            PlayerPrefs.GetString("LastVidURL"),
-                            RecentlyPlayedButton.WatchBtn,
-                            RecentlyPlayedButton
+                            lastURL,
+                            lastbutton,
+                            userReportFromDB
                         )
                     )
             );
@@ -1630,6 +1630,7 @@ string EscapeMarkdown(string input)
             RecentlyPlayedButton.Error.SetActive(false);
             RecentlyPlayedButton.Watch.SetActive(false);
             RecentlyPlayedButton.PreviewButton.gameObject.SetActive(false);
+            RecentlyPlayedButton = null;
             PlayerPrefs.SetString("LastVidURL", "None");
             PlayerPrefs.SetInt("LastVidID",0);
         }
