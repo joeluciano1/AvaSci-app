@@ -93,7 +93,11 @@ public class UserReportController : MonoBehaviour
                 {
                     foreach (var item in userReportResponse.result)
                     {
-                        
+                        if (string.IsNullOrEmpty(item.VideoURL))
+                        {
+                            Debug.Log("Video URL is empty");
+                            continue;
+                        }
                         UserReportFromDB user = userReportFromDBs.FirstOrDefault(x =>x.VideoURL == item.VideoURL && x.videoId == item.Id);
                         if (user != null)
                         {

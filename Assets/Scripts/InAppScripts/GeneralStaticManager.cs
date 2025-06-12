@@ -81,7 +81,10 @@ public static async Task<string> ConvertCsvStringToJson(string csvString)
                                .Replace("AnkleRight 3D Z", "AnkleRight3DZ")
                                .Replace("AnkleLeft 3D Z", "AnkleLeft3DZ")
                                .Replace("HeelLeft 3D Z", "HeelLeft3DZ")
-                               .Replace("HeelRight 3D Z", "HeelRight3DZ");
+                               .Replace("HeelRight 3D Z", "HeelRight3DZ")
+                               .Replace("AnkleRight Confidence","AnkleRightConfidence")
+                               .Replace("AnkleLeft Confidence","AnkleLeftConfidence");
+            
 
         string[] headers = headerLine.Split(',');
 

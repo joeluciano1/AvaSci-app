@@ -19,6 +19,7 @@ public class GaitPDFGenerator : MonoBehaviour
     HeelPressDetectionBody previousHeelPressDetectionBody;
     public async void GeneratePDF()
     {
+        previousHeelPressDetectionBody = null;
         //Create a new PDF document
         PdfDocument doc = new PdfDocument();
         //Add a page
@@ -85,7 +86,7 @@ public class GaitPDFGenerator : MonoBehaviour
         for (int i = 0; i < ReferenceManager.instance.AngleAtFootStrikingTime.Count; i++)
         {
             if (i != 0 && previousHeelPressDetectionBody!=null && float.Parse(previousHeelPressDetectionBody.TimeOfHeelPressed) >=
-                float.Parse(ReferenceManager.instance.AngleAtFootStrikingTime.ElementAt(i).Key) || ReferenceManager.instance.StrideLengthAtFootStrikingTime.ElementAt(i).Value < 0.05f)
+                float.Parse(ReferenceManager.instance.AngleAtFootStrikingTime.ElementAt(i).Key))
             {
                 continue;
             }
@@ -125,7 +126,7 @@ public class GaitPDFGenerator : MonoBehaviour
                         ReferenceManager
                         .instance.KneeAbductionAtFootStrikingTime.ElementAt(i)  // here knee is actually hip todo: rename the variable to hipAbductionvalue
                         .Value.ToString("00.00") + "º",
-                        i > ReferenceManager.instance.StrideLengthAtFootStrikingTime.Count-1 ? "Not Calculated Here": ReferenceManager.instance.StrideLengthAtFootStrikingTime.ElementAt(i).Value.ToString(),
+                        i > ReferenceManager.instance.StrideLengthAtFootStrikingTime.Count-1 ||ReferenceManager.instance.StrideLengthAtFootStrikingTime.ElementAt(i).Value.Equals(0) ? "Not Calculated Here": ReferenceManager.instance.StrideLengthAtFootStrikingTime.ElementAt(i).Value.ToString(),
                         // ReferenceManager
                         // .instance.AnkleAbductionAtFootStrikingTime.ElementAt(i)
                         // .Value.ToString("00.00") + "º",
@@ -220,37 +221,42 @@ public class GaitPDFGenerator : MonoBehaviour
 
     public void UploadResults()
     {
-        if(ReferenceManager.instance.AngleAtFootStrikingTime.Count == 0){
+        previousHeelPressDetectionBody = null;
+        if(ReferenceManager.instance.AngleAtFootStrikingTime.Count == 0)
+        {
             ReferenceManager.instance.PopupManager.Show("No Detection!", "There were no steps taken by user");
             return;
         }
+        List<CreateGaitReportBody> gaitReportsBody = new List<CreateGaitReportBody>();
         for (int i = 0; i < ReferenceManager.instance.AngleAtFootStrikingTime.Count; i++)
         {
             StandingDetectionBody item2 = ReferenceManager.instance.standingDetectionBodies[1];
-            if (item2 != null)
+            if (item2 != null && !item2.added)
             {
                 item2.added = true;
-                 CreateGaitReportBody bodyStand = new CreateGaitReportBody()
-            {
-                ReportsRecordId = ReferenceManager.instance.SelectedVideoID,
-                CreatedBy = GeneralStaticManager.GlobalVar["UserName"],
-                Subject = GeneralStaticManager.GlobalVar["Subject"],
-                SubjectStandingAtTime = float.Parse(item2.TimeofStanding),
-                AngleDifferenceAtTime =item2.angleDifferenceValue,
-                // MMDistaceAtTime = item2.distanceValue,
-                HipAbductionAtTime = item2.kneeAbductionValue,
-                AnkleAbductionAtTime = item2.ankleAbductionValue,
-                PelvisAngleAtTime = item2.pelvisAngleValue,
-                VarusValgusAtTime = item2.distanceValue,
-                SelectedLeg = ResearchMeasurementManager.instance.leftLeg ? "Left Leg" : "Right Leg",
-                Condition = item2.angleDifferenceValue < -1 ? "Valgus" : item2.angleDifferenceValue > 1 ? "Varus" : "Normal",
-                StrideLenghtAtTime = null
+                CreateGaitReportBody bodyStand = new CreateGaitReportBody()
+                {
+                    ReportsRecordId = ReferenceManager.instance.SelectedVideoID,
+                    CreatedBy = GeneralStaticManager.GlobalVar["UserName"],
+                    Subject = GeneralStaticManager.GlobalVar["Subject"],
+                    SubjectStandingAtTime = float.Parse(item2.TimeofStanding),
+                    AngleDifferenceAtTime = item2.angleDifferenceValue,
+                    // MMDistaceAtTime = item2.distanceValue,
+                    HipAbductionAtTime = item2.kneeAbductionValue,
+                    AnkleAbductionAtTime = item2.ankleAbductionValue,
+                    PelvisAngleAtTime = item2.pelvisAngleValue,
+                    VarusValgusAtTime = item2.distanceValue,
+                    SelectedLeg = ResearchMeasurementManager.instance.leftLeg ? "Left Leg" : "Right Leg",
+                    Condition = item2.angleDifferenceValue < -1 ? "Valgus" :
+                        item2.angleDifferenceValue > 1 ? "Varus" : "Normal",
+                    StrideLenghtAtTime = 0
 
-            };
-            UploadGaitJson(i, bodyStand);
+                };
+                gaitReportsBody.Add(bodyStand);
+                // UploadGaitJson(i, bodyStand);
             }
             if (i != 0 && previousHeelPressDetectionBody!=null && float.Parse(previousHeelPressDetectionBody.TimeOfHeelPressed) >=
-                float.Parse(ReferenceManager.instance.AngleAtFootStrikingTime.ElementAt(i).Key)|| ReferenceManager.instance.StrideLengthAtFootStrikingTime.ElementAt(i).Value < 0.05f)
+                float.Parse(ReferenceManager.instance.AngleAtFootStrikingTime.ElementAt(i).Key))
             {
                 continue;
             }
@@ -262,12 +268,12 @@ public class GaitPDFGenerator : MonoBehaviour
                 FootStrikeAtTime = float.Parse(ReferenceManager
                     .instance.AngleAtFootStrikingTime.ElementAt(i)
                     .Key),
-                MaxAngleDifference = ReferenceManager
-                    .instance.maxAngleAtFootStrikingTime.ElementAt(i)
-                    .Value,
-                MaxmmDistance = ReferenceManager
-                    .instance.maxDistanceAtFootStrikingTime.ElementAt(i)
-                    .Value,
+                // MaxAngleDifference = ReferenceManager
+                //     .instance.maxAngleAtFootStrikingTime.ElementAt(i)
+                //     .Value,
+                // MaxmmDistance = ReferenceManager
+                //     .instance.maxDistanceAtFootStrikingTime.ElementAt(i)
+                //     .Value,
                 AngleDifferenceAtTime = ReferenceManager
                     .instance.AngleAtFootStrikingTime.ElementAt(i)
                     .Value,
@@ -277,7 +283,7 @@ public class GaitPDFGenerator : MonoBehaviour
                 HipAbductionAtTime = ReferenceManager
                     .instance.KneeAbductionAtFootStrikingTime.ElementAt(i)
                     .Value,
-                StrideLenghtAtTime = i > ReferenceManager.instance.StrideLengthAtFootStrikingTime.Count-1 ? null: ReferenceManager.instance.StrideLengthAtFootStrikingTime.ElementAt(i).Value,
+                StrideLenghtAtTime = i > ReferenceManager.instance.StrideLengthAtFootStrikingTime.Count-1 ? 0: ReferenceManager.instance.StrideLengthAtFootStrikingTime.ElementAt(i).Value,
                 // AnkleAbductionAtTime = ReferenceManager
                 //     .instance.AnkleAbductionAtFootStrikingTime.ElementAt(i)
                 //     .Value,
@@ -288,7 +294,8 @@ public class GaitPDFGenerator : MonoBehaviour
                 VarusValgusAtTime = ReferenceManager.instance.DistanceAtFootStrikingTime.ElementAt(i).Value,
                 Condition = ReferenceManager.instance.AngleAtFootStrikingTime.ElementAt(i).Value < -1 ? "Valgus" :ReferenceManager.instance.AngleAtFootStrikingTime.ElementAt(i).Value > 1 ? "Varus" : "Normal"
             };
-            UploadGaitJson(i, body);
+            // UploadGaitJson(i, body);
+            gaitReportsBody.Add(body);
             var item = ReferenceManager.instance.heelPressDetectionBodies.FirstOrDefault(x=>float.Parse(x.TimeOfHeelPressed) > float.Parse(ReferenceManager.instance.AngleAtFootStrikingTime.ElementAt(i).Key) &&!x.added);
             if (item == null)
             {
@@ -311,15 +318,19 @@ public class GaitPDFGenerator : MonoBehaviour
                 SelectedLeg = ResearchMeasurementManager.instance.leftLeg ? "Left Leg" : "Right Leg",
                 VarusValgusAtTime = item.distanceValue,
                 Condition = item.angleDifferenceValue < -1 ? "Valgus" : item.angleDifferenceValue > 1 ? "Varus" : "Normal",
-                StrideLenghtAtTime = null
+                StrideLenghtAtTime = 0
             };
-            UploadGaitJson(i, bodyHeel);
+            gaitReportsBody.Add(bodyHeel);
+            // UploadGaitJson(i, bodyHeel);
         }
         ReferenceManager.instance.heelPressDetectionBodies.ForEach(x => x.added = false);
         ReferenceManager.instance.standingDetectionBodies.ForEach(x => x.added = false);
+        CreateGaitReportRequest createGaitReportRequest = new CreateGaitReportRequest();
+        createGaitReportRequest.createGaitReportBodies = gaitReportsBody.ToList();
+        UploadGaitJson(createGaitReportRequest);
     }
 
-    private static void UploadGaitJson(int i, CreateGaitReportBody body)
+    private static void UploadGaitJson(CreateGaitReportRequest body)
     {
         string json = JsonConvert.SerializeObject(body);
         APIHandler.instance.Post(
@@ -329,7 +340,7 @@ public class GaitPDFGenerator : MonoBehaviour
             {
                 ResponseWithNoObject responseWithNoObject =
                     JsonConvert.DeserializeObject<ResponseWithNoObject>(response);
-                if (responseWithNoObject.isSuccess && i == ReferenceManager.instance.AngleAtFootStrikingTime.Count - 1)
+                if (responseWithNoObject.isSuccess)
                 {
                     ReferenceManager.instance.PopupManager.Show(
                         "Success",
@@ -353,7 +364,6 @@ public class GaitPDFGenerator : MonoBehaviour
             onError: (error) =>
             {
                 ReferenceManager.instance.PopupManager.Show("Gait Report Upload Failed!", $"Reasons are: {error}");
-                Debug.LogError($"Error: {error} value was: {body.HeelPassingAtTime}");
             }
         );
     }

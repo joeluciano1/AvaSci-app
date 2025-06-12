@@ -298,7 +298,7 @@ namespace LightBuzz.AvaSci.UI
                             out ChartAndGraph.MaterialTiling tiling
                         );
                         alreadyPresentJointGraph.JointType = MeasurementType.None;
-                        if (alreadyPresentJointGraph.SecondJointType != MeasurementType.None)
+                        if (alreadyPresentJointGraph.SecondJointType != MeasurementType.None && lineMat != null)
                         {
                             color = ColorUtility.ToHtmlStringRGBA(lineMat.color);
                         }

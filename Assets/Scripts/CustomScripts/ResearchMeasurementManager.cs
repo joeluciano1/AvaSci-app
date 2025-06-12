@@ -899,9 +899,10 @@ public class ResearchMeasurementManager : MonoBehaviour
         }
     }
 
-    
+    private bool tryingAgain;
     public async void RecordFoots()
     {
+        TryAgain:
         if (!assigned)
         {
             string theCSVJson =
@@ -938,7 +939,8 @@ public class ResearchMeasurementManager : MonoBehaviour
             
             footDistanceThreshold = GetMedian(footDistances);
             footDistanceThreshold = Mathf.Clamp(footDistanceThreshold, 0.01f, 0.1f);
-           
+            if(!tryingAgain)
+                footDistanceThreshold += footDistanceOffset;
             Debug.Log("Threshold: " + footDistanceThreshold);
             
             int leftDone = 0;
@@ -955,7 +957,7 @@ public class ResearchMeasurementManager : MonoBehaviour
                     TimeBasedReadingRequest kneeData;
                     TimeBasedReadingRequest pelvisData;
                     
-                    if (item.AnkleLeft3DZ < item.AnkleRight3DZ && Mathf.Abs((float)item.AnkleLeft3DZ - (float)item.AnkleRight3DZ) > footDistanceThreshold + footDistanceOffset && float.Parse(item.TimeOfReading)>1.0)
+                    if (item.AnkleLeft3DZ < item.AnkleRight3DZ && Mathf.Abs((float)item.AnkleLeft3DZ - (float)item.AnkleRight3DZ) > footDistanceThreshold && float.Parse(item.TimeOfReading)>1.0 && item.AnkleLeftConfidence >0.7f)
                     {
                         angleData = item;
                         distanceData = item;
@@ -966,7 +968,7 @@ public class ResearchMeasurementManager : MonoBehaviour
                     {
                         continue;
                     }
-                    var middleItem = timebasedReadings.FirstOrDefault(x => x.AnkleHipLeftAbductionDifference != null && float.Parse(x.TimeOfReading)> float.Parse(angleData.TimeOfReading) && Mathf.Abs((float)x.AnkleRight3DZ - (float)x.AnkleLeft3DZ)<=footDistanceThreshold/1.5f);
+                    var middleItem = timebasedReadings.FirstOrDefault(x => x.AnkleHipLeftAbductionDifference != null && float.Parse(x.TimeOfReading)> float.Parse(angleData.TimeOfReading) && Mathf.Abs((float)x.AnkleRight3DZ - (float)x.AnkleLeft3DZ)<=footDistanceThreshold/1.5f && x.AnkleLeftConfidence>0.7f);
                     if (middleItem == null)
                     {
                         continue;
@@ -1063,7 +1065,7 @@ public class ResearchMeasurementManager : MonoBehaviour
                     TimeBasedReadingRequest distanceData;
                     TimeBasedReadingRequest kneeData;
                     TimeBasedReadingRequest pelvisData;
-                    if (item.AnkleRight3DZ < item.AnkleLeft3DZ && Mathf.Abs((float)item.AnkleLeft3DZ - (float)item.AnkleRight3DZ) > footDistanceThreshold && float.Parse(item.TimeOfReading)>1.0)
+                    if (item.AnkleRight3DZ < item.AnkleLeft3DZ && Mathf.Abs((float)item.AnkleLeft3DZ - (float)item.AnkleRight3DZ) > footDistanceThreshold && float.Parse(item.TimeOfReading)>1.0 && item.AnkleRightConfidence>0.7f)
                     {
                         angleData = item;
                         distanceData = item;
@@ -1075,7 +1077,7 @@ public class ResearchMeasurementManager : MonoBehaviour
                         continue;
                     }
                     // Use the middle item for heel press/standing detection
-                    var middleItem = timebasedReadings.FirstOrDefault(x => x.AnkleHipLeftAbductionDifference != null && float.Parse(x.TimeOfReading)> float.Parse(angleData.TimeOfReading) && Mathf.Abs((float)x.AnkleRight3DZ - (float)x.AnkleLeft3DZ)<=footDistanceThreshold/1.5f);
+                    var middleItem = timebasedReadings.FirstOrDefault(x => x.AnkleHipLeftAbductionDifference != null && float.Parse(x.TimeOfReading)> float.Parse(angleData.TimeOfReading) && Mathf.Abs((float)x.AnkleRight3DZ - (float)x.AnkleLeft3DZ)<=footDistanceThreshold/1.5f && x.AnkleRightConfidence>0.7f);
                     if (middleItem == null)
                     {
                         continue;
@@ -1187,14 +1189,26 @@ public class ResearchMeasurementManager : MonoBehaviour
 
         if (ReferenceManager.instance.AngleAtFootStrikingTime.Count == 0)
         {
-            ReferenceManager.instance.PopupManager.Show("High Threshold","Please lower the threshold (because subject is taking short steps) and try again","",okPressed:
-                () =>
-                {
-                    Debug.Log("Canceled");
+            if (!tryingAgain)
+            {
+                Debug.Log("Trying Again");
+                tryingAgain = true;
+                assigned = false;
+                goto TryAgain;
+            }
+            else
+            {
+                ReferenceManager.instance.PopupManager.Show("Warning!","System was not able to detect any foot passes or foot strikes","",okPressed:
+                    () =>
+                    {
+                        Debug.Log("Canceled");
                                    
-                },"Ok");
-            cancelButton.onClick.Invoke();
+                    },"Ok");
+                cancelButton.onClick.Invoke();
+            }
         }
+
+        tryingAgain = false;
         return;
         var ankleLeft = LightbuzzBody.Joints[JointType.AnkleLeft];
         var ankleRight = LightbuzzBody.Joints[JointType.AnkleRight];

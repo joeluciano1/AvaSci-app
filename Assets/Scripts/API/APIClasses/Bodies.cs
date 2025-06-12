@@ -144,6 +144,8 @@ public class JointReading
         public float? AnkleLeft3DZ { get; set; }
         public float? HeelLeft3DZ { get; set; }
         public float? HeelRight3DZ { get; set; }
+        public float? AnkleRightConfidence { get; set; }
+        public float? AnkleLeftConfidence { get; set; }
     }
     public class RReportGenerateRequest
     {
@@ -172,6 +174,10 @@ public class GetReportsBody
     public string UserID { get; set; }
 }
 
+public class CreateGaitReportRequest
+{
+    public List<CreateGaitReportBody> createGaitReportBodies { get; set; } = new List<CreateGaitReportBody>();
+}
 public class CreateGaitReportBody
 {
     public long? ReportsRecordId { get; set; }
@@ -184,14 +190,15 @@ public class CreateGaitReportBody
     public float MMDistaceAtTime { get; set; }
     public float MaxAngleDifference { get; set; }
     public float MaxmmDistance { get; set; }
+
     public float KneeAbductionAtTime { get; set; }
     public float HipAbductionAtTime { get; set; }
     public float PelvisAngleAtTime { get; set; }
     public float AnkleAbductionAtTime { get; set; }
     public float VarusValgusAtTime { get; set; }
-    public float? StrideLenghtAtTime { get; set; }
     public string SelectedLeg { get; set; }
     public string Condition { get; set; }
+    public float? StrideLenghtAtTime { get; set; }
 }
 [System.Serializable]
 public class HeelPressDetectionBody{
