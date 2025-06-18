@@ -221,6 +221,8 @@ public class GaitPDFGenerator : MonoBehaviour
 
     public void UploadResults()
     {
+        ReferenceManager.instance.standingDetectionBodies.ForEach(x => x.added = false);
+        ReferenceManager.instance.heelPressDetectionBodies.ForEach(x => x.added = false);
         previousHeelPressDetectionBody = null;
         if(ReferenceManager.instance.AngleAtFootStrikingTime.Count == 0)
         {

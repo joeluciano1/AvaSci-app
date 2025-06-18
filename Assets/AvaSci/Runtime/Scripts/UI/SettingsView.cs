@@ -162,6 +162,42 @@ namespace LightBuzz.AvaSci.UI
             SensorChanged?.Invoke((int)sensorType);
         }
 
+        public void OnColorResolutionChange(int value)
+        {
+            if (value == 0)
+            {
+                ReferenceManager.instance.videoRecordingView._configuration.RequestedColorResolution = new Size(1280, 720);
+            }
+            if (value == 1)
+            {
+                ReferenceManager.instance.videoRecordingView._configuration.RequestedColorResolution = new Size(640, 480);
+            }
+            if (value == 2)
+            {
+                ReferenceManager.instance.videoRecordingView._configuration.RequestedColorResolution = new Size(480, 270);
+            }
+            ReferenceManager.instance.videoRecordingView.Sensor.Close();
+            ReferenceManager.instance.videoRecordingView.Sensor.Open();
+        }
+
+        public void OnDepthResolutionChange(int value)
+        {
+            if (value == 0)
+            {
+                ReferenceManager.instance.videoRecordingView._configuration.RequestedDepthResolution = new Size(1280, 720);
+            }
+            if (value == 1)
+            {
+                ReferenceManager.instance.videoRecordingView._configuration.RequestedDepthResolution = new Size(640, 480);
+            }
+            if (value == 2)
+            {
+                ReferenceManager.instance.videoRecordingView._configuration.RequestedDepthResolution = new Size(480, 270);
+            }
+            ReferenceManager.instance.videoRecordingView.Sensor.Close();
+            ReferenceManager.instance.videoRecordingView.Sensor.Open();
+        }
+
         /// <summary>
         /// Called when the frame rate changes.
         /// </summary>
