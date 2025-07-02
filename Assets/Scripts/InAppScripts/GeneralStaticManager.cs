@@ -258,5 +258,57 @@ public static async Task<string> ConvertCsvStringToJson(string csvString)
         else
             return values[mid]; // exact middle
     }
+    public static string GenerateRandomName(int length = 5)
+    {
+        const string chars = "abcdefghijklmnopqrstuvwxyz";
+        const string digits = "0123456789";
 
+        System.Text.StringBuilder result = new System.Text.StringBuilder();
+
+        // Start with 2 random digits
+        for (int i = 0; i < 2; i++)
+            result.Append(digits[UnityEngine.Random.Range(0, digits.Length)]);
+
+        // Add middle random lowercase letters
+        for (int i = 0; i < length - 4; i++)
+            result.Append(chars[UnityEngine.Random.Range(0, chars.Length)]);
+
+        // End with 2 random digits
+        for (int i = 0; i < 2; i++)
+            result.Append(digits[UnityEngine.Random.Range(0, digits.Length)]);
+
+        return result.ToString();
+    }
+    public static string FormatCsvAsTable(string csvRaw)
+    {
+        csvRaw = csvRaw.Replace("\\n", "\n"); // in case \n is string literal
+        var lines = csvRaw.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
+        if (lines.Length == 0) return "";
+
+        var rows = lines.Select(l => l.Split(',')).ToList();
+        int columnCount = rows.Max(r => r.Length);
+
+        // Calculate max width of each column
+        int[] maxWidths = new int[columnCount];
+        foreach (var row in rows)
+        {
+            for (int i = 0; i < row.Length; i++)
+                maxWidths[i] = Mathf.Max(maxWidths[i], row[i].Length);
+        }
+
+        var sb = new System.Text.StringBuilder();
+
+        for (int r = 0; r < rows.Count; r++)
+        {
+            for (int c = 0; c < columnCount; c++)
+            {
+                string cell = (c < rows[r].Length) ? rows[r][c] : "";
+                string padded = cell.PadRight(maxWidths[c] + 2);
+                sb.Append(r == 0 ? $"<b>{padded}</b>" : padded);
+            }
+            sb.AppendLine();
+        }
+
+        return sb.ToString();
+    }
 }

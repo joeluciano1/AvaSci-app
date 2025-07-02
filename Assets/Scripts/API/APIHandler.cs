@@ -63,11 +63,20 @@ public class APIHandler : MonoBehaviour
         request.downloadHandler = (DownloadHandler)new DownloadHandlerBuffer();
         request.SetRequestHeader("Content-Type", "application/json");
         request.SendWebRequest();
-        while (!request.isDone && !isSilent)
+        while (!request.isDone)
         {
-            ReferenceManager.instance.LoadingManager.DownloadedBytes.text = Math.Round(request.downloadProgress) * 100 + "%";
-            if(ReferenceManager.instance.LoadingManager.LoadingImage.fillAmount < request.downloadProgress)
-                ReferenceManager.instance.LoadingManager.LoadingImage.DOFillAmount(request.downloadProgress,0.5f);
+            if (isSilent)
+            {
+              //Do Nothing  
+            }
+            else if (!isSilent)
+            {
+                ReferenceManager.instance.LoadingManager.DownloadedBytes.text =
+                    Math.Round(request.downloadProgress) * 100 + "%";
+                if (ReferenceManager.instance.LoadingManager.LoadingImage.fillAmount < request.downloadProgress)
+                    ReferenceManager.instance.LoadingManager.LoadingImage.DOFillAmount(request.downloadProgress, 0.5f);
+            }
+
             yield return null;
         }
         if (request.result == UnityWebRequest.Result.ConnectionError || request.result == UnityWebRequest.Result.ProtocolError)

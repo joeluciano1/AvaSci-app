@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.Networking;
 using System.Collections;
@@ -223,8 +224,14 @@ public class ChatGPTHandler : MonoBehaviour
         }
         else
         {
+           
             GameObject go = Instantiate(GPTText, GPTText.transform.parent);
             go.SetActive(true);
+            if (userInputField.text.ToLower().Contains("csv"))
+            {
+                message = GeneralStaticManager.FormatCsvAsTable(message);
+                go.transform.GetChild(0).GetComponent<TMP_Text>().textWrappingMode = TextWrappingModes.NoWrap;
+            }
             go.transform.GetChild(0).GetComponent<TMP_Text>().text = $"\n<b>{sender}:</b> {message}\n";
         }
         ScrollToBottom();
@@ -244,6 +251,115 @@ public class ChatGPTHandler : MonoBehaviour
         public string content;
     }
 
+    public void CallBackendAIAPI()
+    {
+        Thinking.SetActive(true);
+        sendButton.interactable = false;
+        AppendMessage("You",userInputField.text);
+        AIPromptBody body = new AIPromptBody()
+        {
+            prompt = userInputField.text,
+        };
+        string json = JsonConvert.SerializeObject(body);
+        APIHandler.instance.Post("UserReport/ProcessAiPrompt",json, onSuccess:(response)=>
+        {
+            AiPromptResponse aiResponse = JsonConvert.DeserializeObject<AiPromptResponse>(response);
+            if (aiResponse.isSuccess)
+            {
+                Thinking.SetActive(false);
+                sendButton.interactable = true;
+                Debug.Log("AI Response: "+response);
+                if (!string.IsNullOrEmpty(aiResponse.result.result))
+                {
+                   
+                    AppendMessage("AI", aiResponse.result.result);
+                }
+                else if (!string.IsNullOrEmpty(aiResponse.result.pdf))
+                {
+                    GameObject go = Instantiate(GPTText,GPTText.transform.parent);
+                    go.SetActive(true);
+                    go.GetComponentInChildren<TMP_Text>().text = $"\n<b>AI:</b> <color=blue><u>Click to view PDF</u></color> \n";
+                    Button viewButton = go.AddComponent<Button>();
+                    viewButton.onClick.AddListener(() =>
+                    {
+                        byte[] pdfBytes = Convert.FromBase64String(aiResponse.result.pdf);
+                        string path = Path.Combine(Application.persistentDataPath, $"AIreport{GeneralStaticManager.GenerateRandomName()}.pdf");
+                        File.WriteAllBytes(path, pdfBytes);
+
+#if UNITY_EDITOR
+                        System.Diagnostics.Process.Start(path);
+                        Debug.Log("Is Editor");
+
+#else
+
+                            string url = "file://" + path.Replace(" ", "%20");
+                            Debug.Log("URL = " + url);
+                            Debug.Log("Persistance = " + path);
+                            GeneralStaticManager.OpenFile(path);
+#endif
+                    });
+                }
+                else if (!string.IsNullOrEmpty(aiResponse.result.html))
+                {
+                    GameObject go = Instantiate(GPTText,GPTText.transform.parent);
+                    GameObject go2 = go.transform.GetChild(1).gameObject;
+                    go2.SetActive(true);
+                    go.SetActive(true);
+                    go.GetComponentInChildren<TMP_Text>().text = $"\n<b>AI:</b> <color=blue><u>Click to view HTML</u></color> \n";
+                    Button viewButton = go.transform.GetChild(0).gameObject.AddComponent<Button>();
+                    Button ShareButton = go2.AddComponent<Button>();
+                    string path = Path.Combine(Application.persistentDataPath, $"AIreport{GeneralStaticManager.GenerateRandomName()}.html");
+                    viewButton.onClick.AddListener( () =>
+                    {
+                        
+                        
+                        File.WriteAllTextAsync(path, aiResponse.result.html);
+                        var webView = gameObject.AddComponent<UniWebView>();
+                        webView.Frame = new Rect(0, 0, Screen.width, Screen.height);
+
+// 2. Load a URL.
+                        
+                        webView.LoadHTMLString(aiResponse.result.html,"");
+                        webView.EmbeddedToolbar.Show();
+// 3. Show it. 🎉
+                        webView.Show();
+// #if UNITY_EDITOR
+//                         System.Diagnostics.Process.Start(path);
+//                         Debug.Log("Is Editor");
+//
+// #else
+//
+//                             string url = "file://" + path.Replace(" ", "%20");
+//                             Debug.Log("URL = " + url);
+//                             Debug.Log("Persistance = " + path);
+//                             GeneralStaticManager.OpenFile(path);
+// #endif
+                    });
+                    ShareButton.onClick.AddListener(() =>
+                    {
+                        CSVManager.Export(path);
+                    });
+                }
+                ScrollToBottom();
+            }
+            else
+            {
+                Thinking.SetActive(false);
+                sendButton.interactable = true;
+                string reasons = "";
+                foreach (var item in aiResponse.serviceErrors)
+                {
+                    reasons += $"\n {item.code} {item.description}";
+                }
+                ReferenceManager.instance.PopupManager.Show("AI Error!", $"Reasons are: {reasons}");
+            }
+        },onError: (error) =>
+        {
+            Thinking.SetActive(false);
+            sendButton.interactable = true;
+            ReferenceManager.instance.PopupManager.Show("Something Went Wrong!", $"Reasons are: {error}");
+        },true);
+    }
     [System.Serializable]
     public class ChatGPTResponse
     {

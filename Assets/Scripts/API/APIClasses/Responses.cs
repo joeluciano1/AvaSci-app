@@ -311,3 +311,20 @@ public class Receipt
      public List<GetGaitReportResponse> GaitReports { get; set; } = new List<GetGaitReportResponse>();
      public bool IsNew { get; set; }
  }
+ 
+ [System.Serializable]
+ public class AiPromptResponse
+ {
+     public bool isSuccess { get; set; }
+     public bool isError { get; set; }
+     public int status { get; set; }
+     public AIResponseBody result { get; set; }
+     public List<ServiceError> serviceErrors { get; set; }
+ }
+
+ public class AIResponseBody
+ {
+     public string html { get; set; }
+     public string pdf { get; set; }
+     public string result { get; set; }
+ }

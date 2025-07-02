@@ -251,3 +251,8 @@ public class ShareRecordingRequest
     public string VideoURL { get; set; }
     public string UserEmail { get; set; }
 }
+
+public class AIPromptBody
+{
+    public string prompt { get; set; }
+}
