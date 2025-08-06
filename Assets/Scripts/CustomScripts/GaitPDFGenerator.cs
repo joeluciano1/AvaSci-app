@@ -33,6 +33,7 @@ public class GaitPDFGenerator : MonoBehaviour
         
         
         table.Columns.Add("Subject");
+        table.Columns.Add("Details");
         table.Columns.Add("Initial Pose at (time)");
         table.Columns.Add("Foot Strike at (time)");
         table.Columns.Add("Foot Passing at (time)");
@@ -69,6 +70,7 @@ public class GaitPDFGenerator : MonoBehaviour
                 new string[]
                 {
                     GeneralStaticManager.GlobalVar["Subject"],
+                    $"{ReferenceManager.instance.azureStorageManager.selectedVideo.CreatedOn.text}\n{ReferenceManager.instance.azureStorageManager.selectedVideo.ReportDescription.text}",
                     TimeSpan.FromSeconds(float.Parse(item1.TimeofStanding)).ToString(@"mm\:ss\:fff"),
                     "",
                     "",
@@ -111,6 +113,7 @@ public class GaitPDFGenerator : MonoBehaviour
                 new string[]
                 {
                     GeneralStaticManager.GlobalVar["Subject"],
+                    $"{ReferenceManager.instance.azureStorageManager.selectedVideo.CreatedOn.text}\n{ReferenceManager.instance.azureStorageManager.selectedVideo.ReportDescription.text}",
                     "",
                     TimeSpan.FromSeconds(float.Parse(ReferenceManager
                         .instance.AngleAtFootStrikingTime.ElementAt(i)
@@ -165,6 +168,7 @@ public class GaitPDFGenerator : MonoBehaviour
                 new string[]
                 {
                     GeneralStaticManager.GlobalVar["Subject"],
+                    $"{ReferenceManager.instance.azureStorageManager.selectedVideo.CreatedOn.text}\n{ReferenceManager.instance.azureStorageManager.selectedVideo.ReportDescription.text}",
                     "",
                     "",
                     TimeSpan.FromSeconds(float.Parse(item.TimeOfHeelPressed)).ToString(@"mm\:ss\:fff"),

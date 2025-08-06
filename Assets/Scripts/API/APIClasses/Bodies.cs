@@ -89,6 +89,7 @@ public class ReportRecordBody
     public string ReportDescription { get; set; }
     public string SubjectId{ get; set; }
     public string GroupName { get; set; }
+    public string SubGroupName { get; set; }
     public List<JointReading> jointReadings { get; set; }=new List<JointReading>();
     public List<TimeBasedReadingRequest> TimeBasedReadings { get; set; } = new List<TimeBasedReadingRequest>();
 }

@@ -14,6 +14,7 @@ using LightBuzz.AvaSci.UI;
 using LightBuzz.BodyTracking;
 using Newtonsoft.Json;
 using TMPro;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Analytics;
 using UnityEngine.Networking;
@@ -64,6 +65,8 @@ public class UserReportController : MonoBehaviour
     public Button ShareRecordingButton;
 
     public bool isSilentReportFetch;
+
+    public string CurrentSelectedSubGroup;
     // Start is called before the first frame update
     public void Start()
     {
@@ -74,6 +77,7 @@ public class UserReportController : MonoBehaviour
                 "Hello welcome to AvaSci research project app. Getting reports from our server. This might take a little while.");
         }
 
+       
         GetReportsBody getReportsBody = new GetReportsBody()
         {
             UserID = GeneralStaticManager.GlobalVar["UserID"]
@@ -109,7 +113,7 @@ public class UserReportController : MonoBehaviour
                                 user.ReportDescription.text = item.ReportDescription;
                             
                             user.UserNameOfSubject = item.UserName;
-                            
+                            user.mySubGroup = string.IsNullOrEmpty(item.SubGroupName)? "No Subgroup": item.SubGroupName;
                             if (item.HasHtmlReports)
                             {
                                 user.HtmlButton.gameObject.SetActive(true);
@@ -197,7 +201,7 @@ public class UserReportController : MonoBehaviour
                         userReportFromDB.UserId = item.UserID;
                         userReportFromDB.UserNameOfSubject = item.UserName;
                         userReportFromDB.VideoURL = item.VideoURL;
-                        
+                        userReportFromDB.mySubGroup = string.IsNullOrEmpty(item.SubGroupName)? "No Subgroup": item.SubGroupName;
                         if (item.HasHtmlReports)
                         {
                             userReportFromDB.HtmlButton.gameObject.SetActive(true);
@@ -218,6 +222,44 @@ public class UserReportController : MonoBehaviour
                             userReportFromDB.MyScrollRect = alreadyExisting.MyScrollRect;
                             alreadyExisting.ScaleDownItems();
                             alreadyExisting.ForceRebuildLayout();
+                            
+                            if (string.IsNullOrEmpty(item.SubGroupName))
+                            {
+                                if (alreadyExisting.SubGroups.FirstOrDefault(x=>x.SubGroupName == "No Subgroup") is null)
+                                {
+                                    SubGroupsUnderRGH newsubgroup = Instantiate(alreadyExisting.SubgroupPrefab,
+                                        alreadyExisting.SubgroupPrefab.transform.parent);
+                                    newsubgroup.MyReportGroup = alreadyExisting;
+                                    newsubgroup.SubGroupName = "No Subgroup";
+                                    newsubgroup.Title.text = "No Subgroup";
+                                    alreadyExisting.SubGroups.Add(newsubgroup);
+                                    newsubgroup.MyButton.onClick.AddListener(() =>
+                                    {
+                                        alreadyExisting.AfterSubgroupIsClicked("No Subgroup");
+                                    });
+                                }
+                            }
+                            else
+                            {
+                                List<string> subgroups = item.SubGroupName.Split(',').ToList();
+                                foreach (var subgroup in subgroups)
+                                {
+                                    if (alreadyExisting.SubGroups.FirstOrDefault(x => x.SubGroupName == subgroup) is null)
+                                    {
+                                        SubGroupsUnderRGH newsubgroup = Instantiate(alreadyExisting.SubgroupPrefab,
+                                            alreadyExisting.SubgroupPrefab.transform.parent);
+                                        newsubgroup.MyReportGroup = alreadyExisting;
+                                        newsubgroup.SubGroupName = subgroup;
+                                        newsubgroup.Title.text  = subgroup;
+                                        alreadyExisting.SubGroups.Add(newsubgroup);
+                                        newsubgroup.MyButton.onClick.AddListener(() =>
+                                        {
+                                            alreadyExisting.AfterSubgroupIsClicked(subgroup);
+                                        });
+                                    }
+                                }
+                            }
+
                             if (alreadyExisting.isDropped)
                             {
                                 alreadyExisting.DropDownItems.ForEach(x=>
@@ -246,8 +288,44 @@ public class UserReportController : MonoBehaviour
                             addedReportGroupHandlers.Add(groupHandler);
                             groupHandler.ScaleDownItems();
                             groupHandler.ForceRebuildLayout();
+                            if (string.IsNullOrEmpty(item.SubGroupName))
+                            {
+                                if (groupHandler.SubGroups.FirstOrDefault(x=>x.SubGroupName == "No Subgroup") is null)
+                                {
+                                    var newsubgroup = Instantiate(groupHandler.SubgroupPrefab,
+                                        groupHandler.SubgroupPrefab.transform.parent);
+                                    newsubgroup.MyReportGroup = groupHandler;
+                                    newsubgroup.SubGroupName = "No Subgroup";
+                                    newsubgroup.Title.text = "No Subgroup";
+                                    groupHandler.SubGroups.Add(newsubgroup);
+                                    newsubgroup.MyButton.onClick.AddListener(() =>
+                                    {
+                                        groupHandler.AfterSubgroupIsClicked("No Subgroup");
+                                    });
+                                }
+                            }
+                            else
+                            {
+                                List<string> subgroups = item.SubGroupName.Split(',').ToList();
+                                foreach (var subgroup in subgroups)
+                                {
+                                    if (groupHandler.SubGroups.FirstOrDefault(x => x.SubGroupName == subgroup) is null)
+                                    {
+                                        var newsubgroup = Instantiate(groupHandler.SubgroupPrefab,
+                                            groupHandler.SubgroupPrefab.transform.parent);
+                                        newsubgroup.MyReportGroup = groupHandler;
+                                        newsubgroup.SubGroupName = subgroup;
+                                        newsubgroup.Title.text = subgroup;
+                                        groupHandler.SubGroups.Add(newsubgroup);
+                                        newsubgroup.MyButton.onClick.AddListener(() =>
+                                        {
+                                            groupHandler.AfterSubgroupIsClicked(subgroup);
+                                        });
+                                    }
+                                }
+                            }
                         }
-                        userReportFromDB.gameObject.SetActive(true);
+                        // userReportFromDB.gameObject.SetActive(true);
                         if(item.TimeBasedReadings!=null && item.TimeBasedReadings.Count > 0)
                         {
                             userReportFromDB.timeBasedReadings = item.TimeBasedReadings.ToList();
@@ -1644,13 +1722,13 @@ string EscapeMarkdown(string input)
     {
         if (string.IsNullOrEmpty(name))
         {
-            userReportFromDBs.ForEach(x => x.gameObject.SetActive(true));
+            userReportFromDBs.Where(x=>x.mySubGroup == CurrentSelectedSubGroup).ToList().ForEach(x => x.gameObject.SetActive(true));
         }
         else
         {
-           userReportFromDBs.Where((x=>x.MyReportGroupHandler.isDropped)).ToList().ForEach(x=>x.gameObject.SetActive(false));
+           userReportFromDBs.Where((x=>x.MyReportGroupHandler.isDropped && x.mySubGroup == CurrentSelectedSubGroup)).ToList().ForEach(x=>x.gameObject.SetActive(false));
             var matchingNames = userReportFromDBs
-                .Where(x => x.UserNamefromDB.text.Contains(name, StringComparison.OrdinalIgnoreCase)|| x.ReportDescription.text.Contains(name, StringComparison.OrdinalIgnoreCase))
+                .Where(x =>x.mySubGroup == CurrentSelectedSubGroup && x.UserNamefromDB.text.Contains(name, StringComparison.OrdinalIgnoreCase)|| x.ReportDescription.text.Contains(name, StringComparison.OrdinalIgnoreCase))
                 .ToList();
             foreach (var item in matchingNames)
             {

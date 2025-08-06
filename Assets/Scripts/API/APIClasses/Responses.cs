@@ -209,6 +209,7 @@ public class UserReportData
     public string CreatedOn { get; set; }
     public string ReportDescription { get; set; }
     public string GroupName { get; set; }
+    public string SubGroupName { get; set; }
     public string SubjectId { get; set; }
     public bool HasHtmlReports { get; set; }
     public List<JointReading> JointReadings { get; set; } = new List<JointReading>();
@@ -327,4 +328,23 @@ public class Receipt
      public string html { get; set; }
      public string pdf { get; set; }
      public string result { get; set; }
+ }
+
+ public class BaseSubgroupsResponse
+ {
+     public bool isSuccess { get; set; }
+     public bool isError { get; set; }
+     public int status { get; set; }
+     public SubgroupsResponse result { get; set; }
+     public List<ServiceError> serviceErrors { get; set; }
+ }
+ public class SubgroupsResponse
+ {
+     public List<GroupData> groups { get; set; } = new List<GroupData>();
+ }
+
+ public class GroupData
+ {
+     public string GroupName { get; set; }
+     public string SubGroupName { get; set; }
  }

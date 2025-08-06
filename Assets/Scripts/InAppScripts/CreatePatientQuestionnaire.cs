@@ -18,6 +18,7 @@ public class CreatePatientQuestionnaire : MonoBehaviour
     {
         var selectedClinic = ReferenceManager.instance.LoginManager.signinResponse.result.clinics.FirstOrDefault(x => x.ClinicName == ClinicsDropDown.captionText.text);
         var selectedDoctor = ReferenceManager.instance.LoginManager.signinResponse.result.doctors.FirstOrDefault(x => x.DoctorName == DoctorsDropDown.captionText.text);
+        EmailInputField.text = SubjectNumberInputField.text + "@gmail.com";
         AddClinicPatientBody addClinicPatientBody = new()
         {
             Email = EmailInputField.text,

@@ -12,6 +12,8 @@ using System.Threading.Tasks;
 using LightBuzz.BodyTracking.Video;
 using LightBuzz.AvaSci.Measurements;
 using LightBuzz.AvaSci.Csv;
+using UnityEngine.UI;
+
 public class AzureStorageManager : MonoBehaviour
 {
 
@@ -49,6 +51,37 @@ public class AzureStorageManager : MonoBehaviour
         AzureConnector.Instance.UploadText(json, container, fileName, true, UploadTextCallback);
 
     }
+    List<string> addedSubGroups = new List<string>();
+    public void AddTMP(TMP_Text text)
+    {
+        if (text.text == "Nothing")
+        {
+            addedSubGroups.Clear();
+            return;
+        }
+        var toggle = text.GetComponentInParent<Toggle>();
+        if (!addedSubGroups.Contains(text.text) && toggle.isOn)
+        {
+            if (text.text != "Everything")
+            {
+                addedSubGroups.Add(text.text);
+            }
+        }
+        else if (addedSubGroups.Contains(text.text)&& !toggle.isOn)
+        {
+            if (text.text != "Everything")
+            {
+                addedSubGroups.Remove(text.text);
+            }
+        }
+    }
+
+    public void AddSubGroup()
+    {
+        List<TMP_Dropdown.OptionData> options = new List<TMP_Dropdown.OptionData>();
+        options.Add(new TMP_Dropdown.OptionData(ReferenceManager.instance.commentQuestionnaire.SubgroupNameInputField.text));
+        ReferenceManager.instance.commentQuestionnaire.SubgroupDropDown.AddOptions(options);
+    }
     public async void UploadTextCallback(bool success, string error, string uri)
     {
         if (success)
@@ -63,6 +96,9 @@ public class AzureStorageManager : MonoBehaviour
                 ReportDesc += ReferenceManager.instance.commentQuestionnaire.CommentInputField.text;
             }
             PlayerPrefs.SetString("LastVidURL", uri);
+            string subgroups = string.Join(',',addedSubGroups);
+            
+            
             var selectedPatient = ReferenceManager.instance.LoginManager.signinResponse.result.patients.FirstOrDefault(x => x.SubjectId == ReferenceManager.instance.commentQuestionnaire.PatientsDropDown.captionText.text || x.PatientName == ReferenceManager.instance.commentQuestionnaire.PatientsDropDown.captionText.text);
             ReportRecordBody reportRecordBody = new ReportRecordBody()
             {
@@ -71,6 +107,7 @@ public class AzureStorageManager : MonoBehaviour
                 VideoURL = uri,
                 ReportURL = reportURL,
                 ReportDescription = ReportDesc,
+                SubGroupName = subgroups,
                 GroupName = ReferenceManager.instance.commentQuestionnaire.GroupNameDropDown.captionText.text,
                 SubjectId = selectedPatient != null ? selectedPatient.SubjectId: selectedVideo.UserNamefromDB.text
             };

@@ -25,6 +25,8 @@ public class ReportSectionManager : MonoBehaviour
     public Button htmlBackButton;
     bool clinicDataFilled;
     public TMP_InputField SearchReportInputField;
+
+    public TMP_Dropdown SortByDropdown;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {

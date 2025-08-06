@@ -22,6 +22,8 @@ public class ButtonHandler : MonoBehaviour
 
     [Space(10)]
     public Vector2 UsernamePosition;
+
+    public Vector2 ReportDescriptionPosition;
     public Vector2 DatePosition;
     public Vector2 JointNamePosition;
     public Vector2 HeadingGOnePosition;
@@ -218,6 +220,12 @@ public class ButtonHandler : MonoBehaviour
                 new PdfStandardFont(PdfFontFamily.Helvetica, 12, PdfFontStyle.Bold),
                 PdfBrushes.Black,
                 UsernamePosition.ToPointF()
+            );
+            graphics.DrawString(
+                $"UTC Time:{DateTime.UtcNow}\n{ReferenceManager.instance.commentQuestionnaire.CommentInputField.text}",
+                new PdfStandardFont(PdfFontFamily.Helvetica, 12,PdfFontStyle.Bold),
+                PdfBrushes.Black,
+                ReportDescriptionPosition.ToPointF()
             );
             graphics.DrawString(
                 $"{System.DateTime.Now.ToString("MM/dd/yyyy")}",

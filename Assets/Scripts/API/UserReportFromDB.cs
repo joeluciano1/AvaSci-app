@@ -49,6 +49,7 @@ public class UserReportFromDB : MonoBehaviour
     public GameObject HtmlReportsScroller;
     public GameObject SelectedReportsViewScroller;
     public UserReportData mydata;
+    public string mySubGroup;
     private void Start()
     {
         // jointReadings.ForEach(x => x.VideoNameLink = ReportDescription.text.Replace("<b>Comment:</b>", ""));
