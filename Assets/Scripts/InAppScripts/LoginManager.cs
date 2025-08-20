@@ -34,7 +34,7 @@ public class LoginManager : MonoBehaviour
     public TMP_InputField LoginEmail_InputField;
     public TMP_InputField LoginPassword_InputField;
     public SignInResponse signinResponse;
-
+    public bool isPatientLoggedIn;
     private void Start()
     {
         Application.runInBackground = true;
@@ -78,16 +78,16 @@ public class LoginManager : MonoBehaviour
             GetCountries();
             yield return new WaitUntil(() => GeneralStaticManager.GlobalVar.ContainsKey(StringConstants.COUNTRYRESPONSE));
         }
-        if (!GeneralStaticManager.GlobalVar.ContainsKey(StringConstants.REASONSRESPONSE))
-        {
-            GetReasonsList();
-            yield return new WaitUntil(() => GeneralStaticManager.GlobalVar.ContainsKey(StringConstants.REASONSRESPONSE));
-        }
-        if (!GeneralStaticManager.GlobalVar.ContainsKey(StringConstants.INTERESTSRESPONSE))
-        {
-            GetInterestsList();
-            yield return new WaitUntil(() => GeneralStaticManager.GlobalVar.ContainsKey(StringConstants.INTERESTSRESPONSE));
-        }
+        // if (!GeneralStaticManager.GlobalVar.ContainsKey(StringConstants.REASONSRESPONSE))
+        // {
+        //     GetReasonsList();
+        //     yield return new WaitUntil(() => GeneralStaticManager.GlobalVar.ContainsKey(StringConstants.REASONSRESPONSE));
+        // }
+        // if (!GeneralStaticManager.GlobalVar.ContainsKey(StringConstants.INTERESTSRESPONSE))
+        // {
+        //     GetInterestsList();
+        //     yield return new WaitUntil(() => GeneralStaticManager.GlobalVar.ContainsKey(StringConstants.INTERESTSRESPONSE));
+        // }
     }
 
     public void GetCountries()
@@ -357,11 +357,18 @@ public class LoginManager : MonoBehaviour
                   ReferenceManager.instance.UsernameText.text = signinResponse.result.UserName;
                   ReferenceManager.instance.Screen1.SetActive(true);
                   ReferenceManager.instance.uiManager.LogoutButton.SetActive(true);
+                  isPatientLoggedIn = false;
                   if(!string.IsNullOrEmpty(signinResponse.result.SubjectID))
                   {
                       signinResponse.result.patients.Add(new Patient { SubjectId = signinResponse.result.SubjectID, PatientId = signinResponse.result.UserId, PatientName = signinResponse.result.UserName });
                       ReferenceManager.instance.AddNewPatientButton.SetActive(false);
                       ReferenceManager.instance.clinicsButton.SetActive(false);
+                      isPatientLoggedIn = true;
+                      if (string.IsNullOrEmpty(signinResponse.result.Age) ||
+                          string.IsNullOrEmpty(signinResponse.result.Gender))
+                      {
+                          ReferenceManager.instance.SignupPanel.SetActive(true);
+                      }
                   }
                 foreach (var item in signinResponse.result.patients) 
                 {
@@ -369,7 +376,7 @@ public class LoginManager : MonoBehaviour
                 }
                 foreach (var item in signinResponse.result.clinics){
                     if(!ReferenceManager.instance.createPatientQuestionnaire.ClinicsDropDown.options.Select(x=>x.text).Contains(item.ClinicName))
-                    ReferenceManager.instance.createPatientQuestionnaire.ClinicsDropDown.options.Add(new TMP_Dropdown.OptionData(item.ClinicName));
+                        ReferenceManager.instance.createPatientQuestionnaire.ClinicsDropDown.options.Add(new TMP_Dropdown.OptionData(item.ClinicName));
                 }
                 // foreach (var item in signinResponse.result.doctors){
                 //     if(!ReferenceManager.instance.createPatientQuestionnaire.DoctorsDropDown.options.Select(x=>x.text).Contains(item.DoctorName))
@@ -620,4 +627,37 @@ public class LoginManager : MonoBehaviour
         });
     }
 
+    public void UpdatePatientSurveyData()
+    {
+        SignupBody body = new SignupBody()
+        {
+            email = PlayerPrefs.GetString(StringConstants.LOGINEMAIL),
+            birthDate = DateTime.Parse(BirthDate_InputField.text + "-01-01"),
+            genderId = Gender_DropDown.value,
+        };
+        string json = JsonConvert.SerializeObject(body);
+        
+        APIHandler.instance.Post("Auth/AddSurveyData", json, onSuccess: (response) =>
+        {
+            ResponseWithNoObject deleteAccountResponse = JsonConvert.DeserializeObject<ResponseWithNoObject>(response);
+            if (deleteAccountResponse.isSuccess)
+            {
+                ReferenceManager.instance.PopupManager.Show("Data Updated!", "Thank you for providing us with this information");
+            }
+            if (deleteAccountResponse.isError)
+            {
+                string reasons = "";
+                foreach (var item in deleteAccountResponse.serviceErrors)
+                {
+                    reasons += $"\n {item.code} {item.description}";
+                }
+                ReferenceManager.instance.PopupManager.Show("Failed!", $"Reasons are: {reasons}");
+                Debug.Log($"{deleteAccountResponse.serviceErrors}");
+            }
+
+        }, onError: (error) =>
+        {
+            ReferenceManager.instance.PopupManager.Show("Failed!", $"Reasons are: {error}");
+        });
+    }
 }

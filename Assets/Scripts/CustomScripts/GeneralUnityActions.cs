@@ -20,13 +20,19 @@ public class GeneralUnityActions : MonoBehaviour
     public GameObject LoaderPrefab;
     [HideInInspector] public GameObject loadedLoader;
     Vector2 initialPositionoOfContent;
-
+    public bool hideSkeleton;
     public ScrollRect scrollRect;
+    
     private void OnEnable()
     {
 
         OnEnableAction?.Invoke();
-
+        if (hideSkeleton)
+        {
+            
+            ReferenceManager.instance.canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+            ReferenceManager.instance.SkeletonHidingPanels.Add(this.gameObject);
+        }
     }
 
     private void OnDisable()
@@ -35,6 +41,15 @@ public class GeneralUnityActions : MonoBehaviour
         if (ReferenceManager.instance.graphManagers.Count == 0)
         {
             WhenNoGraphAction?.Invoke();
+        }
+        if (hideSkeleton)
+        {
+            ReferenceManager.instance.SkeletonHidingPanels.Remove(this.gameObject);
+            if (ReferenceManager.instance.SkeletonHidingPanels.Count == 0)
+            {
+                ReferenceManager.instance.canvas.renderMode = RenderMode.ScreenSpaceCamera;
+            }
+
         }
     }
 

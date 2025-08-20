@@ -151,6 +151,7 @@ public class ReferenceManager : MonoBehaviour
     public LightBuzz_BodyTracking_RealSense lightBuzz_BodyTracking_RealSenseForConfigRef;
     public Toggle DepthModeToggle;
     public LightBuzzViewer lightBuzzViewer;
+    public List<GameObject> SkeletonHidingPanels = new List<GameObject>();
     public void SetDepthMode(bool value)
     {
         if (value)

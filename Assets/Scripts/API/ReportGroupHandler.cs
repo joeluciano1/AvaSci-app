@@ -77,7 +77,14 @@ public class ReportGroupHandler : MonoBehaviour
             x.transform.SetParent(ShowcaseScrollRect.content,false);
             x.gameObject.SetActive(true);
         });
-        
+        if (DropDownItems.Count == 0)
+        {
+            NoReportNotifier.SetActive(true);
+        }
+        else
+        {
+            NoReportNotifier.SetActive(false);
+        }
         ReportsScrollView.GetComponent<LayoutElement>().ignoreLayout = true;
         ShowcaseScrollRect.GetComponent<LayoutElement>().ignoreLayout = true;
         ReportsScrollView.GetComponent<RectTransform>().DOAnchorPos(new Vector2(-1000, ReportInitialposition.y), 1f).OnComplete(()=>ReportsScrollView.gameObject.SetActive(false));
@@ -125,14 +132,7 @@ public class ReportGroupHandler : MonoBehaviour
                 ReferenceManager.instance.userReportController.itemToSnapTo.MyScrollRect,
                 ReferenceManager.instance.userReportController.itemToSnapTo.MyScrollRect.content);
         }
-        if (DropDownItems.Count == 0)
-        {
-            NoReportNotifier.SetActive(true);
-        }
-        else
-        {
-            NoReportNotifier.SetActive(false);
-        }
+       
         // myRect.DOSizeDelta(new Vector2(myRect.sizeDelta.x, 170), 0.5f);
         // DropDownItems.ForEach(x=>x.transform.DOScaleY(1,0.5f));
         backButton.onClick.RemoveAllListeners();

@@ -48,7 +48,12 @@ public class CreatePatientQuestionnaire : MonoBehaviour
                 ReferenceManager.instance.reportSectionManager.FeedClinicData();
             }
             else{
-                ReferenceManager.instance.PopupManager.Show("Failed To Add Clinic Patient!", $"UnknownError");
+                string reasons = "";
+                foreach (var item in genericResponse.errorMessages)
+                {
+                    reasons += $"\n {item.code} {item.description}";
+                }
+                ReferenceManager.instance.PopupManager.Show("Failed To Add Clinic Patient!", $"{reasons}UnknownError");
             }
 
         },

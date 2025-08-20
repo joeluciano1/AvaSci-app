@@ -253,14 +253,20 @@ public class Receipt
     public string TransactionID { get; set; }
 }
 
- public class GenericStringResponse
-    {
-        public object result { get; set; }
-        public bool isOk { get; set; }
-        public bool isError { get; set; }
-        public int status { get; set; }
-        
-    }
+public class ErrorMessage
+{
+    public string code { get; set; }
+    public string description { get; set; }
+}
+
+public class GenericStringResponse
+{
+    public object result { get; set; }
+    public bool isOk { get; set; }
+    public bool isError { get; set; }
+    public int status { get; set; }
+    public List<ErrorMessage> errorMessages { get; set; }
+}
 
  public class HtmlBaseResponse
  {
