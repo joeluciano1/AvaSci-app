@@ -67,18 +67,77 @@ public class ChatGPTHandler : MonoBehaviour
 
         StartCoroutine(SendRequestToChatGPT(prompt));
     }
+
+    public void AnalyzeWholeData(List<TimeBasedReadingRequest> timeBasedReadings,
+        List<GetGaitReportResponse> gaitReports)
+    {
+        string timeBasedJson = GeneralStaticManager.ToJsonExcludingNulls(timeBasedReadings);
+        string gaitReportJson = GeneralStaticManager.ToJsonExcludingNulls(gaitReports);
+        string prompt = $@"
+You are an expert in data visualization. Analyze the given data yourself and provide an HTML report with proper graphs and suggestions based on your own observations because you are an expert physiotherapist and report generator. Apply statistical calculations such as mean, standard deviation, percentiles (P5, P50, P95), and trends if necessary and provide your findings and observations in the readings as a paragraph at the end of the HTML file. Keep the HTML beautiful by adding styles.
+
+IMPORTANT NOTE: 
+1. Never truncate the data from JSON. Show all of them in the report. Never ask the user to put data in the HTML; include the data shared with you yourself.
+2. If the dataset is too large, consider displaying only the first few rows and summarizing the rest, or paginate the data to improve performance.
+
+Ensure that the HTML includes all the provided data directly. 
+**Always Include All the data provided in the json**
+Do **not** include any placeholder text such as ""Data not available"" or truncation like `/* ... */` or // ... all other rows ...
+when the data exists in the provided JSON. If data is missing, simply leave it empty or use a note like ""No data available"".
+
+
+Generate a **fully formatted HTML report** based on the provided data in JSONs.
+Requirements:
+- Use clear headings and subheadings.
+- Use tables for numeric results (with borders, alternating row colors, and padding).
+- Use bullet points for observations.
+- Make it visually appealing using inline CSS styles or Bootstrap classes if allowed.
+- Include a summary section at the top.
+- Use `<h1>`, `<h2>`, `<h3>` appropriately.
+- Do NOT escape HTML or wrap it in code blocks—return pure HTML.
+Design requirements:
+- Full, valid HTML document (<!DOCTYPE html>…)
+- Responsive layout with a centered container (max-width ~1100px), fluid spacing, large headings
+- Hero header with subject + summary stats
+- Use a clean, neutral palette (soft gray background, white cards, subtle shadows, rounded corners)
+- Typography: sans-serif, 16px base, 28–36px H1, clear hierarchy; line-height 1.5
+- Components: card grid for key metrics, sticky section headings, tasteful dividers
+- Tables: zebra stripes, fixed header, hover row highlight
+- Buttons/chips: subtle accent for tags like “preop / postop”
+- Accessibility: ensure color contrast, semantic tags, alt text, and aria-labels for images
+
+Chart rules:
+- Labels, legends, and axes must be clear and legible.
+- Put all JavaScript in `window.onload` to initialize the charts.
+- Always include graphs/charts for the readings you are provided, as well as charts for key metrics if raw rows are present.
+- Include all rows from the provided data JSONs in the HTML, do not truncate data like /* ... all other rows ... */.
+
+If any data is missing or null, display Data not available in place of the missing data.
+";
+        if (timeBasedReadings != null && timeBasedReadings.Count > 0)
+        {
+            prompt += $"\n**Readings Per Miliseconds:**\n {timeBasedJson}";
+        }
+        if (gaitReports != null && gaitReports.Count > 0)
+        {
+            prompt += $"\n**Gait report Readings:**\n {gaitReportJson}";
+        }
+
+        StartCoroutine(SendRequestToChatGPT(prompt));
+    }
     IEnumerator SendRequestToChatGPT(string prompt)
     {
         var requestData = new
         {
-            model = "gpt-4o",  // Use GPT-4 turbo for faster responses
+            model = "gpt-5-mini",  // Use GPT-4 turbo for faster responses
             messages = new[]
             {
                 new { role = "system", content = "You are an expert data analyst, doctor, and HTML report generator." },
                 new { role = "user", content = prompt }
             },
-            max_tokens = 4000,
-            temperature = 0.7
+            temperature = 1,   // for determinism
+            top_p = 1,
+            n = 1,
         };
 
         string jsonBody = JsonConvert.SerializeObject(requestData);
@@ -114,9 +173,9 @@ public class ChatGPTHandler : MonoBehaviour
         // Extract report content from JSON response
         var responseData = JsonUtility.FromJson<ChatGPTResponse>(jsonResponse);
         Debug.Log("Generated Report: " + responseData.choices[0].message.content);
-        CreatePDFReport(responseData.choices[0].message.content);
+        CreateHTMLReport(responseData.choices[0].message.content);
     }
-    public void CreatePDFReport(string reportContent)
+    public void CreateHTMLReport(string reportContent)
     {
         string path = Application.persistentDataPath + "/Reportt.html";
         File.WriteAllText(path, reportContent);

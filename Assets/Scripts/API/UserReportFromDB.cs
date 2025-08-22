@@ -50,6 +50,7 @@ public class UserReportFromDB : MonoBehaviour
     public GameObject SelectedReportsViewScroller;
     public UserReportData mydata;
     public string mySubGroup;
+    public Button MyAIButton;
     private void Start()
     {
         // jointReadings.ForEach(x => x.VideoNameLink = ReportDescription.text.Replace("<b>Comment:</b>", ""));
@@ -66,17 +67,38 @@ public class UserReportFromDB : MonoBehaviour
 
     public void CheckIfItContainsTimeBasedReadings()
     {
+        MyAIButton.interactable = false;
         if (timeBasedReadings != null && timeBasedReadings.Count > 0)
         {
             CompareViewToggle.interactable = true;
             CompareViewToggle.transform.GetChild(0).GetComponent<TMP_Text>().text = "Select To Compare";
+            MyAIButton.interactable = true;
         }
 
         if (gaitReports != null && gaitReports.Count > 0)
         {
             CompareGaitToggle.interactable = true;
             CompareGaitToggle.transform.GetChild(0).GetComponent<TMP_Text>().text = "Select To Compare Gait";
+            MyAIButton.interactable = true;
         }
+        
+        if (timeBasedReadings!=null && timeBasedReadings.Count>0  && gaitReports!=null && gaitReports.Count >0)
+        {
+            if(GeneralStaticManager.AreAllNullablePropertiesNull(timeBasedReadings[3]) && GeneralStaticManager.AreAllNullablePropertiesNull(gaitReports[3])){
+                MyAIButton.interactable = false;
+            }
+        }
+        var newtimebasedReading = timeBasedReadings.Where(x=>!GeneralStaticManager.AreAllNullablePropertiesNull(x)).ToList();
+        var newGaitReports = gaitReports.Where(x=>!GeneralStaticManager.AreAllNullablePropertiesNull(x)).ToList();
+        if (gaitReports == null)
+        {
+            gaitReports = new List<GetGaitReportResponse>();
+        }
+        MyAIButton.onClick.RemoveAllListeners();
+        MyAIButton.onClick.AddListener(() =>
+        {
+            ReferenceManager.instance.chatGPTHandler.AnalyzeWholeData(newtimebasedReading,newGaitReports);
+        });
     }
    
     public void DeleteVide()

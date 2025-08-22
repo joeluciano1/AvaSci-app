@@ -4,12 +4,14 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using LightBuzz.AvaSci.Csv;
 using LightBuzz.AvaSci.Measurements;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 using UnityEngine;
 
 
@@ -310,5 +312,38 @@ public static async Task<string> ConvertCsvStringToJson(string csvString)
         }
 
         return sb.ToString();
+    }
+    public static bool AreAllNullablePropertiesNull(object obj)
+    {
+        var properties = obj.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance);
+        
+        foreach (var property in properties)
+        {
+            // Check if property is a nullable type (e.g., int? or float?)
+            if (Nullable.GetUnderlyingType(property.PropertyType) != null)
+            {
+                // If any nullable property is not null, return false
+                if (property.GetValue(obj) != null)
+                    return false;
+            }
+        }
+        
+        return true; // All nullable properties are null
+    }
+    public static string ToJsonExcludingNulls(object obj)
+    {
+        var settings = new JsonSerializerSettings
+        {
+            ContractResolver = new DefaultContractResolver
+            {
+                // Ignore null values during serialization
+                DefaultMembersSearchFlags = System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance,
+                NamingStrategy = new CamelCaseNamingStrategy(),
+                IgnoreSerializableAttribute = true
+            },
+            NullValueHandling = NullValueHandling.Ignore
+        };
+
+        return JsonConvert.SerializeObject(obj, settings);
     }
 }

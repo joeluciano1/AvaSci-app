@@ -152,6 +152,7 @@ public class ReferenceManager : MonoBehaviour
     public Toggle DepthModeToggle;
     public LightBuzzViewer lightBuzzViewer;
     public List<GameObject> SkeletonHidingPanels = new List<GameObject>();
+    public ChatGPTHandler chatGPTHandler;
     public void SetDepthMode(bool value)
     {
         if (value)
