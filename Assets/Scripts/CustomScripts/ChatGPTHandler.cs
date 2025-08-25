@@ -1,37 +1,104 @@
 using System;
-using UnityEngine;
-using UnityEngine.Networking;
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using DG.Tweening;
-using LightBuzz.AvaSci.Csv;
+using LightBuzz.AvaSci.Csv; // kept to avoid bigger diffs
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using TMPro;
+using UnityEngine;
+using UnityEngine.Networking;
 using UnityEngine.UI;
 
 public class ChatGPTHandler : MonoBehaviour
 {
-    [SerializeField]private string apiKey = "";
-    private string openAIEndpoint = "https://api.openai.com/v1/chat/completions";
+    [SerializeField] private string apiKey = "";
+    [SerializeField] private string openAIEndpoint = "https://api.openai.com/v1/chat/completions";
+
+    [Header("Streaming")]
+    [SerializeField] private bool useStreaming = true;
+    [SerializeField] private string chatModel = "gpt-4o-mini"; // default model
+
+    [SerializeField] private TMP_Dropdown ReportsDropdown; // optional
+    [SerializeField] private CustomDropDown _customDropDown; // your dropdown
+
+    [Header("UI Elements")]
+    public TMP_InputField userInputField;
+    public GameObject GPTText;   // prefab with TMP_Text at child(0); child(1) optional share button
+    public GameObject UserText;  // prefab with TMP_Text at child(0)
+    public Button sendButton;
+    public ScrollRect scrollRect;
+    public GameObject Thinking;
+
+    [Header("External DB Chat (unchanged)")]
+    private string apiUrl = "https://www.askyourdatabase.com/api/chatbot/v2/session";
+    public string chatBotAPIKey;
+
+    // ================= Chat history =================
+    [SerializeField] private int maxHistoryMessages = 24; // keep last N msgs (user+assistant)
+    private readonly List<Message> conversationHistory = new List<Message>();
+    private string TimeBasedJson;
+    private string GaitJson;
+    void Start() { }
+
+    // ===== Public entry-points =====
 
     public void AnalyzeCSV(List<string> csvDatas, bool isGait)
     {
-        if (!isGait)
-        {
-            AnalyzeNormal(csvDatas);
-        }
-        else
-        {
-            AnalyzeGait(csvDatas);
-        }
-        
+        if (!isGait) AnalyzeNormal(csvDatas);
+        else AnalyzeGait(csvDatas);
     }
+
+    public void ChangeModel(int value)
+    {
+        if (value == 1)
+        {
+            chatModel = "gpt-4o-mini";
+        }
+
+        if (value == 2)
+        {
+            chatModel = "gpt-4.1";
+        }
+    }
+    public void TakeOutData()
+    {
+        Thinking?.SetActive(true);
+        AppendMessage("You", userInputField.text);
+        AddToHistory("user", userInputField.text);
+
+        var timeBasedReadingRequests = new List<TimeBasedReadingRequest>();
+        var gaitReports = new List<GetGaitReportResponse>();
+
+        foreach (var userReportFromDB in _customDropDown.selectedUserReports)
+        {
+            if (userReportFromDB?.timeBasedReadings != null)
+                timeBasedReadingRequests.AddRange(userReportFromDB.timeBasedReadings);
+
+            if (userReportFromDB?.gaitReports != null)
+                gaitReports.AddRange(userReportFromDB.gaitReports);
+        }
+
+        AnalyzeWholeData(timeBasedReadingRequests, gaitReports);
+    }
+
+    /// <summary>Lightweight ask (uses streaming text if it seems like a simple question).</summary>
+    public void Ask(string text) => StartCoroutine(SendRequestToChatGPT(text));
+
+    public void OnSendClicked()
+    {
+        StartCoroutine(SendMessageToOpenAI()); // your external service
+    }
+
+    // ===== Prompt builders =====
 
     void AnalyzeNormal(List<string> csvDatas)
     {
-        string prompt = 
+        string prompt =
             "You are an expert in data visualization. " +
             "Given the following Csv datas, generate a single self-contained HTML file. " +
             "It should:\n" +
@@ -44,13 +111,15 @@ public class ChatGPTHandler : MonoBehaviour
             "5) Summarize interesting points in the data such as max angle, min angle, average, etc. Also include a table view of the csv datas.\n\n" +
             "CSV datas:\n" + csvDatas[0] + " and " + csvDatas[1];
 
-
+        // Track what you asked
+        AddToHistory("user", prompt);
 
         StartCoroutine(SendRequestToChatGPT(prompt));
     }
+
     void AnalyzeGait(List<string> csvDatas)
     {
-        string prompt = 
+        string prompt =
             "You are an expert in data visualization. " +
             "Given the following Csv datas, generate a single self-contained HTML file. " +
             "It should:\n" +
@@ -63,16 +132,18 @@ public class ChatGPTHandler : MonoBehaviour
             "5) Summarize interesting points in the data such as max angle, min angle, average, etc. Also include a table view of the csv datas.\n\n" +
             "CSV datas:\n" + csvDatas[0] + " and " + csvDatas[1];
 
-
+        // Track what you asked
+        AddToHistory("user", prompt);
 
         StartCoroutine(SendRequestToChatGPT(prompt));
     }
 
     public void AnalyzeWholeData(List<TimeBasedReadingRequest> timeBasedReadings,
-        List<GetGaitReportResponse> gaitReports)
+                                 List<GetGaitReportResponse> gaitReports)
     {
         string timeBasedJson = GeneralStaticManager.ToJsonExcludingNulls(timeBasedReadings);
         string gaitReportJson = GeneralStaticManager.ToJsonExcludingNulls(gaitReports);
+
         string prompt = $@"
 You are an expert in data visualization. Analyze the given data yourself and provide an HTML report with proper graphs and suggestions based on your own observations because you are an expert physiotherapist and report generator. Apply statistical calculations such as mean, standard deviation, percentiles (P5, P50, P95), and trends if necessary and provide your findings and observations in the readings as a paragraph at the end of the HTML file. Keep the HTML beautiful by adding styles.
 
@@ -84,7 +155,6 @@ Ensure that the HTML includes all the provided data directly.
 **Always Include All the data provided in the json**
 Do **not** include any placeholder text such as ""Data not available"" or truncation like `/* ... */` or // ... all other rows ...
 when the data exists in the provided JSON. If data is missing, simply leave it empty or use a note like ""No data available"".
-
 
 Generate a **fully formatted HTML report** based on the provided data in JSONs.
 Requirements:
@@ -117,35 +187,114 @@ If any data is missing or null, display Data not available in place of the missi
         if (timeBasedReadings != null && timeBasedReadings.Count > 0)
         {
             prompt += $"\n**Readings Per Miliseconds:**\n {timeBasedJson}";
+            TimeBasedJson = timeBasedJson;
         }
+
         if (gaitReports != null && gaitReports.Count > 0)
         {
             prompt += $"\n**Gait report Readings:**\n {gaitReportJson}";
+            GaitJson = gaitReportJson;
         }
 
+        prompt += userInputField.text;
+        // Track what you asked
+        AddToHistory("user", prompt);
+        
         StartCoroutine(SendRequestToChatGPT(prompt));
+    }
+
+    // ===== Router: decide simple-question vs. report =====
+    static bool LooksLikeReportTask(string s)
+    {
+        if (string.IsNullOrEmpty(s)) return false;
+        s = s.ToLowerInvariant();
+
+        string[] hardHints = {
+            "<html", "<!doctype", "chart.js", "chartjs", "canvas>",
+            "report", "visualization", "visualisation", "graph", "plot",
+            "table view", "bootstrap", "summary section", "key metrics",
+            "csv", "json", "timeofreading", "pelvisangle", "varus", "valgus",
+            "readings per miliseconds", "gait"
+        };
+        if (hardHints.Any(h => s.Contains(h))) return true;
+
+        if (s.Length > 1200) return true;
+        int braces = s.Count(c => c == '{' || c == '[');
+        if (braces >= 3) return true;
+
+        return false;
+    }
+    static bool IsSimpleQuestion(string s)
+    {
+        if (string.IsNullOrEmpty(s)) return true;
+        if (LooksLikeReportTask(s)) return false;
+        bool shortEnough = s.Length <= 400;
+        bool fewBraces = s.Count(c => c == '{' || c == '[') == 0;
+        return shortEnough && fewBraces;
     }
     IEnumerator SendRequestToChatGPT(string prompt)
     {
+        if (IsSimpleQuestion(userInputField.text))
+        {
+            Thinking?.SetActive(true);
+            string timeBaseAdition = string.IsNullOrEmpty(TimeBasedJson) ? "No data" : TimeBasedJson;
+            string gaitBasedAddition = string.IsNullOrEmpty(GaitJson) ? "No data" : GaitJson;
+            // Stream a normal chat reply (and track history)
+            yield return StreamChatText($"{userInputField.text} Reading per frame:\n {timeBaseAdition}\n\nGait Readings:\n {gaitBasedAddition}");
+            yield break;
+        }
+
+        // Otherwise, treat it as HTML report
+        bool doStream = useStreaming && Application.platform != RuntimePlatform.WebGLPlayer;
+
+        if (doStream) yield return StreamRequest(prompt);    // streaming HTML
+        else          yield return NonStreamingRequest(prompt);
+
+        ReferenceManager.instance.LoadingManager.Hide();
+    }
+
+    // ===== Build messages with history =====
+    List<object> BuildMessagesWithHistory(string systemInstruction, string newUserPrompt)
+    {
+        var msgs = new List<object>
+        {
+            new { role = "system", content = systemInstruction }
+        };
+
+        // Include prior conversation
+        foreach (var m in conversationHistory)
+        {
+            msgs.Add(new { role = m.role, content = m.content });
+        }
+
+        // Add the current user prompt at the end
+        msgs.Add(new { role = "user", content = newUserPrompt });
+
+        return msgs;
+    }
+
+    // ===== Non-streaming HTML response =====
+
+    IEnumerator NonStreamingRequest(string prompt)
+    {
+        AddToHistory("user", prompt);
         var requestData = new
         {
-            model = "gpt-5-mini",  // Use GPT-4 turbo for faster responses
-            messages = new[]
-            {
-                new { role = "system", content = "You are an expert data analyst, doctor, and HTML report generator." },
-                new { role = "user", content = prompt }
-            },
-            temperature = 1,   // for determinism
+            model = chatModel,
+            messages = BuildMessagesWithHistory(
+                "You are an expert data analyst, doctor, and HTML report generator.",
+                prompt),
+            temperature = 0.2f,
             top_p = 1,
             n = 1,
+            stream = false
         };
 
         string jsonBody = JsonConvert.SerializeObject(requestData);
-        ReferenceManager.instance.LoadingManager.Show("Generating AI Report");
+
         using (UnityWebRequest request = new UnityWebRequest(openAIEndpoint, "POST"))
         {
-            byte[] bodyRaw = Encoding.UTF8.GetBytes(jsonBody);
-            request.uploadHandler = new UploadHandlerRaw(bodyRaw);
+            request.uploadHandler = new UploadHandlerRaw(Encoding.UTF8.GetBytes(jsonBody));
             request.downloadHandler = new DownloadHandlerBuffer();
             request.SetRequestHeader("Authorization", "Bearer " + apiKey);
             request.SetRequestHeader("Content-Type", "application/json");
@@ -155,98 +304,411 @@ If any data is missing or null, display Data not available in place of the missi
             if (request.result == UnityWebRequest.Result.Success)
             {
                 string responseText = request.downloadHandler.text;
-                Debug.Log("OpenAI Response Received");
 
-                // Parse response to get generated HTML content
-                ProcessResponse(responseText);
+                // extract assistant content
+                string content = null;
+                try
+                {
+                    var jo = JObject.Parse(responseText);
+                    content = jo["choices"]?[0]?["message"]?["content"]?.ToString();
+                }
+                catch { }
+
+                if (string.IsNullOrEmpty(content))
+                {
+                    var fallback = JsonUtility.FromJson<ChatGPTResponse>(responseText);
+                    content = fallback?.choices?[0]?.message?.content ?? "";
+                }
+
+                // Store assistant turn (compressed if huge)
+                AddToHistory("assistant", content, compressIfLarge: true);
+
+                // Save & show
+                CreateHTMLReport(CleanHtmlFences(content));
             }
             else
             {
                 Debug.LogError("Error: " + request.responseCode + " - " + request.downloadHandler.text);
             }
         }
-        ReferenceManager.instance.LoadingManager.Hide();
     }
-   
-    void ProcessResponse(string jsonResponse)
+
+    // ===== Streaming HTML (SSE) =====
+    [SerializeField] private bool showStreamingHtmlInChat = false; // if true, stream raw HTML into the bubble
+    [SerializeField] private int streamPreviewChars = 1200;  
+   IEnumerator StreamRequest(string prompt)
+{
+    // Create a chat bubble immediately and show live HTML as plain text
+    AddToHistory("user", prompt);
+    GameObject aiBubble = AppendMessage("AI", "");
+    var aiText = aiBubble.transform.GetChild(0).GetComponent<TMP_Text>();
+    // aiText.richText = false; // important: show raw HTML, not interpreted as TMP tags
+    // Optional: uncomment if you prefer one very long line
+    // aiText.textWrappingMode = TextWrappingModes.NoWrap;
+
+    var payload = new
     {
-        // Extract report content from JSON response
-        var responseData = JsonUtility.FromJson<ChatGPTResponse>(jsonResponse);
-        Debug.Log("Generated Report: " + responseData.choices[0].message.content);
-        CreateHTMLReport(responseData.choices[0].message.content);
+        model = chatModel,
+        temperature = 0.2f,
+        stream = true,
+        messages = BuildMessagesWithHistory("You are an expert data analyst, doctor, and HTML report generator. Always include the json data in the html so that user can see the stats Never leave the empty space and ask user to enter json data in html",prompt)
+    };
+    
+    var json = JsonConvert.SerializeObject(payload);
+    var bytes = Encoding.UTF8.GetBytes(json);
+
+    var queue = new ConcurrentQueue<string>();
+    var dl = new SseDownloadHandler(queue);
+    var req = new UnityWebRequest(openAIEndpoint, "POST")
+    {
+        uploadHandler = new UploadHandlerRaw(bytes),
+        downloadHandler = dl
+    };
+    req.SetRequestHeader("Authorization", "Bearer " + apiKey);
+    req.SetRequestHeader("Content-Type", "application/json");
+    req.SetRequestHeader("Accept", "text/event-stream");
+
+    var op = req.SendWebRequest();
+
+    var htmlBuilder = new StringBuilder();
+    bool done = false;
+
+    // Throttle UI updates a bit so TMP stays smooth
+    float nextUiUpdate = 0f;
+    const float uiUpdateInterval = 0.06f; // ~16 fps
+
+    while (!op.isDone)
+    {
+        while (queue.TryDequeue(out var evt))
+        {
+            if (evt == "[DONE]") { done = true; break; }
+
+            try
+            {
+                var jo = JObject.Parse(evt);
+                var delta = jo["choices"]?[0]?["delta"]?["content"]?.ToString();
+                if (!string.IsNullOrEmpty(delta))
+                {
+                    Thinking?.SetActive(false);
+                    htmlBuilder.Append(delta);
+
+                    // Stream the actual HTML into the bubble
+                    if (Time.unscaledTime >= nextUiUpdate)
+                    {
+                        aiText.text = htmlBuilder.ToString();
+                        ScrollToBottom();
+                        nextUiUpdate = Time.unscaledTime + uiUpdateInterval;
+                    }
+                }
+
+                var finish = jo["choices"]?[0]?["finish_reason"]?.ToString();
+                if (!string.IsNullOrEmpty(finish) && finish != "null")
+                {
+                    done = true;
+                    break;
+                }
+            }
+            catch
+            {
+                // Ignore partial lines until next chunk
+            }
+        }
+        
+        if (done) break;
+        yield return null;
     }
+
+    if (req.result != UnityWebRequest.Result.Success && !done)
+    {
+        aiText.text = "\nAI: Failed to generate report.\n";
+        ScrollToBottom();
+        Debug.LogError($"HTTP {req.responseCode}: {req.error}\n{req.downloadHandler?.text}");
+        yield break;
+    }
+
+    // Finalize: clean fences, save, open, and leave full HTML in the bubble
+    var html = CleanHtmlFences(htmlBuilder.ToString());
+
+    // If you store history, keep the full content (or swap for a lightweight token if you prefer)
+    // AddToHistory("assistant", html);
+    AddToHistory("assistant", html, compressIfLarge: true);
+    CreateHTMLReport(html);
+    aiText.text = html; // ensure bubble shows full final HTML
+    ScrollToBottom();
+    _customDropDown.selectedItems.Clear();
+    _customDropDown.items.ForEach(x=>x.myToggle.isOn = false);
+}
+
+
+
+    // ===== Streaming plain text for simple questions =====
+
+    IEnumerator StreamChatText(string userText)
+    {
+        // UI + history for the user
+        // AppendMessage("You", userText);
+        // user already added to history by caller in some flows; ensure added here
+        AddToHistory("user", userText);
+
+        GameObject aiBubble = AppendMessage("AI", "");
+        var aiText = aiBubble.transform.GetChild(0).GetComponent<TMP_Text>();
+
+        var payload = new
+        {
+            model = chatModel,
+            temperature = 0.2f,
+            stream = true,
+            messages = BuildMessagesWithHistory(
+                $"You are a helpful assistant. In your prompt tell user to open the left drop down, select the captures by tapping on them and I will generate reports and talk with you about those captures. But if there is Readings per frame and or Gait Readings data in the user prompt provide analysis of it like a professional physiotherapist.",
+                userText)
+        };
+
+        var req = new UnityWebRequest(openAIEndpoint, "POST")
+        {
+            uploadHandler = new UploadHandlerRaw(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(payload))),
+            downloadHandler = new SseDownloadHandler(new ConcurrentQueue<string>())
+        };
+        req.SetRequestHeader("Authorization", "Bearer " + apiKey);
+        req.SetRequestHeader("Content-Type", "application/json");
+        req.SetRequestHeader("Accept", "text/event-stream");
+
+        var op = req.SendWebRequest();
+
+        var sse = (SseDownloadHandler)req.downloadHandler;
+        var queue = sse.Queue;
+
+        var full = new StringBuilder();
+        while (!op.isDone)
+        {
+            while (queue.TryDequeue(out var evt))
+            {
+                if (evt == "[DONE]") { break; }
+
+                try
+                {
+                    var jo = JObject.Parse(evt);
+                    var delta = jo["choices"]?[0]?["delta"]?["content"]?.ToString();
+                    if (!string.IsNullOrEmpty(delta))
+                    {
+                        Thinking?.SetActive(false);
+                        full.Append(delta);
+                        aiText.text = $"\n<b>AI:</b> {full}\n";
+                        ScrollToBottom();
+                    }
+                }
+                catch { /* partial lines */ }
+            }
+            yield return null;
+        }
+
+        if (req.result != UnityWebRequest.Result.Success)
+        {
+            AppendMessage("AI",
+                "Selected model cannot handle this large amount of data. Please select the Accuracy Model from top left menu to handle large data");
+            Thinking.SetActive(false);
+            // Debug.LogError($"Chat stream error {req.responseCode}: {req.error}");
+        }
+
+        // Finalize assistant message into history
+        var finalReply = full.ToString();
+        Thinking.SetActive(false);
+        AddToHistory("assistant", finalReply);
+    }
+
+    // ===== Utilities =====
+
+    static string CleanHtmlFences(string s)
+    {
+        if (string.IsNullOrEmpty(s)) return s;
+        s = s.Trim();
+        if (s.StartsWith("```"))
+        {
+            s = s.Replace("```html", "")
+                 .Replace("```HTML", "")
+                 .Replace("```", "")
+                 .Trim();
+        }
+        return s;
+    }
+
+    string TryExtractContent(string jsonResponse)
+    {
+        try
+        {
+            var jo = JObject.Parse(jsonResponse);
+            var content = jo["choices"]?[0]?["message"]?["content"]?.ToString();
+            if (!string.IsNullOrEmpty(content))
+            {
+                return CleanHtmlFences(content);
+            }
+        }
+        catch { /* fallback */ }
+
+        var responseData = JsonUtility.FromJson<ChatGPTResponse>(jsonResponse);
+        if (responseData?.choices != null &&
+            responseData.choices.Length > 0 &&
+            responseData.choices[0]?.message != null)
+        {
+            return CleanHtmlFences(responseData.choices[0].message.content);
+        }
+
+        Debug.LogWarning("OpenAI response parse failed.");
+        return "<!doctype html><html><body><p>Failed to parse response.</p></body></html>";
+        }
+
+    // History helpers (with pruning)
+    // --- Add near your other fields ---
+    [SerializeField] private int maxHistoryChars = 16000;                 // hard cap for total history size
+    [SerializeField] private int maxAssistantCharsForHistory = 4000;      // cap a single assistant turn
+    [SerializeField] private bool compressLargeAssistantReplies = true;   // store head+tail for big HTML
+
+    void AddToHistory(string role, string content, bool compressIfLarge = false)
+    {
+        if (string.IsNullOrEmpty(content)) content = "";
+
+        // Optionally compress big assistant replies so we don't send 200KB of HTML next time
+        string toStore = content;
+        if (compressIfLarge && compressLargeAssistantReplies && content.Length > maxAssistantCharsForHistory)
+        {
+            int keep = maxAssistantCharsForHistory / 2;
+            string head = content.Substring(0, keep);
+            string tail = content.Substring(content.Length - keep);
+            toStore =
+                $"[Large assistant reply: {content.Length} chars. Stored head+tail only]\n" +
+                $"---BEGIN HEAD---\n{head}\n---END HEAD---\n" +
+                $"---BEGIN TAIL---\n{tail}\n---END TAIL---";
+        }
+
+        conversationHistory.Add(new Message { role = role, content = toStore });
+        PruneHistory();
+    }
+
+    void PruneHistory()
+    {
+        // Keep most recent turns within char budget
+        int total = 0;
+        for (int i = conversationHistory.Count - 1; i >= 0; i--)
+        {
+            total += conversationHistory[i].content?.Length ?? 0;
+            if (total > maxHistoryChars)
+            {
+                // drop everything older than i (inclusive)
+                if (i > 0) conversationHistory.RemoveRange(0, i);
+                break;
+            }
+        }
+    }
+
+// // Build messages array for the API call (system + rolling history + current user prompt)
+//     List<object> BuildMessages(string systemPrompt)
+//     {
+//         var msgs = new List<object> { new { role = "system", content = systemPrompt } };
+//         foreach (var m in conversationHistory)
+//             msgs.Add(new { role = m.role, content = m.content });
+//         return msgs;
+//     }
+
+
     public void CreateHTMLReport(string reportContent)
     {
         string path = Application.persistentDataPath + "/Reportt.html";
         File.WriteAllText(path, reportContent);
-        // CSVManager.Export(path);
 #if UNITY_EDITOR
         System.Diagnostics.Process.Start(path);
         Debug.Log("Is Editor");
-
 #else
-
-            string url = "file://" + path.Replace(" ", "%20");
-            Debug.Log("URL = " + url);
-            Debug.Log("Persistance = " + path);
-            GeneralStaticManager.OpenFile(path);
+        string url = "file://" + path.Replace(" ", "%20");
+        Debug.Log("URL = " + url);
+        Debug.Log("Persistance = " + path);
+        GeneralStaticManager.OpenFile(path);
 #endif
-        Debug.Log("PDF Report saved at: " + path);
+        Debug.Log("HTML Report saved at: " + path);
     }
 
-   
-    
-    [Header("UI Elements")]
-    public TMP_InputField userInputField;
-
-    public GameObject GPTText;
-    public GameObject UserText;
-    public Button sendButton;
-
-    [Header("Settings")]
-    private string apiUrl = "https://www.askyourdatabase.com/api/chatbot/v2/session";
-
-    // Track full chat history
-    private List<Message> conversationHistory = new List<Message>();
-    public TMP_Dropdown modelDropdown;
-    public GameObject Thinking;
-    void Start()
+    GameObject AppendMessage(string sender, string message)
     {
-       
+        if (sender == "You")
+        {
+            Debug.Log("send");
+            GameObject go = Instantiate(UserText, UserText.transform.parent);
+            go.SetActive(true);
+            go.GetComponentInChildren<TMP_Text>().text = $"\n<b>{sender}:</b> {message}\n";
+            ScrollToBottom();
+            return go;
+        }
+        else
+        {
+            GameObject go = Instantiate(GPTText, GPTText.transform.parent);
+            go.SetActive(true);
+            if (userInputField != null && userInputField.text.ToLower().Contains("csv"))
+            {
+                message = GeneralStaticManager.FormatCsvAsTable(message);
+                go.transform.GetChild(0).GetComponent<TMP_Text>().textWrappingMode = TextWrappingModes.NoWrap;
+            }
+            go.transform.GetChild(0).GetComponent<TMP_Text>().text = $"\n<b>{sender}:</b> {message}\n";
+            ScrollToBottom();
+            return go;
+        }
     }
 
-    public void OnSendClicked()
+    // Smooth, reliable "stick to bottom" without bouncing
+    private Coroutine _scrollRoutine;
+    void ScrollToBottom()
     {
-      StartCoroutine(SendMessageToOpenAI());
+        if (scrollRect == null) return;
+
+        if (_scrollRoutine != null)
+        {
+            StopCoroutine(_scrollRoutine);
+            _scrollRoutine = null;
+        }
+        _scrollRoutine = StartCoroutine(ScrollToBottomCo());
+    }
+    IEnumerator ScrollToBottomCo()
+    {
+        scrollRect.StopMovement();
+        yield return null; // wait for layout
+        Canvas.ForceUpdateCanvases();
+        if (scrollRect.content) LayoutRebuilder.ForceRebuildLayoutImmediate(scrollRect.content);
+
+        // Force to bottom a few frames to avoid “bounce”
+        scrollRect.verticalNormalizedPosition = 0f;
+        yield return null;
+        Canvas.ForceUpdateCanvases();
+        scrollRect.verticalNormalizedPosition = 0f;
+        yield return null;
+        scrollRect.verticalNormalizedPosition = 0f;
+
+        _scrollRoutine = null;
     }
 
-    public string chatBotAPIKey;
+    // ===== External DB Chat - unchanged =====
+
     IEnumerator SendMessageToOpenAI()
     {
         var payload = new
         {
-            chatbotid = "2b18e064b48ec7fd9260c55094072c64", // or "gpt-4" if you have access
+            chatbotid = "2b18e064b48ec7fd9260c55094072c64",
             name = "Joe",
             email = "joe@avasci.com"
         };
-        Thinking.SetActive(true);
+        Thinking?.SetActive(true);
         ReferenceManager.instance.LoadingManager.Show("Connecting to Live Database");
         string jsonBody = JsonConvert.SerializeObject(payload);
 
         UnityWebRequest request = new UnityWebRequest(apiUrl, "POST");
-        byte[] bodyRaw = Encoding.UTF8.GetBytes(jsonBody);
-        request.uploadHandler = new UploadHandlerRaw(bodyRaw);
+        request.uploadHandler = new UploadHandlerRaw(Encoding.UTF8.GetBytes(jsonBody));
         request.downloadHandler = new DownloadHandlerBuffer();
         request.SetRequestHeader("Content-Type", "application/json");
         request.SetRequestHeader("Authorization", "Bearer " + chatBotAPIKey);
 
         yield return request.SendWebRequest();
-        Thinking.SetActive(false);
+        Thinking?.SetActive(false);
         ReferenceManager.instance.LoadingManager.Hide();
+
         if (request.result != UnityWebRequest.Result.Success)
         {
             Debug.LogError("Error: " + request.result + " - " + request.downloadHandler.text);
-            // AppendMessage("Error", request.error);
         }
         else
         {
@@ -254,88 +716,40 @@ If any data is missing or null, display Data not available in place of the missi
             var response = JsonConvert.DeserializeObject<AskReponse>(resultJson);
             var webView = gameObject.AddComponent<UniWebView>();
             webView.Frame = new Rect(0, 0, Screen.width, Screen.height);
-            
-// 2. Load a URL.
             webView.Load(response.url);
-
-// 3. Show it. 🎉
             webView.Show();
             webView.EmbeddedToolbar.Show();
             webView.BackgroundColor = Color.black;
             webView.SetOpenLinksInExternalBrowser(true);
             UniClipboard.SetText(response.url);
-            webView.OnShouldClose += (view) => {
-                webView = null;
-                return true;
-            };
-            // AppendMessage("AI", resultJson);
+            webView.OnShouldClose += (view) => { webView = null; return true; };
         }
-    }
-
-    
-    void AppendMessage(string sender, string message)
-    {
-        if (sender == "You")
-        {
-            GameObject go = Instantiate(UserText,UserText.transform.parent);
-            go.SetActive(true);
-            go.GetComponentInChildren<TMP_Text>().text = $"\n<b>{sender}:</b> {message}\n";
-        }
-        else
-        {
-           
-            GameObject go = Instantiate(GPTText, GPTText.transform.parent);
-            go.SetActive(true);
-            if (userInputField.text.ToLower().Contains("csv"))
-            {
-                message = GeneralStaticManager.FormatCsvAsTable(message);
-                go.transform.GetChild(0).GetComponent<TMP_Text>().textWrappingMode = TextWrappingModes.NoWrap;
-            }
-            go.transform.GetChild(0).GetComponent<TMP_Text>().text = $"\n<b>{sender}:</b> {message}\n";
-        }
-        ScrollToBottom();
-        // chatOutputText.text += $"\n<b>{sender}:</b> {message}\n";
-    }
-    public ScrollRect scrollRect;
-
-    void ScrollToBottom()
-    {
-        Canvas.ForceUpdateCanvases(); // force layout rebuild
-        scrollRect.DOVerticalNormalizedPos(0f, 1f);
-    }
-    [System.Serializable]
-    public class Message
-    {
-        public string role;
-        public string content;
     }
 
     public void CallBackendAIAPI()
     {
-        Thinking.SetActive(true);
+        Thinking?.SetActive(true);
         sendButton.interactable = false;
-        AppendMessage("You",userInputField.text);
-        AIPromptBody body = new AIPromptBody()
-        {
-            prompt = userInputField.text,
-        };
+        AppendMessage("You", userInputField.text);
+        AddToHistory("user", userInputField.text);
+
+        AIPromptBody body = new AIPromptBody() { prompt = userInputField.text };
         string json = JsonConvert.SerializeObject(body);
-        APIHandler.instance.Post("UserReport/ProcessAiPrompt",json, onSuccess:(response)=>
+        APIHandler.instance.Post("UserReport/ProcessAiPrompt", json, onSuccess: (response) =>
         {
             AiPromptResponse aiResponse = JsonConvert.DeserializeObject<AiPromptResponse>(response);
             if (aiResponse.isSuccess)
             {
-                Thinking.SetActive(false);
+                Thinking?.SetActive(false);
                 sendButton.interactable = true;
-                Debug.Log("AI Response: "+response);
                 if (!string.IsNullOrEmpty(aiResponse.result.result))
                 {
-                   
                     AppendMessage("AI", aiResponse.result.result);
+                    AddToHistory("assistant", aiResponse.result.result);
                 }
                 else if (!string.IsNullOrEmpty(aiResponse.result.pdf))
                 {
-                    GameObject go = Instantiate(GPTText,GPTText.transform.parent);
+                    GameObject go = Instantiate(GPTText, GPTText.transform.parent);
                     go.SetActive(true);
                     go.GetComponentInChildren<TMP_Text>().text = $"\n<b>AI:</b> <color=blue><u>Click to view PDF</u></color> \n";
                     Button viewButton = go.AddComponent<Button>();
@@ -344,23 +758,18 @@ If any data is missing or null, display Data not available in place of the missi
                         byte[] pdfBytes = Convert.FromBase64String(aiResponse.result.pdf);
                         string path = Path.Combine(Application.persistentDataPath, $"AIreport{GeneralStaticManager.GenerateRandomName()}.pdf");
                         File.WriteAllBytes(path, pdfBytes);
-
 #if UNITY_EDITOR
                         System.Diagnostics.Process.Start(path);
-                        Debug.Log("Is Editor");
-
 #else
-
-                            string url = "file://" + path.Replace(" ", "%20");
-                            Debug.Log("URL = " + url);
-                            Debug.Log("Persistance = " + path);
-                            GeneralStaticManager.OpenFile(path);
+                        string url = "file://" + path.Replace(" ", "%20");
+                        GeneralStaticManager.OpenFile(path);
 #endif
                     });
+                    AddToHistory("assistant", "[[PDF_GENERATED]]");
                 }
                 else if (!string.IsNullOrEmpty(aiResponse.result.html))
                 {
-                    GameObject go = Instantiate(GPTText,GPTText.transform.parent);
+                    GameObject go = Instantiate(GPTText, GPTText.transform.parent);
                     GameObject go2 = go.transform.GetChild(1).gameObject;
                     go2.SetActive(true);
                     go.SetActive(true);
@@ -368,71 +777,113 @@ If any data is missing or null, display Data not available in place of the missi
                     Button viewButton = go.transform.GetChild(0).gameObject.AddComponent<Button>();
                     Button ShareButton = go2.AddComponent<Button>();
                     string path = Path.Combine(Application.persistentDataPath, $"AIreport{GeneralStaticManager.GenerateRandomName()}.html");
-                    viewButton.onClick.AddListener( () =>
+                    viewButton.onClick.AddListener(() =>
                     {
-                        
-                        
                         File.WriteAllTextAsync(path, aiResponse.result.html);
                         var webView = gameObject.AddComponent<UniWebView>();
                         webView.Frame = new Rect(0, 0, Screen.width, Screen.height);
-
-// 2. Load a URL.
-                        
-                        webView.LoadHTMLString(aiResponse.result.html,"");
+                        webView.LoadHTMLString(aiResponse.result.html, "");
                         webView.EmbeddedToolbar.Show();
-// 3. Show it. 🎉
                         webView.Show();
-// #if UNITY_EDITOR
-//                         System.Diagnostics.Process.Start(path);
-//                         Debug.Log("Is Editor");
-//
-// #else
-//
-//                             string url = "file://" + path.Replace(" ", "%20");
-//                             Debug.Log("URL = " + url);
-//                             Debug.Log("Persistance = " + path);
-//                             GeneralStaticManager.OpenFile(path);
-// #endif
                     });
                     ShareButton.onClick.AddListener(() =>
                     {
                         CSVManager.Export(path);
                     });
+                    AddToHistory("assistant", "[[HTML_REPORT_GENERATED]]");
                 }
                 ScrollToBottom();
             }
             else
             {
-                Thinking.SetActive(false);
+                Thinking?.SetActive(false);
                 sendButton.interactable = true;
                 string reasons = "";
                 foreach (var item in aiResponse.serviceErrors)
-                {
                     reasons += $"\n {item.code} {item.description}";
-                }
+
                 ReferenceManager.instance.PopupManager.Show("AI Error!", $"Reasons are: {reasons}");
             }
-        },onError: (error) =>
+        }, onError: (error) =>
         {
-            Thinking.SetActive(false);
+            Thinking?.SetActive(false);
             sendButton.interactable = true;
             ReferenceManager.instance.PopupManager.Show("Something Went Wrong!", $"Reasons are: {error}");
-        },true);
-    }
-    [System.Serializable]
-    public class ChatGPTResponse
-    {
-        public Choice[] choices;
+        }, true);
     }
 
-    [System.Serializable]
-    public class Choice
-    {
-        public Message message;
-    }
+    // ====== Data models / helpers ======
 
-    public class AskReponse
+    [Serializable] public class Message { public string role; public string content; }
+    [Serializable] public class ChatGPTResponse { public Choice[] choices; }
+    [Serializable] public class Choice { public Message message; }
+    public class AskReponse { public string url { get; set; } }
+
+    [Serializable] public class AIPromptBody { public string prompt; }
+    [Serializable] public class AiServiceError { public string code; public string description; }
+    [Serializable] public class AiPromptResult { public string result; public string pdf; public string html; }
+    [Serializable] public class AiPromptResponse { public bool isSuccess; public AiPromptResult result; public List<AiServiceError> serviceErrors; }
+
+    // ===== SSE Download Handler =====
+    private class SseDownloadHandler : DownloadHandlerScript
     {
-        public string url { get; set; }
+        public ConcurrentQueue<string> Queue { get; }
+        private readonly StringBuilder _buf = new StringBuilder();
+
+        public SseDownloadHandler(ConcurrentQueue<string> queue) : base() { Queue = queue; }
+
+        protected override bool ReceiveData(byte[] data, int dataLength)
+        {
+            if (data == null || dataLength == 0) return true;
+            var chunk = Encoding.UTF8.GetString(data, 0, dataLength);
+            _buf.Append(chunk);
+
+            string s = _buf.ToString();
+            int idx;
+            while ((idx = IndexOfBoundary(s)) >= 0)
+            {
+                var block = s.Substring(0, idx);
+                s = s.Substring(idx + 2);
+                foreach (var line in block.Replace("\r", "").Split('\n'))
+                {
+                    var l = line;
+                    if (string.IsNullOrEmpty(l)) continue;
+                    if (l.StartsWith(":")) continue;
+                    if (l.StartsWith("data:"))
+                    {
+                        var payload = l.Substring(5).Trim();
+                        Queue.Enqueue(payload);
+                    }
+                }
+            }
+            _buf.Length = 0;
+            _buf.Append(s);
+            return true;
+        }
+
+        private static int IndexOfBoundary(string s)
+        {
+            var i = s.IndexOf("\n\n", StringComparison.Ordinal);
+            if (i >= 0) return i;
+            i = s.IndexOf("\r\n\r\n", StringComparison.Ordinal);
+            return i >= 0 ? i : -1;
+        }
+
+        protected override void CompleteContent() { }
+        protected override float GetProgress() => 0f;
     }
 }
+
+// NOTE: Domain classes referenced in your project; not defined here to avoid conflicts.
+// public class TimeBasedReadingRequest { ... }
+// public class GetGaitReportResponse { ... }
+// public class CustomDropDown { public List<UserReportFromDB> selectedUserReports; }
+// public class UserReportFromDB { public List<TimeBasedReadingRequest> timeBasedReadings; public List<GetGaitReportResponse> gaitReports; }
+// public static class GeneralStaticManager { ... }
+// public static class APIHandler { ... }
+// public static class CSVManager { ... }
+// public class UniWebView : MonoBehaviour { ... }
+// public static class UniClipboard { public static void SetText(string s) {} }
+
+// ================= Heuristics for routing =================
+

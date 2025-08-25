@@ -51,6 +51,7 @@ public class UserReportFromDB : MonoBehaviour
     public UserReportData mydata;
     public string mySubGroup;
     public Button MyAIButton;
+    public TMP_Dropdown.OptionData myOptionData;
     private void Start()
     {
         // jointReadings.ForEach(x => x.VideoNameLink = ReportDescription.text.Replace("<b>Comment:</b>", ""));
