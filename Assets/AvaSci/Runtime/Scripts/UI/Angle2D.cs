@@ -459,7 +459,7 @@ namespace LightBuzz.AvaSci.UI
         }
 
         private bool once;
-        public void AssignPosition(Measurement measurement)
+        public void AssignPosition(Measurement measurement) // Separately show a huge cluster of readings on the screen
         {
             if (!once)
             {
@@ -487,6 +487,14 @@ namespace LightBuzz.AvaSci.UI
                 else if (measurement.Type == MeasurementType.StepRightAngle)
                 {
                     uIDragger._rect.anchoredPosition = new Vector2(uIDragger._rect.anchoredPosition.x - 62,uIDragger._rect.anchoredPosition.y);
+                }
+                else if (measurement.Type == MeasurementType.HipLeftRotation)
+                {
+                    uIDragger._rect.anchoredPosition = new Vector2(uIDragger._rect.anchoredPosition.x +80,uIDragger._rect.anchoredPosition.y + 40);
+                }
+                else if (measurement.Type == MeasurementType.HipRightRotation)
+                {
+                    uIDragger._rect.anchoredPosition = new Vector2(uIDragger._rect.anchoredPosition.x -80,uIDragger._rect.anchoredPosition.y + 40);
                 }
                 once = true;
             }

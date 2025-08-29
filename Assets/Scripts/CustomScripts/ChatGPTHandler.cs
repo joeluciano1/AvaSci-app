@@ -39,10 +39,30 @@ public class ChatGPTHandler : MonoBehaviour
     public string chatBotAPIKey;
 
     // ================= Chat history =================
-    [SerializeField] private int maxHistoryMessages = 24; // keep last N msgs (user+assistant)
+    [SerializeField] private int maxHistoryMessages = 24; // (kept for reference, pruning uses char budget)
+    [SerializeField] private int maxHistoryChars = 16000;                 // hard cap for total history size
+    [SerializeField] private int maxAssistantCharsForHistory = 4000;      // cap a single assistant turn
+    [SerializeField] private bool compressLargeAssistantReplies = true;   // store head+tail for big HTML
     private readonly List<Message> conversationHistory = new List<Message>();
+
+    // Cached JSON for writing data.js
     private string TimeBasedJson;
     private string GaitJson;
+
+    // Cached analysis packet for simple Q&A context
+    private string _lastAnalysisPacketJson;
+
+    // Stream options
+    [SerializeField] private bool showStreamingHtmlInChat = true; // stream raw HTML string into bubble
+    [SerializeField] private int streamPreviewChars = 1200;
+
+    // NEW: HTML render toggle settings
+    [SerializeField] private bool renderHtmlWithWebView = true; // use UniWebView for rendered view
+    [SerializeField] private Vector2 webViewMinSize = new Vector2(300, 200); // min size for panel
+
+    // NEW: stream mode enum
+    enum StreamRenderMode { Unknown, Html, Code, Plain }
+
     void Start() { }
 
     // ===== Public entry-points =====
@@ -55,16 +75,10 @@ public class ChatGPTHandler : MonoBehaviour
 
     public void ChangeModel(int value)
     {
-        if (value == 1)
-        {
-            chatModel = "gpt-4o-mini";
-        }
-
-        if (value == 2)
-        {
-            chatModel = "gpt-4.1";
-        }
+        if (value == 1) chatModel = "gpt-4o-mini";
+        if (value == 2) chatModel = "gpt-4.1";
     }
+
     public void TakeOutData()
     {
         Thinking?.SetActive(true);
@@ -111,9 +125,7 @@ public class ChatGPTHandler : MonoBehaviour
             "5) Summarize interesting points in the data such as max angle, min angle, average, etc. Also include a table view of the csv datas.\n\n" +
             "CSV datas:\n" + csvDatas[0] + " and " + csvDatas[1];
 
-        // Track what you asked
         AddToHistory("user", prompt);
-
         StartCoroutine(SendRequestToChatGPT(prompt));
     }
 
@@ -132,9 +144,7 @@ public class ChatGPTHandler : MonoBehaviour
             "5) Summarize interesting points in the data such as max angle, min angle, average, etc. Also include a table view of the csv datas.\n\n" +
             "CSV datas:\n" + csvDatas[0] + " and " + csvDatas[1];
 
-        // Track what you asked
         AddToHistory("user", prompt);
-
         StartCoroutine(SendRequestToChatGPT(prompt));
     }
 
@@ -143,9 +153,261 @@ public class ChatGPTHandler : MonoBehaviour
     {
         string timeBasedJson = GeneralStaticManager.ToJsonExcludingNulls(timeBasedReadings);
         string gaitReportJson = GeneralStaticManager.ToJsonExcludingNulls(gaitReports);
+        TimeBasedJson = timeBasedJson;
+        GaitJson = gaitReportJson;
 
-        string prompt = $@"
-You are an expert in data visualization. Analyze the given data yourself and provide an HTML report with proper graphs and suggestions based on your own observations because you are an expert physiotherapist and report generator. Apply statistical calculations such as mean, standard deviation, percentiles (P5, P50, P95), and trends if necessary and provide your findings and observations in the readings as a paragraph at the end of the HTML file. Keep the HTML beautiful by adding styles.
+        // Build compact analysis packet for the AI to reason on
+        _lastAnalysisPacketJson = BuildAnalysisPacketJson(timeBasedReadings);
+
+        // Build a prompt that tells the model to use data.js for full rows
+        string prompt = BuildReportPrompt(_lastAnalysisPacketJson, !string.IsNullOrEmpty(gaitReportJson));
+
+        // Optional: include any user freeform text at the end
+        if (userInputField && !string.IsNullOrEmpty(userInputField.text))
+            prompt += "\n\nUSER_NOTES:\n" + userInputField.text;
+
+        AddToHistory("user", prompt);
+        StartCoroutine(SendRequestToChatGPT(prompt));
+    }
+
+    // ===== Router: decide simple-question vs. report =====
+    static bool LooksLikeReportTask(string s)
+    {
+        if (string.IsNullOrEmpty(s)) return false;
+        s = s.ToLowerInvariant();
+
+        string[] hardHints = {
+            "<html", "<!doctype", "chart.js", "chartjs", "canvas>",
+            "report", "visualization", "visualisation", "graph", "plot",
+            "table view", "bootstrap", "summary section", "key metrics",
+            "csv", "json", "timeofreading", "pelvisangle", "varus", "valgus",
+            "readings per miliseconds", "gait"
+        };
+        if (hardHints.Any(h => s.Contains(h))) return true;
+
+        if (s.Length > 1200) return true;
+        int braces = s.Count(c => c == '{' || c == '[');
+        if (braces >= 3) return true;
+
+        return false;
+    }
+    static bool IsSimpleQuestion(string s)
+    {
+        if (string.IsNullOrEmpty(s)) return true;
+        if (LooksLikeReportTask(s)) return false;
+        bool shortEnough = s.Length <= 400;
+        bool fewBraces = s.Count(c => c == '{' || c == '[') == 0;
+        return shortEnough && fewBraces;
+    }
+
+    IEnumerator SendRequestToChatGPT(string prompt)
+    {
+        // If the user's raw text is a simple Q, answer conversationally with streaming.
+        if (IsSimpleQuestion(userInputField != null ? userInputField.text : prompt))
+        {
+            Thinking?.SetActive(true);
+            // Provide the analysis packet to help the assistant answer about current data,
+            // but do NOT dump the giant raw JSON.
+            var ctx = string.IsNullOrEmpty(_lastAnalysisPacketJson) ? "" :
+                      "\n\nANALYSIS_PACKET:\n" + _lastAnalysisPacketJson;
+            yield return StreamChatText($"{(userInputField!=null?userInputField.text:prompt)}{ctx}");
+            yield break;
+        }
+
+        // Otherwise, treat it as HTML report generation
+        bool doStream = useStreaming && Application.platform != RuntimePlatform.WebGLPlayer;
+
+        if (doStream) yield return StreamRequest(prompt);    // streaming HTML to bubble
+        else          yield return NonStreamingRequest(prompt);
+
+        ReferenceManager.instance.LoadingManager.Hide();
+    }
+
+    // ===== Build messages with history =====
+    List<object> BuildMessagesWithHistory(string systemInstruction, string newUserPrompt)
+    {
+        var msgs = new List<object> { new { role = "system", content = systemInstruction } };
+
+        foreach (var m in conversationHistory)
+            msgs.Add(new { role = m.role, content = m.content });
+
+        msgs.Add(new { role = "user", content = newUserPrompt });
+        return msgs;
+    }
+
+    // ===== Non-streaming HTML response =====
+    IEnumerator NonStreamingRequest(string prompt)
+    {
+        var requestData = new
+        {
+            model = chatModel,
+            messages = BuildMessagesWithHistory(
+                "You are an expert physiotherapist and data-visualization report generator. " +
+                "The full dataset will be available at runtime from window.__READINGS__ and window.__GAIT__ (via data.js). " +
+                "Do NOT inline large raw JSON. Build charts/tables reading from those globals. " +
+                "Use the provided ANALYSIS_PACKET values (in the user message) to populate metric cards and narrative.",
+                prompt),
+            temperature = 0.2f,
+            top_p = 1,
+            n = 1,
+            stream = false
+        };
+
+        string jsonBody = JsonConvert.SerializeObject(requestData);
+
+        using (UnityWebRequest request = new UnityWebRequest(openAIEndpoint, "POST"))
+        {
+            request.uploadHandler = new UploadHandlerRaw(Encoding.UTF8.GetBytes(jsonBody));
+            request.downloadHandler = new DownloadHandlerBuffer();
+            request.SetRequestHeader("Authorization", "Bearer " + apiKey);
+            request.SetRequestHeader("Content-Type", "application/json");
+
+            yield return request.SendWebRequest();
+
+            if (request.result == UnityWebRequest.Result.Success)
+            {
+                string responseText = request.downloadHandler.text;
+
+                // extract assistant content
+                string content = TryExtractContent(responseText);
+
+                // Store assistant turn (compressed if huge)
+                AddToHistory("assistant", content, compressIfLarge: true);
+
+                // Save & show using external data.js loader
+                CreateHTMLReportWithData(content, TimeBasedJson, GaitJson);
+            }
+            else
+            {
+                Debug.LogError("Error: " + request.responseCode + " - " + request.downloadHandler.text);
+            }
+        }
+    }
+
+    // ======= UI components for HTML toggle bubble =======
+    class AIBubbleParts
+    {
+        public GameObject bubbleGO;
+        public TMP_Text aiText;
+        public Button toggleBtn;
+        public TMP_Text toggleLabel;
+
+        // runtime state
+        public bool htmlHidden = false;
+        public string liveBuffer = "";   // the incoming streamed text
+    }
+
+    AIBubbleParts CreateAIBubbleWithToggle()
+    {
+        var bubble = Instantiate(GPTText, GPTText.transform.parent);
+        bubble.SetActive(true);
+
+        var aiText = bubble.transform.GetChild(0).GetComponent<TMP_Text>();
+        // //aiText.richText = false; // show the raw html string; avoids TMP tag parsing
+
+        // Toggle button
+        var toggleGO = new GameObject("ToggleHtmlTextButton", typeof(RectTransform), typeof(Button), typeof(Image));
+        var toggleRT = toggleGO.GetComponent<RectTransform>();
+        toggleRT.SetParent(bubble.transform, false);
+        toggleRT.anchorMin = new Vector2(1, 0);
+        toggleRT.anchorMax = new Vector2(1, 0);
+        toggleRT.pivot = new Vector2(1, 0);
+        toggleRT.anchoredPosition = new Vector2(-10, 0);
+        toggleRT.sizeDelta = new Vector2(160, 36);
+
+        var toggleBtn = toggleGO.GetComponent<Button>();
+        var toggleImg = toggleGO.GetComponent<Image>();
+        toggleImg.color = new Color(0.078f, 0.0313f, 0.0941f, 1f);
+
+        var labelGO = new GameObject("Label", typeof(RectTransform), typeof(TextMeshProUGUI), typeof(LayoutElement));
+        var labelRT = labelGO.GetComponent<RectTransform>();
+        var layoutElement = toggleGO.AddComponent<LayoutElement>();
+        layoutElement.ignoreLayout = true;
+        labelRT.sizeDelta = new Vector2(160, 36);
+        labelRT.SetParent(toggleRT, false);
+        labelRT.anchorMin = Vector2.zero;
+        labelRT.anchorMax = Vector2.one;
+        
+        labelRT.offsetMin = Vector2.zero;
+        labelRT.offsetMax = Vector2.zero;
+        var label = labelGO.GetComponent<TextMeshProUGUI>();
+        label.text = "Show HTML Text";
+        label.alignment = TextAlignmentOptions.Center;
+        label.enableAutoSizing = true;
+        label.fontSizeMin = 12; label.fontSizeMax = 24;
+
+        return new AIBubbleParts
+        {
+            bubbleGO = bubble,
+            aiText = aiText,
+            toggleBtn = toggleBtn,
+            toggleLabel = label,
+            htmlHidden = true,
+            liveBuffer = "",
+        };
+    }
+
+    void FitWebViewTo(RectTransform panel, UniWebView web)
+    {
+        var worldCorners = new Vector3[4];
+        panel.GetWorldCorners(worldCorners);
+        var bl = RectTransformUtility.WorldToScreenPoint(null, worldCorners[0]);
+        var tr = RectTransformUtility.WorldToScreenPoint(null, worldCorners[2]);
+        var width = Mathf.Max(webViewMinSize.x, tr.x - bl.x);
+        var height = Mathf.Max(webViewMinSize.y, tr.y - bl.y);
+
+#if UNITY_EDITOR || UNITY_STANDALONE || UNITY_IOS || UNITY_ANDROID
+        web.Frame = new Rect(bl.x, bl.y, width, height);
+#endif
+    }
+
+    // ===== Streaming HTML (SSE) with detection + toggle =====
+    IEnumerator StreamRequest(string prompt)
+{
+    AddToHistory("user", prompt);
+
+    // Create enhanced bubble with HTML-text toggle
+    var parts = CreateAIBubbleWithToggle();
+    var aiText = parts.aiText;
+
+    // Detect what’s being generated
+    // enum StreamRenderMode { Unknown, Html, Code, Plain }
+    var mode = StreamRenderMode.Unknown;
+    bool modeLocked = false;
+
+    // Toggle is useful for HTML/code; disable until we’re sure
+    parts.toggleBtn.interactable = false;
+
+    // Toggle behavior: show/hide the raw HTML/code text inside the bubble
+    parts.toggleBtn.onClick.AddListener(() =>
+    {
+        parts.htmlHidden = !parts.htmlHidden;
+        parts.toggleLabel.text = parts.htmlHidden ? "Show HTML Text" : "Hide HTML Text";
+
+        if (parts.htmlHidden)
+        {
+            // Keep the buffer but hide it from view
+            aiText.text = "<i>(Generating Code)</i>";
+        }
+        else
+        {
+            aiText.text = parts.liveBuffer;
+        }
+        ScrollToBottom();
+    });
+
+    var payload = new
+    {
+        model = chatModel,
+        temperature = 0.2f,
+        stream = true,
+        messages = BuildMessagesWithHistory(
+            "You are an expert physiotherapist and data-visualization report generator. " +
+            "The full dataset will be available at runtime from window.__READINGS__ and window.__GAIT__ (via data.js). " +
+            "Do NOT inline large raw JSON. Build charts/tables reading from those globals. " +
+            "Use the provided ANALYSIS_PACKET values (in the user message) to populate metric cards and narrative.\n"+
+$@"
+You are an expert in data visualization also. Analyze the given data yourself and provide an HTML report with proper graphs and suggestions based on your own observations because you are an expert physiotherapist and report generator. Apply statistical calculations such as mean, standard deviation, percentiles (P5, P50, P95), and trends if necessary and provide your findings and observations in the readings as a paragraph at the end of the HTML file. Keep the HTML beautiful by adding styles.
 
 IMPORTANT NOTE: 
 1. Never truncate the data from JSON. Show all of them in the report. Never ask the user to put data in the HTML; include the data shared with you yourself.
@@ -180,180 +442,10 @@ Chart rules:
 - Labels, legends, and axes must be clear and legible.
 - Put all JavaScript in `window.onload` to initialize the charts.
 - Always include graphs/charts for the readings you are provided, as well as charts for key metrics if raw rows are present.
-- Include all rows from the provided data JSONs in the HTML, do not truncate data like /* ... all other rows ... */.
-
-If any data is missing or null, display Data not available in place of the missing data.
-";
-        if (timeBasedReadings != null && timeBasedReadings.Count > 0)
-        {
-            prompt += $"\n**Readings Per Miliseconds:**\n {timeBasedJson}";
-            TimeBasedJson = timeBasedJson;
-        }
-
-        if (gaitReports != null && gaitReports.Count > 0)
-        {
-            prompt += $"\n**Gait report Readings:**\n {gaitReportJson}";
-            GaitJson = gaitReportJson;
-        }
-
-        prompt += userInputField.text;
-        // Track what you asked
-        AddToHistory("user", prompt);
-        
-        StartCoroutine(SendRequestToChatGPT(prompt));
-    }
-
-    // ===== Router: decide simple-question vs. report =====
-    static bool LooksLikeReportTask(string s)
-    {
-        if (string.IsNullOrEmpty(s)) return false;
-        s = s.ToLowerInvariant();
-
-        string[] hardHints = {
-            "<html", "<!doctype", "chart.js", "chartjs", "canvas>",
-            "report", "visualization", "visualisation", "graph", "plot",
-            "table view", "bootstrap", "summary section", "key metrics",
-            "csv", "json", "timeofreading", "pelvisangle", "varus", "valgus",
-            "readings per miliseconds", "gait"
-        };
-        if (hardHints.Any(h => s.Contains(h))) return true;
-
-        if (s.Length > 1200) return true;
-        int braces = s.Count(c => c == '{' || c == '[');
-        if (braces >= 3) return true;
-
-        return false;
-    }
-    static bool IsSimpleQuestion(string s)
-    {
-        if (string.IsNullOrEmpty(s)) return true;
-        if (LooksLikeReportTask(s)) return false;
-        bool shortEnough = s.Length <= 400;
-        bool fewBraces = s.Count(c => c == '{' || c == '[') == 0;
-        return shortEnough && fewBraces;
-    }
-    IEnumerator SendRequestToChatGPT(string prompt)
-    {
-        if (IsSimpleQuestion(userInputField.text))
-        {
-            Thinking?.SetActive(true);
-            string timeBaseAdition = string.IsNullOrEmpty(TimeBasedJson) ? "No data" : TimeBasedJson;
-            string gaitBasedAddition = string.IsNullOrEmpty(GaitJson) ? "No data" : GaitJson;
-            // Stream a normal chat reply (and track history)
-            yield return StreamChatText($"{userInputField.text} Reading per frame:\n {timeBaseAdition}\n\nGait Readings:\n {gaitBasedAddition}");
-            yield break;
-        }
-
-        // Otherwise, treat it as HTML report
-        bool doStream = useStreaming && Application.platform != RuntimePlatform.WebGLPlayer;
-
-        if (doStream) yield return StreamRequest(prompt);    // streaming HTML
-        else          yield return NonStreamingRequest(prompt);
-
-        ReferenceManager.instance.LoadingManager.Hide();
-    }
-
-    // ===== Build messages with history =====
-    List<object> BuildMessagesWithHistory(string systemInstruction, string newUserPrompt)
-    {
-        var msgs = new List<object>
-        {
-            new { role = "system", content = systemInstruction }
-        };
-
-        // Include prior conversation
-        foreach (var m in conversationHistory)
-        {
-            msgs.Add(new { role = m.role, content = m.content });
-        }
-
-        // Add the current user prompt at the end
-        msgs.Add(new { role = "user", content = newUserPrompt });
-
-        return msgs;
-    }
-
-    // ===== Non-streaming HTML response =====
-
-    IEnumerator NonStreamingRequest(string prompt)
-    {
-        AddToHistory("user", prompt);
-        var requestData = new
-        {
-            model = chatModel,
-            messages = BuildMessagesWithHistory(
-                "You are an expert data analyst, doctor, and HTML report generator.",
-                prompt),
-            temperature = 0.2f,
-            top_p = 1,
-            n = 1,
-            stream = false
-        };
-
-        string jsonBody = JsonConvert.SerializeObject(requestData);
-
-        using (UnityWebRequest request = new UnityWebRequest(openAIEndpoint, "POST"))
-        {
-            request.uploadHandler = new UploadHandlerRaw(Encoding.UTF8.GetBytes(jsonBody));
-            request.downloadHandler = new DownloadHandlerBuffer();
-            request.SetRequestHeader("Authorization", "Bearer " + apiKey);
-            request.SetRequestHeader("Content-Type", "application/json");
-
-            yield return request.SendWebRequest();
-
-            if (request.result == UnityWebRequest.Result.Success)
-            {
-                string responseText = request.downloadHandler.text;
-
-                // extract assistant content
-                string content = null;
-                try
-                {
-                    var jo = JObject.Parse(responseText);
-                    content = jo["choices"]?[0]?["message"]?["content"]?.ToString();
-                }
-                catch { }
-
-                if (string.IsNullOrEmpty(content))
-                {
-                    var fallback = JsonUtility.FromJson<ChatGPTResponse>(responseText);
-                    content = fallback?.choices?[0]?.message?.content ?? "";
-                }
-
-                // Store assistant turn (compressed if huge)
-                AddToHistory("assistant", content, compressIfLarge: true);
-
-                // Save & show
-                CreateHTMLReport(CleanHtmlFences(content));
-            }
-            else
-            {
-                Debug.LogError("Error: " + request.responseCode + " - " + request.downloadHandler.text);
-            }
-        }
-    }
-
-    // ===== Streaming HTML (SSE) =====
-    [SerializeField] private bool showStreamingHtmlInChat = false; // if true, stream raw HTML into the bubble
-    [SerializeField] private int streamPreviewChars = 1200;  
-   IEnumerator StreamRequest(string prompt)
-{
-    // Create a chat bubble immediately and show live HTML as plain text
-    AddToHistory("user", prompt);
-    GameObject aiBubble = AppendMessage("AI", "");
-    var aiText = aiBubble.transform.GetChild(0).GetComponent<TMP_Text>();
-    // aiText.richText = false; // important: show raw HTML, not interpreted as TMP tags
-    // Optional: uncomment if you prefer one very long line
-    // aiText.textWrappingMode = TextWrappingModes.NoWrap;
-
-    var payload = new
-    {
-        model = chatModel,
-        temperature = 0.2f,
-        stream = true,
-        messages = BuildMessagesWithHistory("You are an expert data analyst, doctor, and HTML report generator. Always include the json data in the html so that user can see the stats Never leave the empty space and ask user to enter json data in html",prompt)
+- Include all rows from the provided data JSONs in the HTML, do not truncate data like /* ... all other rows ... */.",
+            prompt)
     };
-    
+
     var json = JsonConvert.SerializeObject(payload);
     var bytes = Encoding.UTF8.GetBytes(json);
 
@@ -373,7 +465,6 @@ If any data is missing or null, display Data not available in place of the missi
     var htmlBuilder = new StringBuilder();
     bool done = false;
 
-    // Throttle UI updates a bit so TMP stays smooth
     float nextUiUpdate = 0f;
     const float uiUpdateInterval = 0.06f; // ~16 fps
 
@@ -392,10 +483,43 @@ If any data is missing or null, display Data not available in place of the missi
                     Thinking?.SetActive(false);
                     htmlBuilder.Append(delta);
 
-                    // Stream the actual HTML into the bubble
+                    // Detect stream mode from early tokens and lock once known
+                    if (!modeLocked)
+                    {
+                        var peek = htmlBuilder.ToString();
+                        if (peek.StartsWith("<!DOCTYPE html", StringComparison.OrdinalIgnoreCase) ||
+                            peek.StartsWith("<html", StringComparison.OrdinalIgnoreCase) ||
+                            peek.Contains("<head", StringComparison.OrdinalIgnoreCase))
+                        {
+                            mode = StreamRenderMode.Html;
+                            modeLocked = true;
+                            parts.toggleBtn.interactable = true; // allow show/hide for HTML
+                            parts.toggleLabel.text = "Hide HTML Text";
+                            //aiText.richText = false; // keep raw html visible
+                        }
+                        else if (peek.StartsWith("```"))
+                        {
+                            mode = StreamRenderMode.Code;
+                            modeLocked = true;
+                            parts.toggleBtn.interactable = true; // also useful for long code
+                            parts.toggleLabel.text = "Hide Code Text";
+                            //aiText.richText = false;
+                        }
+                        else if (peek.Length > 200)
+                        {
+                            mode = StreamRenderMode.Plain;
+                            modeLocked = true;
+                            // plain answers: we can still let user hide, but default off to avoid confusion
+                            parts.toggleBtn.interactable = false;
+                            aiText.richText = true;
+                        }
+                    }
+
+                    // Update buffer and UI (respect hidden state)
+                    parts.liveBuffer = htmlBuilder.ToString();
                     if (Time.unscaledTime >= nextUiUpdate)
                     {
-                        aiText.text = htmlBuilder.ToString();
+                        if (!parts.htmlHidden) aiText.text = parts.liveBuffer;
                         ScrollToBottom();
                         nextUiUpdate = Time.unscaledTime + uiUpdateInterval;
                     }
@@ -408,12 +532,9 @@ If any data is missing or null, display Data not available in place of the missi
                     break;
                 }
             }
-            catch
-            {
-                // Ignore partial lines until next chunk
-            }
+            catch { /* ignore partial lines */ }
         }
-        
+
         if (done) break;
         yield return null;
     }
@@ -426,32 +547,38 @@ If any data is missing or null, display Data not available in place of the missi
         yield break;
     }
 
-    // Finalize: clean fences, save, open, and leave full HTML in the bubble
+    // Finalize: clean fences, save, and keep full HTML in the bubble buffer
     var html = CleanHtmlFences(htmlBuilder.ToString());
-
-    // If you store history, keep the full content (or swap for a lightweight token if you prefer)
-    // AddToHistory("assistant", html);
     AddToHistory("assistant", html, compressIfLarge: true);
-    CreateHTMLReport(html);
-    aiText.text = html; // ensure bubble shows full final HTML
+    CreateHTMLReportWithData(html, TimeBasedJson, GaitJson);
+
+    parts.liveBuffer = html;
+    if (!parts.htmlHidden) aiText.text = parts.liveBuffer;
     ScrollToBottom();
-    _customDropDown.selectedItems.Clear();
-    _customDropDown.items.ForEach(x=>x.myToggle.isOn = false);
+
+    // Cleanup selection
+    if (_customDropDown != null)
+    {
+        _customDropDown.selectedItems.Clear();
+        _customDropDown.items.ForEach(x => x.myToggle.isOn = false);
+    }
 }
 
 
-
     // ===== Streaming plain text for simple questions =====
-
     IEnumerator StreamChatText(string userText)
     {
-        // UI + history for the user
-        // AppendMessage("You", userText);
-        // user already added to history by caller in some flows; ensure added here
+        // History/user bubble already handled by caller sometimes, ensure we add here:
         AddToHistory("user", userText);
 
         GameObject aiBubble = AppendMessage("AI", "");
         var aiText = aiBubble.transform.GetChild(0).GetComponent<TMP_Text>();
+        aiText.richText = true;
+
+        // Include compact packet if available so answers can reference current dataset
+        string helperContext = string.IsNullOrEmpty(_lastAnalysisPacketJson)
+            ? ""
+            : "\n\nANALYSIS_PACKET (summary of current data):\n" + _lastAnalysisPacketJson;
 
         var payload = new
         {
@@ -459,8 +586,9 @@ If any data is missing or null, display Data not available in place of the missi
             temperature = 0.2f,
             stream = true,
             messages = BuildMessagesWithHistory(
-                $"You are a helpful assistant. In your prompt tell user to open the left drop down, select the captures by tapping on them and I will generate reports and talk with you about those captures. But if there is Readings per frame and or Gait Readings data in the user prompt provide analysis of it like a professional physiotherapist.",
-                userText)
+                "You are a helpful assistant. Suggest: 'Open the left dropdown, select captures, and I will generate reports.' " +
+                "If ANALYSIS_PACKET is present in the user message, provide clinical-grade insights and suggestions like a physiotherapist, in proper detail. Avoid HTML unless asked. Also be a little friendly in your response",
+                userText + helperContext)
         };
 
         var req = new UnityWebRequest(openAIEndpoint, "POST")
@@ -505,13 +633,12 @@ If any data is missing or null, display Data not available in place of the missi
         {
             AppendMessage("AI",
                 "Selected model cannot handle this large amount of data. Please select the Accuracy Model from top left menu to handle large data");
-            Thinking.SetActive(false);
-            // Debug.LogError($"Chat stream error {req.responseCode}: {req.error}");
+            Thinking?.SetActive(false);
         }
 
         // Finalize assistant message into history
         var finalReply = full.ToString();
-        Thinking.SetActive(false);
+        Thinking?.SetActive(false);
         AddToHistory("assistant", finalReply);
     }
 
@@ -538,9 +665,7 @@ If any data is missing or null, display Data not available in place of the missi
             var jo = JObject.Parse(jsonResponse);
             var content = jo["choices"]?[0]?["message"]?["content"]?.ToString();
             if (!string.IsNullOrEmpty(content))
-            {
                 return CleanHtmlFences(content);
-            }
         }
         catch { /* fallback */ }
 
@@ -554,72 +679,56 @@ If any data is missing or null, display Data not available in place of the missi
 
         Debug.LogWarning("OpenAI response parse failed.");
         return "<!doctype html><html><body><p>Failed to parse response.</p></body></html>";
-        }
-
-    // History helpers (with pruning)
-    // --- Add near your other fields ---
-    [SerializeField] private int maxHistoryChars = 16000;                 // hard cap for total history size
-    [SerializeField] private int maxAssistantCharsForHistory = 4000;      // cap a single assistant turn
-    [SerializeField] private bool compressLargeAssistantReplies = true;   // store head+tail for big HTML
-
-    void AddToHistory(string role, string content, bool compressIfLarge = false)
-    {
-        if (string.IsNullOrEmpty(content)) content = "";
-
-        // Optionally compress big assistant replies so we don't send 200KB of HTML next time
-        string toStore = content;
-        if (compressIfLarge && compressLargeAssistantReplies && content.Length > maxAssistantCharsForHistory)
-        {
-            int keep = maxAssistantCharsForHistory / 2;
-            string head = content.Substring(0, keep);
-            string tail = content.Substring(content.Length - keep);
-            toStore =
-                $"[Large assistant reply: {content.Length} chars. Stored head+tail only]\n" +
-                $"---BEGIN HEAD---\n{head}\n---END HEAD---\n" +
-                $"---BEGIN TAIL---\n{tail}\n---END TAIL---";
-        }
-
-        conversationHistory.Add(new Message { role = role, content = toStore });
-        PruneHistory();
     }
 
-    void PruneHistory()
+    // ======== Hybrid output: HTML + data.js (full dataset) ========
+    public void CreateHTMLReportWithData(string html, string readingsJson, string gaitJson)
     {
-        // Keep most recent turns within char budget
-        int total = 0;
-        for (int i = conversationHistory.Count - 1; i >= 0; i--)
+        var folder = Application.persistentDataPath;
+        var htmlPath = Path.Combine(folder, "Report.html");
+        var dataJsPath = Path.Combine(folder, "data.js");
+
+        // Ensure data.js is referenced
+        if (!string.IsNullOrEmpty(html) && !html.Contains("data.js", StringComparison.OrdinalIgnoreCase))
         {
-            total += conversationHistory[i].content?.Length ?? 0;
-            if (total > maxHistoryChars)
-            {
-                // drop everything older than i (inclusive)
-                if (i > 0) conversationHistory.RemoveRange(0, i);
-                break;
-            }
+            int headClose = html.IndexOf("</head>", StringComparison.OrdinalIgnoreCase);
+            string tag = "\n<script src=\"data.js\"></script>\n";
+            if (headClose >= 0) html = html.Insert(headClose, tag);
+            else html += tag;
         }
+
+        // Write data.js with full arrays
+        var safeReadings = string.IsNullOrEmpty(readingsJson) ? "[]" : readingsJson;
+        var safeGait = string.IsNullOrEmpty(gaitJson) ? "[]" : gaitJson;
+        var js = $"window.__READINGS__={safeReadings};\nwindow.__GAIT__={safeGait};\n";
+        File.WriteAllText(dataJsPath, js);
+
+        // Save HTML
+        File.WriteAllText(htmlPath, html);
+
+#if UNITY_EDITOR
+        System.Diagnostics.Process.Start(htmlPath);
+#else
+        // If you use UniWebView, pass baseUrl so relative data.js resolves
+        var webView = gameObject.AddComponent<UniWebView>();
+        webView.Frame = new Rect(0, 0, Screen.width, Screen.height);
+        string baseUrl = "file://" + folder.Replace(" ", "%20") + "/";
+        webView.LoadHTMLString(html, baseUrl);
+        webView.EmbeddedToolbar.Show();
+        webView.Show();
+#endif
+        Debug.Log("HTML Report + data.js saved to: " + folder);
     }
 
-// // Build messages array for the API call (system + rolling history + current user prompt)
-//     List<object> BuildMessages(string systemPrompt)
-//     {
-//         var msgs = new List<object> { new { role = "system", content = systemPrompt } };
-//         foreach (var m in conversationHistory)
-//             msgs.Add(new { role = m.role, content = m.content });
-//         return msgs;
-//     }
-
-
+    // Legacy single-file writer (kept if you still need it elsewhere)
     public void CreateHTMLReport(string reportContent)
     {
         string path = Application.persistentDataPath + "/Reportt.html";
         File.WriteAllText(path, reportContent);
 #if UNITY_EDITOR
         System.Diagnostics.Process.Start(path);
-        Debug.Log("Is Editor");
 #else
         string url = "file://" + path.Replace(" ", "%20");
-        Debug.Log("URL = " + url);
-        Debug.Log("Persistance = " + path);
         GeneralStaticManager.OpenFile(path);
 #endif
         Debug.Log("HTML Report saved at: " + path);
@@ -629,7 +738,6 @@ If any data is missing or null, display Data not available in place of the missi
     {
         if (sender == "You")
         {
-            Debug.Log("send");
             GameObject go = Instantiate(UserText, UserText.transform.parent);
             go.SetActive(true);
             go.GetComponentInChildren<TMP_Text>().text = $"\n<b>{sender}:</b> {message}\n";
@@ -872,18 +980,229 @@ If any data is missing or null, display Data not available in place of the missi
         protected override void CompleteContent() { }
         protected override float GetProgress() => 0f;
     }
+
+    // ===================== Analysis packet (compact stats) =====================
+    [Serializable]
+    private class VarStats
+    {
+        public string name;
+        public int count, missing;
+        public double mean, sd, p5, p50, p95, min, max;
+        public double trendSlopePerSec;
+        public object minAt, maxAt;
+    }
+    [Serializable]
+    private class AnalysisPacket
+    {
+        public int totalRows;
+        public double timeMin, timeMax, duration;
+        public string[] variables;
+        public List<VarStats> stats;
+        public List<Dictionary<string, object>> sampleRows;
+    }
+
+    static IEnumerable<float> GetSeries(List<TimeBasedReadingRequest> rows, System.Reflection.PropertyInfo p)
+    {
+        foreach (var r in rows)
+        {
+            var v = p.GetValue(r) as float?;
+            if (v.HasValue) yield return v.Value;
+        }
+    }
+    static double Mean(IList<double> a) => a.Count == 0 ? double.NaN : a.Average();
+    static double SD(IList<double> a)
+    {
+        if (a.Count < 2) return double.NaN;
+        var m = a.Average();
+        double sum = 0; for (int i = 0; i < a.Count; i++) { var d = a[i] - m; sum += d * d; }
+        return Math.Sqrt(sum / (a.Count - 1));
+    }
+    static double Percentile(IList<double> a, double p)
+    {
+        if (a.Count == 0) return double.NaN;
+        var b = a.OrderBy(x => x).ToList();
+        var pos = (p / 100.0) * (b.Count - 1);
+        var lo = (int)Math.Floor(pos);
+        var hi = (int)Math.Ceiling(pos);
+        if (lo == hi) return b[lo];
+        var frac = pos - lo;
+        return b[lo] + frac * (b[hi] - b[lo]);
+    }
+    static (double slope, double intercept) LinReg(IList<double> x, IList<double> y)
+    {
+        int n = Math.Min(x.Count, y.Count);
+        if (n < 2) return (double.NaN, double.NaN);
+        double sx = 0, sy = 0, sxx = 0, sxy = 0;
+        for (int i = 0; i < n; i++) { sx += x[i]; sy += y[i]; sxx += x[i] * x[i]; sxy += x[i] * y[i]; }
+        var denom = n * sxx - sx * sx; if (Math.Abs(denom) < 1e-9) return (double.NaN, double.NaN);
+        var slope = (n * sxy - sx * sy) / denom;
+        var intercept = (sy - slope * sx) / n;
+        return (slope, intercept);
+    }
+    static List<Dictionary<string, object>> StratifiedSample(List<TimeBasedReadingRequest> rows, int target)
+    {
+        var res = new List<Dictionary<string, object>>();
+        if (rows == null || rows.Count == 0) return res;
+        int n = rows.Count;
+        target = Math.Min(target, n);
+        for (int i = 0; i < target; i++)
+        {
+            int idx = (int)Math.Round(i * (n - 1.0) / Math.Max(1, target - 1));
+            var r = rows[idx];
+            res.Add(new Dictionary<string, object> {
+                ["timeOfReading"] = r.TimeOfReading,
+                ["pelvisAngle"] = r.PelvisAngle,
+                ["varusValgusRight"] = r.VarusValgusRight,
+                ["varusValgusLeft"] = r.VarusValgusLeft,
+                ["hipLeftAbduction"] = r.HipLeftAbduction,
+                ["hipRightAbduction"] = r.HipRightAbduction,
+                ["ankleHipLeftAbductionDifference"] = r.AnkleHipLeftAbductionDifference,
+                ["ankleHipRightAbductionDifference"] = r.AnkleHipRightAbductionDifference
+            });
+        }
+        return res;
+    }
+    string BuildAnalysisPacketJson(List<TimeBasedReadingRequest> rows)
+    {
+        var pkt = new AnalysisPacket { stats = new List<VarStats>(), totalRows = rows?.Count ?? 0 };
+        if (rows == null || rows.Count == 0) return JsonConvert.SerializeObject(pkt);
+
+        var time = rows.Select(r => {
+            double t; return double.TryParse(r.TimeOfReading, out t) ? t : double.NaN;
+        }).ToList();
+        var timeClean = time.Where(x => !double.IsNaN(x)).ToList();
+        pkt.timeMin = timeClean.Count > 0 ? timeClean.Min() : double.NaN;
+        pkt.timeMax = timeClean.Count > 0 ? timeClean.Max() : double.NaN;
+        pkt.duration = (pkt.timeMax - pkt.timeMin);
+
+        var pAll = typeof(TimeBasedReadingRequest)
+            .GetProperties(System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public)
+            .Where(p => p.PropertyType == typeof(float?))
+            .ToList();
+
+        pkt.variables = pAll.Select(p => p.Name).ToArray();
+
+        foreach (var p in pAll)
+        {
+            var seriesF = GetSeries(rows, p).Select(v => (double)v).ToList();
+            int count = seriesF.Count;
+            int missing = rows.Count - count;
+
+            var pairs = rows.Select((r, i) => {
+                double t; var tOk = double.TryParse(r.TimeOfReading, out t);
+                var fv = p.GetValue(r) as float?;
+                return new { ok = tOk && fv.HasValue, t, v = fv.HasValue ? (double)fv.Value : double.NaN };
+            }).Where(x => x.ok).ToList();
+
+            var x = pairs.Select(z => z.t).ToList();
+            var y = pairs.Select(z => z.v).ToList();
+            var (slope, _) = LinReg(x.ToArray(), y.ToArray());
+
+            double min = double.NaN, max = double.NaN; object minAt = null, maxAt = null;
+            if (count > 0)
+            {
+                min = seriesF.Min(); max = seriesF.Max();
+                for (int i = 0; i < rows.Count; i++)
+                {
+                    var fv = p.GetValue(rows[i]) as float?;
+                    if (fv.HasValue && Math.Abs(fv.Value - min) < 1e-6) { minAt = rows[i].TimeOfReading; break; }
+                }
+                for (int i = 0; i < rows.Count; i++)
+                {
+                    var fv = p.GetValue(rows[i]) as float?;
+                    if (fv.HasValue && Math.Abs(fv.Value - max) < 1e-6) { maxAt = rows[i].TimeOfReading; break; }
+                }
+            }
+
+            pkt.stats.Add(new VarStats
+            {
+                name = p.Name,
+                count = count,
+                missing = missing,
+                mean = Mean(seriesF),
+                sd = SD(seriesF),
+                p5 = Percentile(seriesF, 5),
+                p50 = Percentile(seriesF, 50),
+                p95 = Percentile(seriesF, 95),
+                min = min,
+                max = max,
+                minAt = minAt,
+                maxAt = maxAt,
+                trendSlopePerSec = slope
+            });
+        }
+
+        pkt.sampleRows = StratifiedSample(rows, 60);
+        return JsonConvert.SerializeObject(pkt);
+    }
+
+    string BuildReportPrompt(string analysisJson, bool hasGait)
+    {
+        return $@"
+You are a physiotherapist & data-visualization expert.
+
+You are given an ANALYSIS_PACKET (JSON) that summarizes a gait dataset (stats, trends, percentiles, extremes) and includes a small sample of rows. Use it to:
+- Diagnose asymmetries, instability, unusual ranges, fatigue/compensation, etc.
+- Write a clear, clinical-style narrative and practical recommendations (strengthening, neuromuscular control, retraining).
+- Populate metric cards (mean±SD, ranges, percentiles) from ANALYSIS_PACKET numbers (do not invent).
+- Propose and render key charts (Chart.js) and a full table.
+
+IMPORTANT:
+- Do NOT inline large raw data; the page will load full data from window.__READINGS__ {(hasGait ? "and window.__GAIT__" : "")} via data.js.
+- Include <script src=""data.js""></script> in the <head> if missing.
+- Build all charts/tables by reading those globals at runtime.
+- Return a complete, responsive HTML document (no markdown fences).
+
+ANALYSIS_PACKET:
+{analysisJson}
+";
+    }
+
+    // ===== History helpers =====
+    void AddToHistory(string role, string content, bool compressIfLarge = false)
+    {
+        if (string.IsNullOrEmpty(content)) content = "";
+
+        string toStore = content;
+        if (compressIfLarge && compressLargeAssistantReplies && content.Length > maxAssistantCharsForHistory)
+        {
+            int keep = maxAssistantCharsForHistory / 2;
+            string head = content.Substring(0, keep);
+            string tail = content.Substring(content.Length - keep);
+            toStore =
+                $"[Large assistant reply: {content.Length} chars. Stored head+tail only]\n" +
+                $"---BEGIN HEAD---\n{head}\n---END HEAD---\n" +
+                $"---BEGIN TAIL---\n{tail}\n---END TAIL---";
+        }
+
+        conversationHistory.Add(new Message { role = role, content = toStore });
+        PruneHistory();
+    }
+
+    void PruneHistory()
+    {
+        int total = 0;
+        for (int i = conversationHistory.Count - 1; i >= 0; i--)
+        {
+            total += conversationHistory[i].content?.Length ?? 0;
+            if (total > maxHistoryChars)
+            {
+                if (i > 0) conversationHistory.RemoveRange(0, i);
+                break;
+            }
+        }
+    }
+
+    // ===================== Domain notes =====================
+    // public class TimeBasedReadingRequest { public string TimeOfReading; public float? PelvisAngle; public float? VarusValgusRight; ... }
+    // public class GetGaitReportResponse { ... }
+    // public class CustomDropDown { public List<UserReportFromDB> selectedUserReports; public List<DropdownItem> items; public List<DropdownItem> selectedItems; }
+    // public class DropdownItem { public Toggle myToggle; }
+    // public class UserReportFromDB { public List<TimeBasedReadingRequest> timeBasedReadings; public List<GetGaitReportResponse> gaitReports; }
+    // public static class GeneralStaticManager { public static string ToJsonExcludingNulls(object o) { ... } public static string GenerateRandomName(){...} public static string FormatCsvAsTable(string s){...} public static void OpenFile(string path){...}}
+    // public static class APIHandler { public static APIHandler instance; public void Post(string route, string json, Action<string> onSuccess, Action<string> onError, bool auth){} }
+    // public static class CSVManager { public static void Export(string path){} }
+    // public class UniWebView : MonoBehaviour { public Rect Frame; public void Load(string url){} public void Show(){} public void LoadHTMLString(string html, string baseUrl){} public UniWebViewToolbar EmbeddedToolbar => new UniWebViewToolbar(); public Color BackgroundColor{get;set;} public void SetOpenLinksInExternalBrowser(bool v){} public event Func<UniWebView, bool> OnShouldClose; }
+    // public class UniWebViewToolbar { public void Show(){} }
+    // public static class UniClipboard { public static void SetText(string s){} }
 }
-
-// NOTE: Domain classes referenced in your project; not defined here to avoid conflicts.
-// public class TimeBasedReadingRequest { ... }
-// public class GetGaitReportResponse { ... }
-// public class CustomDropDown { public List<UserReportFromDB> selectedUserReports; }
-// public class UserReportFromDB { public List<TimeBasedReadingRequest> timeBasedReadings; public List<GetGaitReportResponse> gaitReports; }
-// public static class GeneralStaticManager { ... }
-// public static class APIHandler { ... }
-// public static class CSVManager { ... }
-// public class UniWebView : MonoBehaviour { ... }
-// public static class UniClipboard { public static void SetText(string s) {} }
-
-// ================= Heuristics for routing =================
-

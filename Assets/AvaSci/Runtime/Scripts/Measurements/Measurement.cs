@@ -170,6 +170,10 @@ namespace LightBuzz.AvaSci.Measurements
                     return new StepLeftAngle();
                 case MeasurementType.StepRightAngle:
                     return new StepRightAngle();
+                case MeasurementType.HipLeftRotation:
+                    return new HipLeftRotation();
+                case MeasurementType.HipRightRotation:
+                    return new HipRightRotation();
                 default:
                     throw new NotImplementedException(
                         $"The {type} measurement is not implemented!"

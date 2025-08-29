@@ -102,5 +102,7 @@ namespace LightBuzz.AvaSci.Measurements
         StepWidthLeft,
         VarusValgusLeftAngleDistance,
         VarusValgusRightAngleDistance,
+        HipLeftRotation,
+        HipRightRotation,
     }
 }
