@@ -2,15 +2,15 @@ using LightBuzz.BodyTracking;
 
 namespace LightBuzz.AvaSci.Measurements
 {
-    public class PelvisAngle : Measurement
+    public class WaistAngle : Measurement
     {
-        public PelvisAngle()
+        public WaistAngle()
         {
-            Type = MeasurementType.PelvisAngle;
-
+            Type = MeasurementType.WaistAngle;
+            
             KeyJoint1 = JointType.Waist;
             KeyJoint2 = JointType.Pelvis;
-            KeyJoint3 = JointType.Pelvis;
+            KeyJoint3 = JointType.Waist;
         }
 
         public override void Update(Body body)
@@ -24,24 +24,19 @@ namespace LightBuzz.AvaSci.Measurements
                 return; // Prevent further execution
             }
             Joint waist = body.Joints[KeyJoint1];
-            Joint pelvis = body.Joints[KeyJoint3];
+            Joint pelvis = body.Joints[KeyJoint2];
 
-            Vector3D waist3D = waist.Position3D;
+            Vector3D Xiphoid3D = waist.Position3D;
             Vector3D pelvis3D = pelvis.Position3D;
 
-            float angle = Calculations.Rotation(pelvis3D, waist3D, ReferenceManager.instance.PelvisRotationPlane);
+            float angle = Calculations.Rotation(pelvis3D, pelvis3D, ReferenceManager.instance.WaistRotationPlane);
 
-            if (waist3D.X > pelvis3D.X) angle = -angle;
+            if (pelvis3D.Y > pelvis3D.Y) angle = -angle;
 
-            _value = angle * 1.52f;
+            _value = angle;
             _angleStart = waist.Position2D;
-            _angleCenter = pelvis.Position2D;
-            _angleEnd = new Vector2D(pelvis.Position2D.X, waist.Position2D.Y);
-
-            
-            ResearchMeasurementManager.instance.pelvisAngleValue = _value;
-        
-        
+            _angleCenter = waist.Position2D;
+            _angleEnd = new Vector2D(waist.Position2D.X, pelvis.Position2D.Y);
         }
     }
 }

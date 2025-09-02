@@ -104,5 +104,8 @@ namespace LightBuzz.AvaSci.Measurements
         VarusValgusRightAngleDistance,
         HipLeftRotation,
         HipRightRotation,
+        ChestAngle,
+        XiphoidAngle,
+        WaistAngle,
     }
 }

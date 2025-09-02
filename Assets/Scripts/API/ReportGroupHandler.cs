@@ -63,6 +63,7 @@ public class ReportGroupHandler : MonoBehaviour
             GLG.spacing = new Vector2(20, 20);
             GLG.childAlignment = TextAnchor.UpperCenter;
             GLG.padding.top = 10;
+            DropDownItems.ForEach(x=>x.gameObject.SetActive(false));
             ReferenceManager.instance.reportSectionManager.SearchReportInputField.gameObject.SetActive(false);
             ReferenceManager.instance.reportSectionManager.SortByDropdown.gameObject.SetActive(false);
         }
@@ -150,6 +151,7 @@ public class ReportGroupHandler : MonoBehaviour
             backButton.onClick.AddListener(GoBack);
             ReferenceManager.instance.reportSectionManager.SearchReportInputField.gameObject.SetActive(false);
             ReferenceManager.instance.reportSectionManager.SortByDropdown.gameObject.SetActive(false);
+            DropDownItems.Where(x=>x.mySubGroup.Contains(selectedSubgroup)).ToList().ForEach(x=>x.gameObject.SetActive(false));
         });
         
     }

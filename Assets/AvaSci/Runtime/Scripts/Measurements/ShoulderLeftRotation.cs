@@ -41,7 +41,7 @@ namespace LightBuzz.AvaSci.Measurements
 
             _value = angle;
             _angleStart = shoulder.Position2D;
-            _angleCenter = elbow.Position2D;
+            _angleCenter = shoulder.Position2D;
             _angleEnd = new Vector2D(shoulder.Position2D.X, elbow.Position2D.Y);
         }
     }

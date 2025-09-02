@@ -174,6 +174,12 @@ namespace LightBuzz.AvaSci.Measurements
                     return new HipLeftRotation();
                 case MeasurementType.HipRightRotation:
                     return new HipRightRotation();
+                case MeasurementType.ChestAngle:
+                    return new ChestAngle();
+                case MeasurementType.WaistAngle:
+                    return new WaistAngle();
+                case MeasurementType.XiphoidAngle:
+                    return new XiphoidAngle();
                 default:
                     throw new NotImplementedException(
                         $"The {type} measurement is not implemented!"

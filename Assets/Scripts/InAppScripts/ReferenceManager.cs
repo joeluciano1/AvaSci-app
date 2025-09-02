@@ -18,6 +18,7 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
 using Whisper.Samples;
+using Plane = LightBuzz.BodyTracking.Plane;
 
 public class ReferenceManager : MonoBehaviour
 {
@@ -153,6 +154,10 @@ public class ReferenceManager : MonoBehaviour
     public LightBuzzViewer lightBuzzViewer;
     public List<GameObject> SkeletonHidingPanels = new List<GameObject>();
     public ChatGPTHandler chatGPTHandler;
+    public Plane ChestRotationPlane = Plane.Coronal;
+    public Plane XiphoidRotationPlane = Plane.Coronal;
+    public Plane WaistRotationPlane = Plane.Coronal;
+    public Plane PelvisRotationPlane = Plane.Coronal;
     public void SetDepthMode(bool value)
     {
         if (value)
@@ -678,5 +683,25 @@ public class ReferenceManager : MonoBehaviour
                 await Task.Delay(10);
             }
         }
+    }
+
+    public void ChangeChestPlane(int value)
+    {
+        ChestRotationPlane = (Plane)value;
+    }
+
+    public void ChangeXiphoidPlane(int value)
+    {
+        XiphoidRotationPlane = (Plane)value;
+    }
+
+    public void ChangePelvisPlane(int value)
+    {
+        PelvisRotationPlane = (Plane)value;
+    }
+
+    public void ChangeWaistPlane(int value)
+    {
+        WaistRotationPlane = (Plane)value;
     }
 }
