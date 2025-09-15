@@ -17,6 +17,18 @@ using UnityEngine;
 public class GaitPDFGenerator : MonoBehaviour
 {
     HeelPressDetectionBody previousHeelPressDetectionBody;
+
+    public void AskWhichPDFToGenerate()
+    {
+        ReferenceManager.instance.PopupManager.Show("Choose a PDF to generate","Please select one type of pdf report you want to generate","Summary Report",okPressed:
+            () =>
+            {
+                GeneratePDF();
+            },"Gait Report",noPressed: () =>
+            {
+                ReferenceManager.instance.ButtonHandler.CaptureRectTransform();
+            });
+    }
     public async void GeneratePDF()
     {
         previousHeelPressDetectionBody = null;
@@ -47,7 +59,7 @@ public class GaitPDFGenerator : MonoBehaviour
         table.Columns.Add("Leg in Question");
         //Include rows to the DataTable
         
-        StandingDetectionBody item1 = ReferenceManager.instance.standingDetectionBodies[1];
+        StandingDetectionBody item1 = ReferenceManager.instance.standingDetectionBodies.Count>0? ReferenceManager.instance.standingDetectionBodies[1]: null;
         // TimeSpan initialTime =new TimeSpan();
         if(item1 != null)
         {

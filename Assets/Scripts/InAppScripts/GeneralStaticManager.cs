@@ -346,4 +346,158 @@ public static async Task<string> ConvertCsvStringToJson(string csvString)
 
         return JsonConvert.SerializeObject(obj, settings);
     }
+    
+    public static string ExportDenormalized(List<UserReportData> users)
+    {
+        var sb = new StringBuilder();
+
+        // ===== HEADER =====
+        sb.AppendLine(string.Join(",", new[]
+        {
+            // UserReportData (parent)
+            "User_Id","User_UserID","User_UserName","User_VideoURL","User_ReportURL",
+            "User_CreatedOn","User_ReportDescription","User_GroupName","User_SubGroupName",
+            "User_SubjectId","User_HasHtmlReports","User_JointReadingsJson",
+
+            // Key used to align (nullable)
+            "ReportsRecordId",
+
+            // Gait (child)
+            "G_CreatedBy","G_Subject","G_SubjectStandingAtTime","G_FootStrikeAtTime","G_HeelPassingAtTime",
+            "G_AngleDifferenceAtTime","G_MMDistaceAtTime","G_MaxAngleDifference","G_MaxmmDistance",
+            "G_HipAbductionAtTime","G_PelvisAngleAtTime","G_AnkleAbductionAtTime","G_VarusValgusAtTime",
+            "G_SelectedLeg","G_VideoName",
+
+            // Time-based reading (child)
+            "T_UserName","T_TimeOfReading","T_KneeLeftAbduction","T_KneeRightAbduction","T_PelvisAngle",
+            "T_AnkleHipLeftAbductionDifference","T_AnkleHipRightAbductionDifference",
+            "T_HipKneeRightDistance","T_HipKneeLeftDistance","T_NeckLateralFlexion","T_NeckRotation",
+            "T_ElbowLeftFlexion","T_ElbowRightFlexion","T_ShoulderLeftAbduction","T_ShoulderLeftRotation",
+            "T_ShoulderRightAbduction","T_ShoulderRightRotation","T_ShoulderLeftFlexion","T_ShoulderRightFlexion",
+            "T_HipLeftAbduction","T_HipLeftFlexion","T_HipRightAbduction","T_HipRightFlexion",
+            "T_KneeLeftFlexion","T_KneeRightFlexion","T_AnkleLeftAbduction","T_AnkleRightAbduction",
+            "T_VarusValgusRight","T_VarusValgusLeft","T_StepLength","T_StepLeftAngle","T_StepRightAngle",
+            "T_VideoName","T_CreatedOnISO","T_AnkleRight3DZ","T_AnkleLeft3DZ","T_HeelLeft3DZ","T_HeelRight3DZ",
+            "T_AnkleRightConfidence","T_AnkleLeftConfidence"
+        }));
+
+        foreach (var u in users ?? Enumerable.Empty<UserReportData>())
+        {
+            // Group children by ReportsRecordId (nullable long => key can be null)
+            var gaitByKey = (u.GaitReports ?? new List<GetGaitReportResponse>())
+                .GroupBy(x => x.ReportsRecordId)
+                .ToDictionary(g => g.Key, g => g.ToList());
+
+            var timeByKey = (u.TimeBasedReadings ?? new List<TimeBasedReadingRequest>())
+                .GroupBy(x => x.ReportsRecordId)
+                .ToDictionary(g => g.Key, g => g.ToList());
+
+            // All keys present in either side
+            var allKeys = new HashSet<long?>(gaitByKey.Keys);
+            foreach (var k in timeByKey.Keys) allKeys.Add(k);
+
+            // If both sides empty, still emit one parent-only row
+            if (allKeys.Count == 0)
+            {
+                WriteRow(sb, u, reportsRecordId: null, g: null, t: null);
+                continue;
+            }
+
+            foreach (var key in allKeys)
+            {
+                var gList = gaitByKey.TryGetValue(key, out var gv) ? gv : new List<GetGaitReportResponse>();
+                var tList = timeByKey.TryGetValue(key, out var tv) ? tv : new List<TimeBasedReadingRequest>();
+
+                // Ensure at least one iteration even if one side is empty
+                if (gList.Count == 0 && tList.Count == 0)
+                {
+                    WriteRow(sb, u, key, null, null);
+                }
+                else if (gList.Count == 0)
+                {
+                    foreach (var t in tList) WriteRow(sb, u, key, null, t);
+                }
+                else if (tList.Count == 0)
+                {
+                    foreach (var g in gList) WriteRow(sb, u, key, g, null);
+                }
+                else
+                {
+                    // If multiple on both sides for the same key, emit all combinations
+                    foreach (var g in gList)
+                        foreach (var t in tList)
+                            WriteRow(sb, u, key, g, t);
+                }
+            }
+        }
+
+        return sb.ToString();
+    }
+
+    public static void SaveToFile(string csv, string filePath) =>
+        File.WriteAllText(filePath, csv ?? "", Encoding.UTF8);
+
+    // ----- helpers -----
+
+    private static void WriteRow(
+        StringBuilder sb,
+        UserReportData u,
+        long? reportsRecordId,
+        GetGaitReportResponse g,
+        TimeBasedReadingRequest t)
+    {
+        // Serialize JointReadings to JSON (safe for CSV cell)
+        string jointJson = (u.JointReadings != null && u.JointReadings.Count > 0)
+            ? JsonConvert.SerializeObject(u.JointReadings)
+            : "";
+
+        var cells = new List<string>
+        {
+            // User
+            Csv(u.Id), Csv(u.UserID), Csv(u.UserName), Csv(u.VideoURL), Csv(u.ReportURL),
+            Csv(u.CreatedOn), Csv(u.ReportDescription), Csv(u.GroupName), Csv(u.SubGroupName),
+            Csv(u.SubjectId), Csv(u.HasHtmlReports), Csv(jointJson),
+
+            // Key
+            Csv(reportsRecordId),
+
+            // Gait
+            Csv(g?.CreatedBy), Csv(g?.Subject), Csv(g?.SubjectStandingAtTime),
+            Csv(g?.FootStrikeAtTime), Csv(g?.HeelPassingAtTime),
+            Csv(g?.AngleDifferenceAtTime), Csv(g?.MMDistaceAtTime),
+            Csv(g?.MaxAngleDifference), Csv(g?.MaxmmDistance),
+            Csv(g?.HipAbductionAtTime), Csv(g?.PelvisAngleAtTime),
+            Csv(g?.AnkleAbductionAtTime), Csv(g?.VarusValgusAtTime),
+            Csv(g?.SelectedLeg), Csv(g?.VideoName),
+
+            // Time-based
+            Csv(t?.UserName), Csv(t?.TimeOfReading), Csv(t?.KneeLeftAbduction), Csv(t?.KneeRightAbduction),
+            Csv(t?.PelvisAngle), Csv(t?.AnkleHipLeftAbductionDifference), Csv(t?.AnkleHipRightAbductionDifference),
+            Csv(t?.HipKneeRightDistance), Csv(t?.HipKneeLeftDistance), Csv(t?.NeckLateralFlexion), Csv(t?.NeckRotation),
+            Csv(t?.ElbowLeftFlexion), Csv(t?.ElbowRightFlexion), Csv(t?.ShoulderLeftAbduction), Csv(t?.ShoulderLeftRotation),
+            Csv(t?.ShoulderRightAbduction), Csv(t?.ShoulderRightRotation), Csv(t?.ShoulderLeftFlexion), Csv(t?.ShoulderRightFlexion),
+            Csv(t?.HipLeftAbduction), Csv(t?.HipLeftFlexion), Csv(t?.HipRightAbduction), Csv(t?.HipRightFlexion),
+            Csv(t?.KneeLeftFlexion), Csv(t?.KneeRightFlexion), Csv(t?.AnkleLeftAbduction), Csv(t?.AnkleRightAbduction),
+            Csv(t?.VarusValgusRight), Csv(t?.VarusValgusLeft), Csv(t?.StepLength), Csv(t?.StepLeftAngle), Csv(t?.StepRightAngle),
+            Csv(t?.VideoName),
+            Csv(t?.CreatedOn.ToString("o")), // ISO 8601
+            Csv(t?.AnkleRight3DZ), Csv(t?.AnkleLeft3DZ), Csv(t?.HeelLeft3DZ), Csv(t?.HeelRight3DZ),
+            Csv(t?.AnkleRightConfidence), Csv(t?.AnkleLeftConfidence)
+        };
+
+        sb.AppendLine(string.Join(",", cells));
+    }
+
+    private static string Csv(string s)
+    {
+        if (string.IsNullOrEmpty(s)) return "";
+        // Escape quotes/commas/newlines
+        return "\"" + s.Replace("\"", "\"\"") + "\"";
+    }
+
+    private static string Csv(bool b) => b ? "true" : "false";
+
+    private static string Csv(long? n) => n.HasValue ? n.Value.ToString() : "";
+
+    private static string Csv(float? f) => f.HasValue ? f.Value.ToString(System.Globalization.CultureInfo.InvariantCulture) : "";
 }

@@ -22,6 +22,8 @@ using UnityEngine.UI;
 
 public class UserReportController : MonoBehaviour
 {
+    public UserReportResponse userReportResponse;
+    public string reportJson;
     public UserReportFromDB userReportFromDBPrefab;
     [HideInInspector]public List<UserReportFromDB> userReportFromDBs = new List<UserReportFromDB>();
     public ReportGroupHandler reportGroupHandlerPrefab;
@@ -67,21 +69,28 @@ public class UserReportController : MonoBehaviour
     public bool isSilentReportFetch;
 
     public string CurrentSelectedSubGroup;
+    public bool webGLBuild;
     // Start is called before the first frame update
     public void Start()
     {
         if (!hasSpokenWelcomeNote)
         {
             hasSpokenWelcomeNote = true;
-            ReferenceManager.instance.TTSTutorialHandler.NextLine(
+            ReferenceManager.instance?.TTSTutorialHandler?.NextLine(
                 "Hello welcome to AvaSci research project app. Getting reports from our server. This might take a little while.");
         }
 
-       
-        GetReportsBody getReportsBody = new GetReportsBody()
+
+        GetReportsBody getReportsBody = new GetReportsBody();
+        
+        if (webGLBuild)
         {
-            UserID = GeneralStaticManager.GlobalVar["UserID"]
-        };
+            getReportsBody.UserID = "ebbf7721-1444-486a-ac16-1310f3813cb9";
+        }
+        else
+        {
+            getReportsBody.UserID = GeneralStaticManager.GlobalVar["UserID"];
+        }
         string json = JsonConvert.SerializeObject(getReportsBody);
         itemToSnapTo = null;
         APIHandler.instance.Post(
@@ -90,9 +99,9 @@ public class UserReportController : MonoBehaviour
             onSuccess: (response) =>
             {
                 isSilentReportFetch = false;
-                UserReportResponse userReportResponse =
+                userReportResponse =
                     JsonConvert.DeserializeObject<UserReportResponse>(response);
-                     
+                reportJson = response;
                 if (userReportResponse.isSuccess)
                 {
                     foreach (var item in userReportResponse.result)
@@ -473,7 +482,7 @@ public class UserReportController : MonoBehaviour
                     if (!hasSpokenAboutReports)
                     {
                         hasSpokenAboutReports = true;
-                        ReferenceManager.instance.TTSTutorialHandler.NextLine("You can now see in the top of the screen which section you are currently in. Right now we are in the reports section. In the middle of the screen there is scroll view of groups. Which contain reports and recordings related to the group's category. You can click on any of them to go in the next section");
+                        ReferenceManager.instance?.TTSTutorialHandler?.NextLine("You can now see in the top of the screen which section you are currently in. Right now we are in the reports section. In the middle of the screen there is scroll view of groups. Which contain reports and recordings related to the group's category. You can click on any of them to go in the next section");
                     }
                 }
                 if (userReportResponse.isError)

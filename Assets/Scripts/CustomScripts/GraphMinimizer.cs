@@ -10,7 +10,7 @@ public class GraphMinimizer : MonoBehaviour
 
     Image imageComponent;
     public Sprite maxSprite;
-
+    public ScrollRect scrollRect;
     // Start is called before the first frame update
 
     private void Start()
@@ -24,13 +24,20 @@ public class GraphMinimizer : MonoBehaviour
         {
             GraphToResize.transform.localScale = Vector3.one;
             imageComponent.color = Color.grey;
-            GraphToResize.DOPreferredSize(new Vector2(0, 375), StringConstants.ANIMATIONTIME);
+            GraphToResize.DOPreferredSize(new Vector2(0, 375), StringConstants.ANIMATIONTIME).OnComplete(() =>
+            {
+                LayoutRebuilder.ForceRebuildLayoutImmediate(scrollRect.content);
+                scrollRect.content.offsetMin = Vector2.zero;
+                scrollRect.content.offsetMax = Vector2.zero;
+            });
+            
         }
         else
         {
             GraphToResize.transform.localScale = Vector3.zero;
             GraphToResize.DOPreferredSize(new Vector2(0, 0), StringConstants.ANIMATIONTIME);
             imageComponent.color = Color.white;
+            // LayoutRebuilder.ForceRebuildLayoutImmediate(scrollRect.content);
         }
     }
 }

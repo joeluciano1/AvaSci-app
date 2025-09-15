@@ -11,14 +11,15 @@ public class CustomDropDown : MonoBehaviour
    public bool generated;
    public List<CustomDropDownItem> items = new List<CustomDropDownItem>();
    public List<CustomDropDownItem> selectedItems = new List<CustomDropDownItem>();
-   private void Awake()
+   private void OnEnable()
    {
-      if (generated)
-      {
-         return;
-      }
       foreach (var userReportFromDB in ReferenceManager.instance.userReportController.userReportFromDBs)
       {
+         var alreadyPresent = items.FirstOrDefault(x=>x.text.text.Equals($"{userReportFromDB.UserNamefromDB.text}\n{userReportFromDB.ReportDescription.text}")&&x.myUserReport.Equals(userReportFromDB));
+         if (alreadyPresent != null)
+         {
+            continue;
+         }
          if (userReportFromDB.timeBasedReadings!=null && userReportFromDB.timeBasedReadings.Count>0  && userReportFromDB.gaitReports!=null && userReportFromDB.gaitReports.Count >0)
          {
             if(GeneralStaticManager.AreAllNullablePropertiesNull(userReportFromDB.timeBasedReadings[3]) && GeneralStaticManager.AreAllNullablePropertiesNull(userReportFromDB.gaitReports[3])){

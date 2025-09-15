@@ -26,12 +26,12 @@ namespace LightBuzz.AvaSci.Measurements
             Joint waist = body.Joints[KeyJoint1];
             Joint pelvis = body.Joints[KeyJoint2];
 
-            Vector3D Xiphoid3D = waist.Position3D;
+            Vector3D waist3D = waist.Position3D;
             Vector3D pelvis3D = pelvis.Position3D;
 
-            float angle = Calculations.Rotation(pelvis3D, pelvis3D, ReferenceManager.instance.WaistRotationPlane);
+            float angle = Calculations.Rotation(waist3D, pelvis3D, ReferenceManager.instance.WaistRotationPlane);
 
-            if (pelvis3D.Y > pelvis3D.Y) angle = -angle;
+            if (pelvis3D.Y > waist3D.Y) angle = -angle;
 
             _value = angle;
             _angleStart = waist.Position2D;

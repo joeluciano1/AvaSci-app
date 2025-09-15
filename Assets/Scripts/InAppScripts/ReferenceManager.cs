@@ -158,6 +158,7 @@ public class ReferenceManager : MonoBehaviour
     public Plane XiphoidRotationPlane = Plane.Coronal;
     public Plane WaistRotationPlane = Plane.Coronal;
     public Plane PelvisRotationPlane = Plane.Coronal;
+    
     public void SetDepthMode(bool value)
     {
         if (value)
@@ -176,6 +177,10 @@ public class ReferenceManager : MonoBehaviour
     private void Awake()
     {
         instance = this;
+        if (userReportController.webGLBuild)
+        {
+            return;
+        }
         AppVersion.text = isProduction ? "" : $"version:{Application.version}";
         if (isProduction)
         {
@@ -466,6 +471,10 @@ public class ReferenceManager : MonoBehaviour
 
     private void LateUpdate()
     {
+        if (userReportController.webGLBuild)
+        {
+            return;
+        }
         if (videoPlayerView.gameObject.activeSelf)
             TimeElapsedLightBuzz.text = videoPlayerView.VideoPlayer.TimeElapsed.ToString(
                 @"mm\:ss\:fff"

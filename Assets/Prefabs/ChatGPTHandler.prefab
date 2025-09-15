@@ -1,0 +1,78 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &5085588090114668534
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6646250729093168654}
+  - component: {fileID: 8688624391171926906}
+  m_Layer: 0
+  m_Name: ChatGPTHandler
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &6646250729093168654
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5085588090114668534}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &8688624391171926906
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5085588090114668534}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8c48d9d80fc3f4003a47527c8ee0c621, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  apiKey: 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
+  openAIEndpoint: https://api.openai.com/v1/chat/completions
+  useStreaming: 1
+  chatModel: gpt-4o-mini
+  ReportsDropdown: {fileID: 0}
+  _customDropDown: {fileID: 0}
+  userInputField: {fileID: 0}
+  GPTText: {fileID: 0}
+  UserText: {fileID: 0}
+  sendButton: {fileID: 0}
+  scrollRect: {fileID: 0}
+  Thinking: {fileID: 0}
+  chatBotAPIKey: 489a862514db16cd7c72247df527e7c30fcb6ba03b070e4ff34f934a1f49747d
+  maxHistoryMessages: 24
+  maxHistoryChars: 16000
+  maxAssistantCharsForHistory: 4000
+  compressLargeAssistantReplies: 1
+  showStreamingHtmlInChat: 0
+  streamPreviewChars: 1200
+  renderHtmlWithWebView: 1
+  webViewMinSize: {x: 300, y: 200}
+  webView: {fileID: 0}
+  juliusUrl: https://julius.ai/chat
+  clickUploadButtonFirst: 1
+  initialDelayMs: 400
+  attachRetries: 4
+  retryDelayMs: 400
+  maxJsonCharsPerFile: 4000000
+  baseFileName: UserReports
+  enablePasteFallback: 1
+  pasteChunkChars: 50000
+  pasteInterChunkDelay: 0.25

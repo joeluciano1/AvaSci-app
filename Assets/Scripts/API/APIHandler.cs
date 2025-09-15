@@ -18,7 +18,7 @@ public class APIHandler : MonoBehaviour
 
     public void Get(string endpoint, System.Action<string> onSuccess, System.Action<string> onError)
     {
-        ReferenceManager.instance.LoadingManager.Show($"Working on <b>{endpoint.Split('/')[1]}</b> in the backend");
+        ReferenceManager.instance?.LoadingManager.Show($"Working on <b>{endpoint.Split('/')[1]}</b> in the backend");
         StartCoroutine(GetRequest($"{StringConstants.BASEENDPOINT}/{endpoint}", onSuccess, onError));
     }
 
@@ -30,9 +30,14 @@ public class APIHandler : MonoBehaviour
             www.SendWebRequest();
             while (!www.isDone)
             {
-                ReferenceManager.instance.LoadingManager.DownloadedBytes.text = Math.Round(www.downloadProgress) * 100 + "%";
-                if(ReferenceManager.instance.LoadingManager.LoadingImage.fillAmount < www.downloadProgress)
-                    ReferenceManager.instance.LoadingManager.LoadingImage.DOFillAmount(www.downloadProgress,0.5f);
+                if (ReferenceManager.instance != null)
+                {
+                    ReferenceManager.instance.LoadingManager.DownloadedBytes.text =
+                        Math.Round(www.downloadProgress) * 100 + "%";
+                    if (ReferenceManager.instance?.LoadingManager.LoadingImage.fillAmount < www.downloadProgress)
+                        ReferenceManager.instance.LoadingManager.LoadingImage.DOFillAmount(www.downloadProgress, 0.5f);
+                }
+
                 yield return null;
             }
             if (www.result == UnityWebRequest.Result.ConnectionError || www.result == UnityWebRequest.Result.ProtocolError)
@@ -43,14 +48,14 @@ public class APIHandler : MonoBehaviour
             {
                 onSuccess?.Invoke(www.downloadHandler.text);
             }
-            ReferenceManager.instance.LoadingManager.Hide();
+            ReferenceManager.instance?.LoadingManager.Hide();
         }
     }
 
     public void Post(string endpoint, string json, System.Action<string> onSuccess, System.Action<string> onError, bool isSilent = false)
     {
         if(!isSilent) 
-            ReferenceManager.instance.LoadingManager.Show($"Working on <b>{endpoint.Split('/')[1]}</b> in the backend");
+            ReferenceManager.instance?.LoadingManager.Show($"Working on <b>{endpoint.Split('/')[1]}</b> in the backend");
         StartCoroutine(PostRequest($"{StringConstants.BASEENDPOINT}/{endpoint}", json, onSuccess, onError, isSilent));
     }
 
@@ -71,10 +76,14 @@ public class APIHandler : MonoBehaviour
             }
             else if (!isSilent)
             {
-                ReferenceManager.instance.LoadingManager.DownloadedBytes.text =
-                    Math.Round(request.downloadProgress) * 100 + "%";
-                if (ReferenceManager.instance.LoadingManager.LoadingImage.fillAmount < request.downloadProgress)
-                    ReferenceManager.instance.LoadingManager.LoadingImage.DOFillAmount(request.downloadProgress, 0.5f);
+                if (ReferenceManager.instance != null)
+                {
+                    ReferenceManager.instance.LoadingManager.DownloadedBytes.text =
+                        Math.Round(request.downloadProgress) * 100 + "%";
+                    if (ReferenceManager.instance.LoadingManager.LoadingImage.fillAmount < request.downloadProgress)
+                        ReferenceManager.instance.LoadingManager.LoadingImage.DOFillAmount(request.downloadProgress,
+                            0.5f);
+                }
             }
 
             yield return null;
