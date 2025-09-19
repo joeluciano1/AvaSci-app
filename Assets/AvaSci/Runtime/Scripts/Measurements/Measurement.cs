@@ -180,6 +180,10 @@ namespace LightBuzz.AvaSci.Measurements
                     return new WaistAngle();
                 case MeasurementType.XiphoidAngle:
                     return new XiphoidAngle();
+                case MeasurementType.FootLeftAdduction:
+                    return new FootLeftAdduction();
+                case MeasurementType.FootRightAdduction:
+                    return new FootRightAdduction();
                 default:
                     throw new NotImplementedException(
                         $"The {type} measurement is not implemented!"

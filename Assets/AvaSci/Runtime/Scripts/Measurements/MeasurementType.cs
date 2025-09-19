@@ -107,5 +107,7 @@ namespace LightBuzz.AvaSci.Measurements
         ChestAngle,
         XiphoidAngle,
         WaistAngle,
+        FootLeftAdduction,
+        FootRightAdduction
     }
 }

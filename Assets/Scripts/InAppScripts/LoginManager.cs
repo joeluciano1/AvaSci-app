@@ -408,11 +408,16 @@ public class LoginManager : MonoBehaviour
                   }
                   if (isSubscriptionEnded)
                   {
-                      ReferenceManager.instance.PopupManager.Show("Signin Failed!", $"Your Trial has Ended and you need to subscribe",yesButtonName:"Ok", okPressed: () => { ReferenceManager.instance.IAPPAnel.SetActive(true); });
+                      ReferenceManager.instance.PopupManager.Show("Signin Failed!", $"Your Trial has Ended and you need to subscribe",yesButtonName:"Ok", okPressed: () => { ReferenceManager.instance.IAPPAnel.SetActive(true); }, noButtonName:"No", noPressed:
+                          () =>
+                          {
+                              ReferenceManager.instance.SigninPanel.SetActive(true);
+                          });
                   }
                   else
                   {
                       ReferenceManager.instance.PopupManager.Show("Signin Failed!", $"Reasons are: {reasons}");
+                      ReferenceManager.instance.SigninPanel.SetActive(true);
                   }
                   Debug.Log($"{signinResponse.serviceErrors}");
               }
