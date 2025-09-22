@@ -1,3 +1,4 @@
+using System;
 using LightBuzz.BodyTracking;
 
 namespace LightBuzz.AvaSci.Measurements
@@ -54,7 +55,14 @@ namespace LightBuzz.AvaSci.Measurements
             float angleDeg = Calculations.Angle(ankle.Position3D, midHip, toe.Position3D);
 
             // Sign: for the RIGHT foot, inward (toward midline) means toe X moves LEFT wrt ankle.
-            float sign = (toe.Position3D.X < ankle.Position3D.X) ? 1f : -1f;
+            float dx = toe.Position3D.X - ankle.Position3D.X;
+            float sign;
+
+// Midline is approximately between hips
+            float midX = (hipL.Position3D.X + hipR.Position3D.X) * 0.5f;
+
+// If foot moves away from midline → positive
+            sign = MathF.Sign(dx * (ankle.Position3D.X - midX));
 
             _value = angleDeg * sign;
 

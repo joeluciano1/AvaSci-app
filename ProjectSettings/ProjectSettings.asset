@@ -996,11 +996,11 @@ PlayerSettings:
   captureStartupLogs: {}
   activeInputHandler: 0
   windowsGamepadBackendHint: 0
-  cloudProjectId: b3f91210-4c92-42b2-ae0a-7ae109971410
+  cloudProjectId: 172c24c3-bfa1-499a-b9e9-bf55eefd5c97
   framebufferDepthMemorylessMode: 0
   qualitySettingsNames: []
-  projectName: AvaSci (1)
-  organizationId: unity_jux9hxe5xug2pa
+  projectName: My project 3D sample
+  organizationId: joeluciano
   cloudEnabled: 0
   legacyClampBlendShapeWeights: 0
   hmiLoadingImage: {fileID: 0}
