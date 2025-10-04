@@ -27,6 +27,8 @@ public class ReportSectionManager : MonoBehaviour
     public TMP_InputField SearchReportInputField;
 
     public TMP_Dropdown SortByDropdown;
+
+    public TMP_Text HeadingText;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -40,9 +42,9 @@ public class ReportSectionManager : MonoBehaviour
     }
 
     // Update is called once per frame
-    void Update()
+    public void ChangeHeadingText(string newHeadingText)
     {
-        
+        HeadingText.text = newHeadingText;
     }
     public void OpenClinic()
     {

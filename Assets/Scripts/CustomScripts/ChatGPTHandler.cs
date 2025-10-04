@@ -962,70 +962,112 @@ Chart rules:
     {
         var json = JsonConvert.SerializeObject(_customDropDown.selectedUserReports.Select(x=>x.mydata).ToList());
     }
-    private IEnumerator AttachFlow()
+   private IEnumerator AttachFlow()
+{
+    // Julius likes CSV: build them from current selection
+    _customDropDown.selectedUserReports.ForEach(x=>x.mydata.JointReadings = null); // keep your memory trimming if needed
+
+    // Optionally click "+" to init Julius' uploader UI
+    if (clickUploadButtonFirst)
+        yield return Eval(JS_CLICK_PLUS);
+
+    // Wait for a file input to appear
+    yield return Eval(JS_WAIT_FOR_FILE_INPUT);
+
+    // Build CSVs
+    var (timeCsv, gaitCsv) = BuildCsvsFromSelection();
+
+    // Split very large CSVs into chunks (reuse your existing size limit)
+    int maxChars = Math.Max(256_000, maxJsonCharsPerFile); // safety: CSVs usually smaller; floor at ~256KB text
+    List<(string name, string text)> files = new List<(string, string)>();
+
+    string stamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
+    if (!string.IsNullOrEmpty(timeCsv))
     {
-        // Serialize compact JSON from your selected reports
-        var json = JsonConvert.SerializeObject(
-            _customDropDown.selectedUserReports.Select(x => x.mydata).ToList() ?? new List<UserReportData>(),
-            new JsonSerializerSettings {
-                NullValueHandling = NullValueHandling.Ignore,
-                DefaultValueHandling = DefaultValueHandling.Ignore
-            }
-        );
-
-        // Optionally click "+" to init uploader
-        if (clickUploadButtonFirst)
+        if (timeCsv.Length <= maxChars)
+            files.Add(($"TimeBasedReadings_{stamp}.csv", timeCsv));
+        else
         {
-            yield return Eval(JS_CLICK_PLUS);
-        }
-
-        // Wait up to 5s for any file input (deep search + shadow)
-        yield return Eval(JS_WAIT_FOR_FILE_INPUT);
-
-        // Split into parts if large
-        var parts = new List<string>();
-        parts.Add(json);
-        bool success = false;
-
-        for (int attempt = 0; attempt < attachRetries && !success; attempt++)
-        {
-            success = true;
-
-            for (int i = 0; i < parts.Count; i++)
+            int part = 1;
+            for (int i = 0; i < timeCsv.Length; i += maxChars, part++)
             {
-                string name = parts.Count == 1
-                    ? $"{baseFileName}.json"
-                    : $"{baseFileName}.part{(i + 1).ToString("00")}.json";
-
-                yield return AttachJsonAsFile(parts[i], name);
-
-                if (!lastResult.StartsWith("FILE_ATTACHED"))
-                {
-                    success = false;
-                    yield return new WaitForSeconds(retryDelayMs / 1000f);
-                    break;
-                }
-                yield return new WaitForSeconds(0.2f);
+                int len = Math.Min(maxChars, timeCsv.Length - i);
+                files.Add(($"TimeBasedReadings_{stamp}.part{part:00}.csv", timeCsv.Substring(i, len)));
             }
         }
-
-        if (success)
+    }
+    if (!string.IsNullOrEmpty(gaitCsv))
+    {
+        if (gaitCsv.Length <= maxChars)
+            files.Add(($"GaitReports_{stamp}.csv", gaitCsv));
+        else
         {
-            Debug.Log($"[Julius] Uploaded {parts.Count} JSON file(s) successfully.");
+            int part = 1;
+            for (int i = 0; i < gaitCsv.Length; i += maxChars, part++)
+            {
+                int len = Math.Min(maxChars, gaitCsv.Length - i);
+                files.Add(($"GaitReports_{stamp}.part{part:00}.csv", gaitCsv.Substring(i, len)));
+            }
+        }
+    }
+
+    bool success = false;
+    for (int attempt = 0; attempt < attachRetries && !success; attempt++)
+    {
+        success = true;
+        for (int i = 0; i < files.Count; i++)
+        {
+            var (fname, text) = files[i];
+            // text/csv is the proper MIME
+            yield return AttachTextAsFile(text, fname, "text/csv");
+
+            if (!lastResult.StartsWith("FILE_ATTACHED"))
+            {
+                success = false;
+                yield return new WaitForSeconds(retryDelayMs / 1000f);
+                break;
+            }
+            yield return new WaitForSeconds(0.2f);
+        }
+    }
+
+    if (success)
+    {
+        Debug.Log($"[Julius] Uploaded {files.Count} CSV file(s) successfully.");
+    }
+    else
+    {
+#if UNITY_IOS || UNITY_TVOS || UNITY_VISIONOS
+        Debug.LogWarning("[Julius] File attach blocked by WKWebView. Falling back to chunked paste (CSV)...");
+        if (enablePasteFallback)
+        {
+            // CSV paste fallback
+            if (!string.IsNullOrEmpty(timeCsv))
+                yield return PasteMessage($"[CSV:TimeBasedReadings]\n{timeCsv}");
+            if (!string.IsNullOrEmpty(gaitCsv))
+                yield return PasteMessage($"[CSV:GaitReports]\n{gaitCsv}");
         }
         else
         {
-#if UNITY_IOS || UNITY_TVOS || UNITY_VISIONOS
-            Debug.LogWarning("[Julius] File attach blocked by WKWebView. Falling back to chunked paste...");
-            if (enablePasteFallback) { yield return PasteJsonInChunks(json); }
-            else { Debug.LogError("[Julius] Paste fallback disabled; cannot deliver JSON."); }
-#else
-            Debug.LogWarning("[Julius] File attach failed. Falling back to chunked paste...");
-            if (enablePasteFallback) { yield return PasteJsonInChunks(json); }
-            else { Debug.LogError("[Julius] Paste fallback disabled; cannot deliver JSON."); }
-#endif
+            Debug.LogError("[Julius] Paste fallback disabled; cannot deliver CSV.");
         }
+#else
+        Debug.LogWarning("[Julius] File attach failed. Falling back to paste (CSV)...");
+        if (enablePasteFallback)
+        {
+            if (!string.IsNullOrEmpty(timeCsv))
+                yield return PasteMessage($"[CSV:TimeBasedReadings]\n{timeCsv}");
+            if (!string.IsNullOrEmpty(gaitCsv))
+                yield return PasteMessage($"[CSV:GaitReports]\n{gaitCsv}");
+        }
+        else
+        {
+            Debug.LogError("[Julius] Paste fallback disabled; cannot deliver CSV.");
+        }
+#endif
     }
+}
+
     private IEnumerator PasteJsonInChunks(string json)
     {
         string lead = "I am sending JSON data in chunks. Combine them by order. When I send 'END_JSON', start processing.";
@@ -1606,4 +1648,80 @@ ANALYSIS_PACKET:
     // public class UniWebView : MonoBehaviour { public Rect Frame; public void Load(string url){} public void Show(){} public void LoadHTMLString(string html, string baseUrl){} public UniWebViewToolbar EmbeddedToolbar => new UniWebViewToolbar(); public Color BackgroundColor{get;set;} public void SetOpenLinksInExternalBrowser(bool v){} public event Func<UniWebView, bool> OnShouldClose; }
     // public class UniWebViewToolbar { public void Show(){} }
     // public static class UniClipboard { public static void SetText(string s){} }
+    private IEnumerator AttachTextAsFile(string text, string fileName, string mimeType = "text/plain")
+    {
+        string b64 = Convert.ToBase64String(Encoding.UTF8.GetBytes(text ?? ""));
+
+        string js = $@"
+        (function(){{
+          try {{
+            function allFileInputsDeep(root){{
+              const list=[], stack=[root||document];
+              while(stack.length){{
+                const n=stack.pop();
+                if(!n) continue;
+                if(n.querySelectorAll) n.querySelectorAll('input[type=""file""]').forEach(el=>list.push(el));
+                if(n.shadowRoot) stack.push(n.shadowRoot);
+                if(n.children) for(let i=0;i<n.children.length;i++) stack.push(n.children[i]);
+              }}
+              return list;
+            }}
+
+            var inputs = allFileInputsDeep();
+            var input = document.getElementById('file') || inputs[0];
+            if(!input) return 'FILE_INPUT_NOT_FOUND';
+
+            var bin = atob('{b64}');
+            var len = bin.length;
+            var bytes = new Uint8Array(len);
+            for (var i=0;i<len;i++) bytes[i] = bin.charCodeAt(i);
+
+            var file = new File([bytes], '{EscapeJs(fileName)}', {{ type:'{EscapeJs(mimeType)}' }});
+
+            if (typeof DataTransfer === 'undefined') return 'ERROR:DataTransfer_unsupported';
+
+            var dt = new DataTransfer();
+            dt.items.add(file);
+
+            try {{
+              input.files = dt.files; // may be blocked on WKWebView
+            }} catch(e) {{
+              return 'ERROR:assign_files_blocked';
+            }}
+
+            input.dispatchEvent(new Event('change', {{ bubbles:true }}));
+            return 'FILE_ATTACHED(' + file.name + ', ' + (file.size||0) + ' bytes)';
+          }} catch(e) {{
+            return 'ERROR:' + (e && e.message || e);
+          }}
+        }})();
+    ";
+
+        yield return Eval(js);
+    }
+    private (string timeCsv, string gaitCsv) BuildCsvsFromSelection()
+    {
+        // Gather lists from your dropdown selection (like you already do in TakeOutData / AttachFlow)
+        var timeBasedReadingRequests = new List<TimeBasedReadingRequest>();
+        var gaitReports = new List<GetGaitReportResponse>();
+
+        foreach (var userReportFromDB in _customDropDown.selectedUserReports)
+        {
+            if (userReportFromDB?.timeBasedReadings != null)
+                timeBasedReadingRequests.AddRange(userReportFromDB.timeBasedReadings);
+
+            if (userReportFromDB?.gaitReports != null)
+                gaitReports.AddRange(userReportFromDB.gaitReports);
+        }
+
+        // You can explicitly control columns by passing a list, e.g.
+        // var cols = new [] { "TimeOfReading","PelvisAngle","VarusValgusRight","VarusValgusLeft","HipLeftAbduction","HipRightAbduction","AnkleHipLeftAbductionDifference","AnkleHipRightAbductionDifference" };
+        // string timeCsv = ToCsv(timeBasedReadingRequests, cols);
+
+        string timeCsv = GeneralStaticManager.ToCsv(timeBasedReadingRequests); // dynamic via reflection
+        string gaitCsv = GeneralStaticManager.ToCsv(gaitReports);              // dynamic via reflection
+
+        return (timeCsv, gaitCsv);
+    }
+
 }

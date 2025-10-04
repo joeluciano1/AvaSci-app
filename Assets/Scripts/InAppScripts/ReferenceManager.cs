@@ -158,7 +158,8 @@ public class ReferenceManager : MonoBehaviour
     public Plane XiphoidRotationPlane = Plane.Coronal;
     public Plane WaistRotationPlane = Plane.Coronal;
     public Plane PelvisRotationPlane = Plane.Coronal;
-    
+    public string linkToPortal;
+    public CopyToSubGroupPanel CopyToSubGroupPanel;
     public void SetDepthMode(bool value)
     {
         if (value)
@@ -712,5 +713,10 @@ public class ReferenceManager : MonoBehaviour
     public void ChangeWaistPlane(int value)
     {
         WaistRotationPlane = (Plane)value;
+    }
+
+    public void OpenPortal()
+    {
+        Application.OpenURL(linkToPortal);
     }
 }

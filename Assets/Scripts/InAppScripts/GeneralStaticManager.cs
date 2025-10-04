@@ -500,4 +500,59 @@ public static async Task<string> ConvertCsvStringToJson(string csvString)
     private static string Csv(long? n) => n.HasValue ? n.Value.ToString() : "";
 
     private static string Csv(float? f) => f.HasValue ? f.Value.ToString(System.Globalization.CultureInfo.InvariantCulture) : "";
+    
+    // -------- CSV helpers --------
+    public static string EscapeCsv(string s)
+    {
+        if (s == null) return "";
+        bool mustQuote = s.Contains(",") || s.Contains("\"") || s.Contains("\n") || s.Contains("\r");
+        string v = s.Replace("\"", "\"\"");
+        return mustQuote ? $"\"{v}\"" : v;
+    }
+
+    public static string ToCsv<T>(IEnumerable<T> rows, IReadOnlyList<string> includeProps = null)
+    {
+        if (rows == null) return "";
+        var type = typeof(T);
+        var props = type.GetProperties(BindingFlags.Instance | BindingFlags.Public)
+            .Where(p =>
+            {
+                if (includeProps != null && includeProps.Count > 0)
+                    return includeProps.Contains(p.Name);
+                // keep only simple-ish types (numbers, bools, strings, DateTime)
+                var pt = Nullable.GetUnderlyingType(p.PropertyType) ?? p.PropertyType;
+                return pt.IsPrimitive || pt == typeof(string) || pt == typeof(decimal) ||
+                       pt == typeof(DateTime) || pt == typeof(float) || pt == typeof(double);
+            })
+            .ToList();
+
+        var sb = new StringBuilder();
+
+        // header
+        for (int i = 0; i < props.Count; i++)
+        {
+            if (i > 0) sb.Append(',');
+            sb.Append(EscapeCsv(props[i].Name));
+        }
+        sb.AppendLine();
+
+        // rows
+        foreach (var row in rows)
+        {
+            for (int i = 0; i < props.Count; i++)
+            {
+                if (i > 0) sb.Append(',');
+                object val = props[i].GetValue(row);
+                if (val == null) { /* empty */ }
+                else if (val is IFormattable f)
+                    sb.Append(EscapeCsv(f.ToString(null, System.Globalization.CultureInfo.InvariantCulture)));
+                else
+                    sb.Append(EscapeCsv(val.ToString()));
+            }
+            sb.AppendLine();
+        }
+
+        return sb.ToString();
+    }
+
 }

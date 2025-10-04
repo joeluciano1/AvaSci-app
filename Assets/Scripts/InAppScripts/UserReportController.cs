@@ -71,6 +71,10 @@ public class UserReportController : MonoBehaviour
     public string CurrentSelectedSubGroup;
     public bool webGLBuild;
     // Start is called before the first frame update
+    public void DeleteUserReportJsonLocally()
+    {
+        File.Delete(Path.Combine(Application.persistentDataPath,$"{GeneralStaticManager.GlobalVar["UserID"]}_UserReport.json"));
+    }
     public void Start()
     {
         if (!hasSpokenWelcomeNote)
@@ -93,423 +97,481 @@ public class UserReportController : MonoBehaviour
         }
         string json = JsonConvert.SerializeObject(getReportsBody);
         itemToSnapTo = null;
-        APIHandler.instance.Post(
-            "UserReport/GetReports",
-            json,
-            onSuccess: (response) =>
-            {
-                isSilentReportFetch = false;
-                userReportResponse =
-                    JsonConvert.DeserializeObject<UserReportResponse>(response);
-                reportJson = response;
-                if (userReportResponse.isSuccess)
+        if (File.Exists(Path.Combine(Application.persistentDataPath, $"{getReportsBody.UserID}_UserReport.json")))
+        {
+            string responseJson = File.ReadAllText(Path.Combine(Application.persistentDataPath,
+                $"{getReportsBody.UserID}_UserReport.json"));
+            userReportResponse = JsonConvert.DeserializeObject<UserReportResponse>(responseJson);
+            ShowReports();
+        }
+        else
+        {
+            APIHandler.instance.Post(
+                "UserReport/GetReports",
+                json,
+                onSuccess: (response) =>
                 {
-                    foreach (var item in userReportResponse.result)
+                    isSilentReportFetch = false;
+                    userReportResponse =
+                        JsonConvert.DeserializeObject<UserReportResponse>(response);
+                    reportJson = response;
+                    File.WriteAllText(
+                        Path.Combine(Application.persistentDataPath, $"{getReportsBody.UserID}_UserReport.json"),
+                        response);
+                    ShowReports();
+                    if (userReportResponse.isError)
                     {
-                        if (string.IsNullOrEmpty(item.VideoURL))
+                        string reasons = "";
+                        foreach (var item in userReportResponse.serviceErrors)
                         {
-                            Debug.Log("Video URL is empty");
-                            continue;
+                            reasons += $"\n {item.code} {item.description}";
                         }
-                        UserReportFromDB user = userReportFromDBs.FirstOrDefault(x =>x.VideoURL == item.VideoURL && x.videoId == item.Id);
-                        if (user != null)
-                        {
-                            if(string.IsNullOrEmpty(item.SubjectId))
-                                user.UserNamefromDB.text = item.UserName;
-                            else
-                                user.UserNamefromDB.text = item.SubjectId;
-                            if (!string.IsNullOrEmpty(item.ReportDescription))
-                                user.ReportDescription.text = item.ReportDescription;
-                            
-                            user.UserNameOfSubject = item.UserName;
-                            user.mySubGroup = string.IsNullOrEmpty(item.SubGroupName)? "No Subgroup": item.SubGroupName;
-                            if (item.HasHtmlReports)
-                            {
-                                user.HtmlButton.gameObject.SetActive(true);
-                            }
-                            else
-                            {
-                                user.HtmlButton.gameObject.SetActive(false);
-                            }
-                            // if (!PlayerPrefs.GetString("LastVidURL").Equals(user.VideoURL) || !PlayerPrefs.GetInt("LastVidID").Equals(user.videoId))
-                            // {
-                            //     user.WatchBtn.onClick.RemoveAllListeners();
-                            //     user.WatchBtn.onClick.AddListener(
-                            //         () =>
-                            //             StartCoroutine(GetText(user.VideoURL, user.WatchBtn, user))
-                            //     );
-                            //     user.ButtonText.text = "Download";
-                            //     user.Download.SetActive(true);
-                            //     user.Error.SetActive(false);
-                            //     user.Watch.SetActive(false);
-                            // }
-                            if(item.TimeBasedReadings!=null && item.TimeBasedReadings.Count > 0)
-                            {
-                                user.CompareViewToggle.transform.GetChild(0).GetComponent<TMP_Text>().text = "Select To Compare";
-                                user.CompareViewToggle.interactable = true;
-                                // user.jointReadings = item.JointReadings;
-                                user.timeBasedReadings = item.TimeBasedReadings;
-                                user.timeBasedReadings.ForEach(x=>
-                                {
-                                    x.VideoName = item.ReportDescription;
-                                    
-                                });
-                                
-                                user.CompareViewToggle.onValueChanged.RemoveAllListeners();
-                                user.CompareViewToggle.onValueChanged.AddListener((value) => 
-                                {
-                                    if(value)
-                                    {
-                                        selectedReadings.Add(user);
-                                    }
-                                    else{
-                                        selectedReadings.Remove(user);
-                                    }
-                                });
-                                // user.CompareViewButton.onClick.AddListener(() => { ShowJointReadingsFromDB(item.JointReadings); ReferenceManager.instance.CompareReadingSelected = user; });
-                            }
-                            else
-                            {
-                                user.CompareViewToggle.transform.GetChild(0).GetComponent<TMP_Text>().text = "No Reading Exists";
-                                user.CompareViewToggle.interactable = false;
-                            }
 
-                            if (item.GaitReports != null && item.GaitReports.Count > 0)
-                            {
-                                user.CompareGaitToggle.transform.GetChild(0).GetComponent<TMP_Text>().text = "Select To Compare Gait";
-                                user.CompareGaitToggle.interactable = true;
-                                user.gaitReports = item.GaitReports.ToList();
-                                user.gaitReports.ForEach(x=>x.VideoName = item.ReportDescription);
-                                user.CompareGaitToggle.onValueChanged.RemoveAllListeners();
-                                user.CompareGaitToggle.onValueChanged.AddListener((value) =>
-                                {
-                                    if (value)
-                                    {
-                                        selectedGaitReadings.Add(user);
-                                    }
-                                    else
-                                    {
-                                        selectedGaitReadings.Remove(user);
-                                    }
-                                });
-                            }
-                            else
-                            {
-                                user.CompareGaitToggle.transform.GetChild(0).GetComponent<TMP_Text>().text = "No Gait Reading Exists";
-                                user.CompareGaitToggle.interactable = false;
-                            }
-                            continue;
-                        }
-                        UserReportFromDB userReportFromDB = Instantiate(
-                            userReportFromDBPrefab,
-                            userReportFromDBPrefab.transform.parent
+                        ReferenceManager.instance.PopupManager.Show(
+                            "Fetching Users Failed!",
+                            $"Reasons are: {reasons}"
                         );
-                        userReportFromDB.mydata = item;
-                        
-                        userReportFromDB.videoId = item.Id;
-                        userReportFromDB.UserId = item.UserID;
-                        userReportFromDB.UserNameOfSubject = item.UserName;
-                        userReportFromDB.VideoURL = item.VideoURL;
-                        userReportFromDB.mySubGroup = string.IsNullOrEmpty(item.SubGroupName)? "No Subgroup": item.SubGroupName;
-                        if (item.HasHtmlReports)
-                        {
-                            userReportFromDB.HtmlButton.gameObject.SetActive(true);
-                        }
-                        else
-                        {
-                            userReportFromDB.HtmlButton.gameObject.SetActive(false);
-                        }
-                        string groupName = string.IsNullOrEmpty(item.GroupName)? "Other" : item.GroupName;
-                        ReportGroupHandler alreadyExisting =
-                            addedReportGroupHandlers.FirstOrDefault(x => x.GroupName.text == groupName);
-                        
-                        if (alreadyExisting != null)
-                        {
-                            userReportFromDB.transform.SetParent(alreadyExisting.MyContent, false);
-                            alreadyExisting.DropDownItems.Add(userReportFromDB);
-                            userReportFromDB.MyReportGroupHandler = alreadyExisting;
-                            userReportFromDB.MyScrollRect = alreadyExisting.MyScrollRect;
-                            alreadyExisting.ScaleDownItems();
-                            alreadyExisting.ForceRebuildLayout();
-                            
-                            if (string.IsNullOrEmpty(item.SubGroupName))
-                            {
-                                if (alreadyExisting.SubGroups.FirstOrDefault(x=>x.SubGroupName == "No Subgroup") is null)
-                                {
-                                    SubGroupsUnderRGH newsubgroup = Instantiate(alreadyExisting.SubgroupPrefab,
-                                        alreadyExisting.SubgroupPrefab.transform.parent);
-                                    newsubgroup.MyReportGroup = alreadyExisting;
-                                    newsubgroup.SubGroupName = "No Subgroup";
-                                    newsubgroup.Title.text = "No Subgroup";
-                                    alreadyExisting.SubGroups.Add(newsubgroup);
-                                    newsubgroup.MyButton.onClick.AddListener(() =>
-                                    {
-                                        alreadyExisting.AfterSubgroupIsClicked("No Subgroup");
-                                    });
-                                }
-                            }
-                            else
-                            {
-                                List<string> subgroups = item.SubGroupName.Split(',').ToList();
-                                foreach (var subgroup in subgroups)
-                                {
-                                    if (alreadyExisting.SubGroups.FirstOrDefault(x => x.SubGroupName == subgroup) is null)
-                                    {
-                                        SubGroupsUnderRGH newsubgroup = Instantiate(alreadyExisting.SubgroupPrefab,
-                                            alreadyExisting.SubgroupPrefab.transform.parent);
-                                        newsubgroup.MyReportGroup = alreadyExisting;
-                                        newsubgroup.SubGroupName = subgroup;
-                                        newsubgroup.Title.text  = subgroup;
-                                        alreadyExisting.SubGroups.Add(newsubgroup);
-                                        newsubgroup.MyButton.onClick.AddListener(() =>
-                                        {
-                                            alreadyExisting.AfterSubgroupIsClicked(subgroup);
-                                        });
-                                    }
-                                }
-                            }
 
-                            if (alreadyExisting.isDropped)
-                            {
-                                alreadyExisting.DropDownItems.ForEach(x=>
-                                {
-                                    x.transform.SetParent(alreadyExisting.ShowcaseScrollRect.content,false);
-                                    x.MyScrollRect = alreadyExisting.ShowcaseScrollRect;
-                                });
-                            }
-                            if (alreadyExisting.DropDownItems.Contains(ReferenceManager.instance.userReportController.itemToSnapTo) && ReferenceManager.instance.userReportController.itemToSnapTo.gameObject.activeSelf)
-                            {
-                                ReferenceManager.instance.userReportController.SnapToChild(
-                                    ReferenceManager.instance.userReportController.itemToSnapTo.transform,
-                                    ReferenceManager.instance.userReportController.itemToSnapTo.MyScrollRect,
-                                    ReferenceManager.instance.userReportController.itemToSnapTo.MyScrollRect.content);
-                            }
-                        }
-                        else
-                        {
-                            ReportGroupHandler groupHandler = Instantiate(reportGroupHandlerPrefab, reportGroupHandlerPrefab.transform.parent);
-                            groupHandler.gameObject.SetActive(true);
-                            groupHandler.GroupName.text = groupName;
-                            userReportFromDB.MyReportGroupHandler = groupHandler;
-                            userReportFromDB.MyScrollRect = groupHandler.MyScrollRect;
-                            groupHandler.DropDownItems.Add(userReportFromDB);
-                            userReportFromDB.transform.parent = groupHandler.MyContent;
-                            addedReportGroupHandlers.Add(groupHandler);
-                            groupHandler.ScaleDownItems();
-                            groupHandler.ForceRebuildLayout();
-                            if (string.IsNullOrEmpty(item.SubGroupName))
-                            {
-                                if (groupHandler.SubGroups.FirstOrDefault(x=>x.SubGroupName == "No Subgroup") is null)
-                                {
-                                    var newsubgroup = Instantiate(groupHandler.SubgroupPrefab,
-                                        groupHandler.SubgroupPrefab.transform.parent);
-                                    newsubgroup.MyReportGroup = groupHandler;
-                                    newsubgroup.SubGroupName = "No Subgroup";
-                                    newsubgroup.Title.text = "No Subgroup";
-                                    groupHandler.SubGroups.Add(newsubgroup);
-                                    newsubgroup.MyButton.onClick.AddListener(() =>
-                                    {
-                                        groupHandler.AfterSubgroupIsClicked("No Subgroup");
-                                    });
-                                }
-                            }
-                            else
-                            {
-                                List<string> subgroups = item.SubGroupName.Split(',').ToList();
-                                foreach (var subgroup in subgroups)
-                                {
-                                    if (groupHandler.SubGroups.FirstOrDefault(x => x.SubGroupName == subgroup) is null)
-                                    {
-                                        var newsubgroup = Instantiate(groupHandler.SubgroupPrefab,
-                                            groupHandler.SubgroupPrefab.transform.parent);
-                                        newsubgroup.MyReportGroup = groupHandler;
-                                        newsubgroup.SubGroupName = subgroup;
-                                        newsubgroup.Title.text = subgroup;
-                                        groupHandler.SubGroups.Add(newsubgroup);
-                                        newsubgroup.MyButton.onClick.AddListener(() =>
-                                        {
-                                            groupHandler.AfterSubgroupIsClicked(subgroup);
-                                        });
-                                    }
-                                }
-                            }
-                        }
-                        // userReportFromDB.gameObject.SetActive(true);
-                        if(item.TimeBasedReadings!=null && item.TimeBasedReadings.Count > 0)
-                        {
-                            userReportFromDB.timeBasedReadings = item.TimeBasedReadings.ToList();
-                            userReportFromDB.CompareViewToggle.transform.GetChild(0).GetComponent<TMP_Text>().text = "Select To Compare";
-                            userReportFromDB.timeBasedReadings.ForEach(x=>
-                            {
-                                x.VideoName = item.ReportDescription;
-                                
-                            });
-                            userReportFromDB.CompareViewToggle.interactable = true;
-                            if (item.Id == 235)
-                            {
-                                Debug.Log("Got true");
-                            }
-                            userReportFromDB.CompareViewToggle.onValueChanged.RemoveAllListeners();
-                                userReportFromDB.CompareViewToggle.onValueChanged.AddListener((value) => 
-                                {
-                                    if(value)
-                                    {
-                                        selectedReadings.Add(userReportFromDB);
-                                    }
-                                    else{
-                                        selectedReadings.Remove(userReportFromDB);
-                                    }
-                                });
-                            // userReportFromDB.CompareViewButton.onClick.RemoveAllListeners();
-                            // userReportFromDB.CompareViewButton.onClick.AddListener(() => { ShowJointReadingsFromDB(item.JointReadings); ReferenceManager.instance.CompareReadingSelected = userReportFromDB; });
-                        }
-                        else
-                        {
-                            userReportFromDB.CompareViewToggle.transform.GetChild(0).GetComponent<TMP_Text>().text = "No Reading Exists";
-                            userReportFromDB.CompareViewToggle.interactable = false;
-                        }
-                        if (item.GaitReports != null && item.GaitReports.Count > 0)
-                        {
-                            // item.GaitReports = item.GaitReports.OrderBy(x => x.FootStrikeAtTime).ToList();
-                            userReportFromDB.CompareGaitToggle.transform.GetChild(0).GetComponent<TMP_Text>().text = "Select To Compare Gait";
-                            userReportFromDB.CompareGaitToggle.interactable = true;
-                            userReportFromDB.gaitReports = item.GaitReports.ToList();
-                            userReportFromDB.gaitReports.ForEach(x=>x.VideoName = item.ReportDescription);
-                            userReportFromDB.CompareGaitToggle.onValueChanged.RemoveAllListeners();
-                            userReportFromDB.CompareGaitToggle.onValueChanged.AddListener((value) =>
-                            {
-                                if (value)
-                                {
-                                    selectedGaitReadings.Add(userReportFromDB);
-                                }
-                                else
-                                {
-                                    selectedGaitReadings.Remove(userReportFromDB);
-                                }
-                            });
-                        }
-                        else
-                        {
-                            userReportFromDB.CompareGaitToggle.transform.GetChild(0).GetComponent<TMP_Text>().text = "No Gait Reading Exists";
-                            userReportFromDB.CompareGaitToggle.interactable = false;
-                        }
-                        // if(string.IsNullOrEmpty(item.SubjectId))
-                        //     userReportFromDB.UserNamefromDB.text = item.UserName;
-                        // else
-                            userReportFromDB.UserNamefromDB.text = item.SubjectId;
-                        if (!string.IsNullOrEmpty(item.ReportDescription))
-                            userReportFromDB.ReportDescription.text = item.ReportDescription;
-                        DateTime serverTime;
-
-                        if (DateTime.TryParseExact(item.CreatedOn,"M/dd/yyyy h:mm:ss tt",System.Globalization.CultureInfo.InvariantCulture,System.Globalization.DateTimeStyles.None,out serverTime))
-                        {
-                            DateTime localTime = ConvertToLocalTime(serverTime);
-                            userReportFromDB.CreatedOn.text = localTime.ToString(
-                                "MM/dd/yyyy h:mm:ss tt"
-                            );
-                            // Debug.Log($"Yes: {item.CreatedOn}");
-                        }
-                        else if (DateTime.TryParseExact(item.CreatedOn,"M/d/yyyy hh:mm:ss tt",System.Globalization.CultureInfo.InvariantCulture,System.Globalization.DateTimeStyles.None,out serverTime))
-                        {
-                            DateTime localTime = ConvertToLocalTime(serverTime);
-                            userReportFromDB.CreatedOn.text = localTime.ToString(
-                                "MM/dd/yyyy h:mm:ss tt"
-                            );
-                            
-                        }
-                        else
-                        {
-                            
-                            userReportFromDB.CreatedOn.text = item.CreatedOn;
-                        }
-
-                        userReportFromDB.WatchBtn.interactable = true;
-                        if (!PlayerPrefs.GetString("LastVidURL").Equals(item.VideoURL) || !PlayerPrefs.GetInt("LastVidID").Equals((int)item.Id))
-                        {
-                            userReportFromDB.WatchBtn.onClick.AddListener(
-                                () =>
-                                    {
-                                        StartCoroutine(
-                                        GetText(
-                                            item.VideoURL,
-                                            userReportFromDB.WatchBtn,
-                                            userReportFromDB
-                                        )
-                                    );
-                                        ReferenceManager.instance.azureStorageManager.selectedVideo = userReportFromDB;
-                                    }
-                            );
-                            userReportFromDB.ButtonText.text = "Download";
-                            userReportFromDB.Download.SetActive(true);
-                            userReportFromDB.Error.SetActive(false);
-                            userReportFromDB.Watch.SetActive(false);
-                        }
-                        else if(PlayerPrefs.GetString("LastVidURL").Equals(userReportFromDB.VideoURL)&& PlayerPrefs.GetInt("LastVidID").Equals((int)item.Id))
-                        {
-                            userReportFromDB.WatchBtn.onClick.RemoveAllListeners();
-                            userReportFromDB.ButtonText.text = "Watch";
-                            userReportFromDB.Download.SetActive(false);
-                            userReportFromDB.Error.SetActive(false);
-                            userReportFromDB.Watch.SetActive(true);
-                            itemToSnapTo = userReportFromDB;
-                            RecentlyPlayedButton = userReportFromDB;
-                            userReportFromDB.WatchBtn.onClick.AddListener(
-                                () => { CreateFileAndView((int)userReportFromDB.videoId,null, "", userReportFromDB.UserNameOfSubject); 
-                                ReferenceManager.instance.SelectedVideoID = userReportFromDB.videoId;
-                                ReferenceManager.instance.azureStorageManager.selectedVideo = userReportFromDB; }
-                            );
-                            if (!string.IsNullOrEmpty(item.ReportURL))
-                            {
-                                userReportFromDB.PreviewButton.interactable = true;
-                                userReportFromDB.PreviewButton.gameObject.SetActive(true);
-                                userReportFromDB
-                                    .PreviewButton.transform.GetChild(0)
-                                    .GetComponent<TMP_Text>()
-                                    .text = "View Report";
-                                userReportFromDB.PreviewButton.onClick.AddListener(
-                                    () => CreateReportAndView()
-                                );
-                            }
-                        }
-
-                        userReportFromDBs.Add(userReportFromDB);
                     }
-                    userReportFromDBs.ForEach(x=>x.CheckIfItContainsTimeBasedReadings());
-                    reportGroupHandlerPrefab.ForceRebuildLayout();
-                    reportGroupHandlerPrefab.ContentSizeFitter.enabled = false;
-                    reportGroupHandlerPrefab.ContentSizeFitter.SetLayoutVertical();
-                    reportGroupHandlerPrefab.ContentSizeFitter.enabled = true;
-                    if (!hasSpokenAboutReports)
-                    {
-                        hasSpokenAboutReports = true;
-                        ReferenceManager.instance?.TTSTutorialHandler?.NextLine("You can now see in the top of the screen which section you are currently in. Right now we are in the reports section. In the middle of the screen there is scroll view of groups. Which contain reports and recordings related to the group's category. You can click on any of them to go in the next section");
-                    }
-                }
-                if (userReportResponse.isError)
+                },
+                onError: (error) =>
                 {
-                    string reasons = "";
-                    foreach (var item in userReportResponse.serviceErrors)
-                    {
-                        reasons += $"\n {item.code} {item.description}";
-                    }
+                    isSilentReportFetch = false;
                     ReferenceManager.instance.PopupManager.Show(
                         "Fetching Users Failed!",
-                        $"Reasons are: {reasons}"
+                        $"Reasons are: {error}"
                     );
-                    
+
                 }
-            },
-            onError: (error) =>
-            {
-                isSilentReportFetch = false;
-                ReferenceManager.instance.PopupManager.Show(
-                    "Fetching Users Failed!",
-                    $"Reasons are: {error}"
-                );
-                
-            }
-        ,isSilentReportFetch);
+                , isSilentReportFetch);
+        }
     }
+
+    private void ShowReports()
+    {
+        if (userReportResponse.isSuccess)
+        {
+            foreach (var item in userReportResponse.result)
+            {
+                if (string.IsNullOrEmpty(item.VideoURL))
+                {
+                    Debug.Log("Video URL is empty");
+                    continue;
+                }
+                UserReportFromDB user = userReportFromDBs.FirstOrDefault(x =>x.VideoURL == item.VideoURL && x.videoId == item.Id);
+                if (user != null)
+                {
+                    if(string.IsNullOrEmpty(item.SubjectId))
+                        user.UserNamefromDB.text = item.UserName;
+                    else
+                        user.UserNamefromDB.text = item.SubjectId;
+                    if (!string.IsNullOrEmpty(item.ReportDescription))
+                        user.ReportDescription.text = item.ReportDescription;
+                            
+                    user.UserNameOfSubject = item.UserName;
+                    user.mySubGroup = string.IsNullOrEmpty(item.SubGroupName)? "No Subgroup": item.SubGroupName;
+                    if (item.HasHtmlReports)
+                    {
+                        user.HtmlButton.gameObject.SetActive(true);
+                    }
+                    else
+                    {
+                        user.HtmlButton.gameObject.SetActive(false);
+                    }
+                    // if (!PlayerPrefs.GetString("LastVidURL").Equals(user.VideoURL) || !PlayerPrefs.GetInt("LastVidID").Equals(user.videoId))
+                    // {
+                    //     user.WatchBtn.onClick.RemoveAllListeners();
+                    //     user.WatchBtn.onClick.AddListener(
+                    //         () =>
+                    //             StartCoroutine(GetText(user.VideoURL, user.WatchBtn, user))
+                    //     );
+                    //     user.ButtonText.text = "Download";
+                    //     user.Download.SetActive(true);
+                    //     user.Error.SetActive(false);
+                    //     user.Watch.SetActive(false);
+                    // }
+                    if(item.TimeBasedReadings!=null && item.TimeBasedReadings.Count > 0)
+                    {
+                        user.CompareViewToggle.transform.GetChild(0).GetComponent<TMP_Text>().text = "Select To Compare";
+                        user.CompareViewToggle.interactable = true;
+                        // user.jointReadings = item.JointReadings;
+                        user.timeBasedReadings = item.TimeBasedReadings;
+                        user.timeBasedReadings.ForEach(x=>
+                        {
+                            x.VideoName = item.ReportDescription;
+                                    
+                        });
+                                
+                        user.CompareViewToggle.onValueChanged.RemoveAllListeners();
+                        user.CompareViewToggle.onValueChanged.AddListener((value) => 
+                        {
+                            if(value)
+                            {
+                                selectedReadings.Add(user);
+                            }
+                            else{
+                                selectedReadings.Remove(user);
+                            }
+                        });
+                        // user.CompareViewButton.onClick.AddListener(() => { ShowJointReadingsFromDB(item.JointReadings); ReferenceManager.instance.CompareReadingSelected = user; });
+                    }
+                    else
+                    {
+                        user.CompareViewToggle.transform.GetChild(0).GetComponent<TMP_Text>().text = "No Reading Exists";
+                        user.CompareViewToggle.interactable = false;
+                    }
+
+                    if (item.GaitReports != null && item.GaitReports.Count > 0)
+                    {
+                        user.CompareGaitToggle.transform.GetChild(0).GetComponent<TMP_Text>().text = "Select To Compare Gait";
+                        user.CompareGaitToggle.interactable = true;
+                        user.gaitReports = item.GaitReports.ToList();
+                        user.gaitReports.ForEach(x=>x.VideoName = item.ReportDescription);
+                        user.CompareGaitToggle.onValueChanged.RemoveAllListeners();
+                        user.CompareGaitToggle.onValueChanged.AddListener((value) =>
+                        {
+                            if (value)
+                            {
+                                selectedGaitReadings.Add(user);
+                            }
+                            else
+                            {
+                                selectedGaitReadings.Remove(user);
+                            }
+                        });
+                    }
+                    else
+                    {
+                        user.CompareGaitToggle.transform.GetChild(0).GetComponent<TMP_Text>().text = "No Gait Reading Exists";
+                        user.CompareGaitToggle.interactable = false;
+                    }
+                    continue;
+                }
+                UserReportFromDB userReportFromDB = Instantiate(
+                    userReportFromDBPrefab,
+                    userReportFromDBPrefab.transform.parent
+                );
+                userReportFromDB.mydata = item;
+                        
+                userReportFromDB.videoId = item.Id;
+                userReportFromDB.UserId = item.UserID;
+                userReportFromDB.UserNameOfSubject = item.UserName;
+                userReportFromDB.VideoURL = item.VideoURL;
+                userReportFromDB.mySubGroup = string.IsNullOrEmpty(item.SubGroupName)? "No Subgroup": item.SubGroupName;
+                if (item.HasHtmlReports)
+                {
+                    userReportFromDB.HtmlButton.gameObject.SetActive(true);
+                }
+                else
+                {
+                    userReportFromDB.HtmlButton.gameObject.SetActive(false);
+                }
+                string groupName = string.IsNullOrEmpty(item.GroupName)? "Other" : item.GroupName;
+                ReportGroupHandler alreadyExisting =
+                    addedReportGroupHandlers.FirstOrDefault(x => x.GroupName.text == groupName);
+                        
+                if (alreadyExisting != null)
+                {
+                    userReportFromDB.transform.SetParent(alreadyExisting.MyContent, false);
+                    alreadyExisting.DropDownItems.Add(userReportFromDB);
+                    userReportFromDB.MyReportGroupHandler = alreadyExisting;
+                    userReportFromDB.MyScrollRect = alreadyExisting.MyScrollRect;
+                    alreadyExisting.ScaleDownItems();
+                    alreadyExisting.ForceRebuildLayout();
+                            
+                    if (string.IsNullOrEmpty(item.SubGroupName))
+                    {
+                        if (alreadyExisting.SubGroups.FirstOrDefault(x=>x.SubGroupName == "No Subgroup") is null)
+                        {
+                            SubGroupsUnderRGH newsubgroup = Instantiate(alreadyExisting.SubgroupPrefab,
+                                alreadyExisting.SubgroupPrefab.transform.parent);
+                            newsubgroup.MyReportGroup = alreadyExisting;
+                            newsubgroup.SubGroupName = "No Subgroup";
+                            newsubgroup.Title.text = "No Subgroup";
+                            alreadyExisting.SubGroups.Add(newsubgroup);
+                            newsubgroup.MyButton.onClick.AddListener(() =>
+                            {
+                                alreadyExisting.AfterSubgroupIsClicked("No Subgroup");
+                            });
+                        }
+                    }
+                    else
+                    {
+                        List<string> subgroups = item.SubGroupName.Split(',').ToList();
+                        foreach (var subgroup in subgroups)
+                        {
+                            if (alreadyExisting.SubGroups.FirstOrDefault(x => x.SubGroupName == subgroup) is null)
+                            {
+                                SubGroupsUnderRGH newsubgroup = Instantiate(alreadyExisting.SubgroupPrefab,
+                                    alreadyExisting.SubgroupPrefab.transform.parent);
+                                newsubgroup.MyReportGroup = alreadyExisting;
+                                newsubgroup.SubGroupName = subgroup;
+                                newsubgroup.Title.text  = subgroup;
+                                alreadyExisting.SubGroups.Add(newsubgroup);
+                                newsubgroup.MyButton.onClick.AddListener(() =>
+                                {
+                                    alreadyExisting.AfterSubgroupIsClicked(subgroup);
+                                });
+                            }
+                        }
+                    }
+
+                    if (alreadyExisting.isDropped)
+                    {
+                        alreadyExisting.DropDownItems.ForEach(x=>
+                        {
+                            x.transform.SetParent(alreadyExisting.ShowcaseScrollRect.content,false);
+                            x.MyScrollRect = alreadyExisting.ShowcaseScrollRect;
+                        });
+                    }
+                    if (alreadyExisting.DropDownItems.Contains(ReferenceManager.instance.userReportController.itemToSnapTo) && ReferenceManager.instance.userReportController.itemToSnapTo.gameObject.activeSelf)
+                    {
+                        ReferenceManager.instance.userReportController.SnapToChild(
+                            ReferenceManager.instance.userReportController.itemToSnapTo.transform,
+                            ReferenceManager.instance.userReportController.itemToSnapTo.MyScrollRect,
+                            ReferenceManager.instance.userReportController.itemToSnapTo.MyScrollRect.content);
+                    }
+                }
+                else
+                {
+                    ReportGroupHandler groupHandler = Instantiate(reportGroupHandlerPrefab, reportGroupHandlerPrefab.transform.parent);
+                    groupHandler.gameObject.SetActive(true);
+                    groupHandler.GroupName.text = groupName;
+                    userReportFromDB.MyReportGroupHandler = groupHandler;
+                    userReportFromDB.MyScrollRect = groupHandler.MyScrollRect;
+                    groupHandler.DropDownItems.Add(userReportFromDB);
+                    userReportFromDB.transform.parent = groupHandler.MyContent;
+                    addedReportGroupHandlers.Add(groupHandler);
+                    groupHandler.ScaleDownItems();
+                    groupHandler.ForceRebuildLayout();
+                    if (string.IsNullOrEmpty(item.SubGroupName))
+                    {
+                        if (groupHandler.SubGroups.FirstOrDefault(x=>x.SubGroupName == "No Subgroup") is null)
+                        {
+                            var newsubgroup = Instantiate(groupHandler.SubgroupPrefab,
+                                groupHandler.SubgroupPrefab.transform.parent);
+                            newsubgroup.MyReportGroup = groupHandler;
+                            newsubgroup.SubGroupName = "No Subgroup";
+                            newsubgroup.Title.text = "No Subgroup";
+                            groupHandler.SubGroups.Add(newsubgroup);
+                            newsubgroup.MyButton.onClick.AddListener(() =>
+                            {
+                                groupHandler.AfterSubgroupIsClicked("No Subgroup");
+                            });
+                        }
+                    }
+                    else
+                    {
+                        List<string> subgroups = item.SubGroupName.Split(',').ToList();
+                        foreach (var subgroup in subgroups)
+                        {
+                            if (groupHandler.SubGroups.FirstOrDefault(x => x.SubGroupName == subgroup) is null)
+                            {
+                                var newsubgroup = Instantiate(groupHandler.SubgroupPrefab,
+                                    groupHandler.SubgroupPrefab.transform.parent);
+                                newsubgroup.MyReportGroup = groupHandler;
+                                newsubgroup.SubGroupName = subgroup;
+                                newsubgroup.Title.text = subgroup;
+                                groupHandler.SubGroups.Add(newsubgroup);
+                                newsubgroup.MyButton.onClick.AddListener(() =>
+                                {
+                                    groupHandler.AfterSubgroupIsClicked(subgroup);
+                                });
+                            }
+                        }
+                    }
+                }
+                // userReportFromDB.gameObject.SetActive(true);
+                if(item.TimeBasedReadings!=null && item.TimeBasedReadings.Count > 0)
+                {
+                    userReportFromDB.timeBasedReadings = item.TimeBasedReadings.ToList();
+                    userReportFromDB.CompareViewToggle.transform.GetChild(0).GetComponent<TMP_Text>().text = "Select To Compare";
+                    userReportFromDB.timeBasedReadings.ForEach(x=>
+                    {
+                        x.VideoName = item.ReportDescription;
+                                
+                    });
+                    userReportFromDB.CompareViewToggle.interactable = true;
+                    if (item.Id == 235)
+                    {
+                        Debug.Log("Got true");
+                    }
+                    userReportFromDB.CompareViewToggle.onValueChanged.RemoveAllListeners();
+                    userReportFromDB.CompareViewToggle.onValueChanged.AddListener((value) => 
+                    {
+                        if(value)
+                        {
+                            selectedReadings.Add(userReportFromDB);
+                        }
+                        else{
+                            selectedReadings.Remove(userReportFromDB);
+                        }
+                    });
+                    // userReportFromDB.CompareViewButton.onClick.RemoveAllListeners();
+                    // userReportFromDB.CompareViewButton.onClick.AddListener(() => { ShowJointReadingsFromDB(item.JointReadings); ReferenceManager.instance.CompareReadingSelected = userReportFromDB; });
+                }
+                else
+                {
+                    userReportFromDB.CompareViewToggle.transform.GetChild(0).GetComponent<TMP_Text>().text = "No Reading Exists";
+                    userReportFromDB.CompareViewToggle.interactable = false;
+                }
+                if (item.GaitReports != null && item.GaitReports.Count > 0)
+                {
+                    // item.GaitReports = item.GaitReports.OrderBy(x => x.FootStrikeAtTime).ToList();
+                    userReportFromDB.CompareGaitToggle.transform.GetChild(0).GetComponent<TMP_Text>().text = "Select To Compare Gait";
+                    userReportFromDB.CompareGaitToggle.interactable = true;
+                    userReportFromDB.gaitReports = item.GaitReports.ToList();
+                    userReportFromDB.gaitReports.ForEach(x=>x.VideoName = item.ReportDescription);
+                    userReportFromDB.CompareGaitToggle.onValueChanged.RemoveAllListeners();
+                    userReportFromDB.CompareGaitToggle.onValueChanged.AddListener((value) =>
+                    {
+                        if (value)
+                        {
+                            selectedGaitReadings.Add(userReportFromDB);
+                        }
+                        else
+                        {
+                            selectedGaitReadings.Remove(userReportFromDB);
+                        }
+                    });
+                }
+                else
+                {
+                    userReportFromDB.CompareGaitToggle.transform.GetChild(0).GetComponent<TMP_Text>().text = "No Gait Reading Exists";
+                    userReportFromDB.CompareGaitToggle.interactable = false;
+                }
+                // if(string.IsNullOrEmpty(item.SubjectId))
+                //     userReportFromDB.UserNamefromDB.text = item.UserName;
+                // else
+                userReportFromDB.UserNamefromDB.text = item.SubjectId;
+                if (!string.IsNullOrEmpty(item.ReportDescription))
+                    userReportFromDB.ReportDescription.text = item.ReportDescription;
+                DateTime serverTime;
+
+                if (DateTime.TryParseExact(item.CreatedOn,"M/dd/yyyy h:mm:ss tt",System.Globalization.CultureInfo.InvariantCulture,System.Globalization.DateTimeStyles.None,out serverTime))
+                {
+                    DateTime localTime = ConvertToLocalTime(serverTime);
+                    userReportFromDB.CreatedOn.text = localTime.ToString(
+                        "MM/dd/yyyy h:mm:ss tt"
+                    );
+                    // Debug.Log($"Yes: {item.CreatedOn}");
+                }
+                else if (DateTime.TryParseExact(item.CreatedOn,"M/d/yyyy hh:mm:ss tt",System.Globalization.CultureInfo.InvariantCulture,System.Globalization.DateTimeStyles.None,out serverTime))
+                {
+                    DateTime localTime = ConvertToLocalTime(serverTime);
+                    userReportFromDB.CreatedOn.text = localTime.ToString(
+                        "MM/dd/yyyy h:mm:ss tt"
+                    );
+                            
+                }
+                else
+                {
+                            
+                    userReportFromDB.CreatedOn.text = item.CreatedOn;
+                }
+
+                userReportFromDB.WatchBtn.interactable = true;
+                if ((!PlayerPrefs.GetString("LastVidURL").Equals(item.VideoURL) || !PlayerPrefs.GetInt("LastVidID").Equals((int)item.Id)) && !File.Exists(Path.Combine(Application.persistentDataPath,$"{userReportFromDB.videoId}.txt")))
+                {
+                    userReportFromDB.WatchBtn.onClick.AddListener(
+                        () =>
+                        {
+                            StartCoroutine(
+                                GetText(
+                                    item.VideoURL,
+                                    userReportFromDB.WatchBtn,
+                                    userReportFromDB
+                                )
+                            );
+                            ReferenceManager.instance.azureStorageManager.selectedVideo = userReportFromDB;
+                        }
+                    );
+                    userReportFromDB.ButtonText.text = "Download";
+                    userReportFromDB.Download.SetActive(true);
+                    userReportFromDB.Error.SetActive(false);
+                    userReportFromDB.Watch.SetActive(false);
+                }
+                else if(PlayerPrefs.GetString("LastVidURL").Equals(userReportFromDB.VideoURL)&& PlayerPrefs.GetInt("LastVidID").Equals((int)item.Id))
+                {
+                    userReportFromDB.WatchBtn.onClick.RemoveAllListeners();
+                    userReportFromDB.ButtonText.text = "Watch";
+                    userReportFromDB.Download.SetActive(false);
+                    userReportFromDB.Error.SetActive(false);
+                    userReportFromDB.Watch.SetActive(true);
+                    itemToSnapTo = userReportFromDB;
+                    RecentlyPlayedButton = userReportFromDB;
+                    userReportFromDB.WatchBtn.onClick.AddListener(
+                        () => { CreateFileAndView((int)userReportFromDB.videoId,null, "", userReportFromDB.UserNameOfSubject); 
+                            ReferenceManager.instance.SelectedVideoID = userReportFromDB.videoId;
+                            ReferenceManager.instance.azureStorageManager.selectedVideo = userReportFromDB; }
+                    );
+                    if (!string.IsNullOrEmpty(item.ReportURL))
+                    {
+                        userReportFromDB.PreviewButton.interactable = true;
+                        userReportFromDB.PreviewButton.gameObject.SetActive(true);
+                        userReportFromDB
+                            .PreviewButton.transform.GetChild(0)
+                            .GetComponent<TMP_Text>()
+                            .text = "View Report";
+                        userReportFromDB.PreviewButton.onClick.AddListener(
+                            () => CreateReportAndView()
+                        );
+                    }
+                }
+                else if (File.Exists(Path.Combine(Application.persistentDataPath,
+                             $"{userReportFromDB.videoId}.txt")))
+                {
+                    string savedData = File.ReadAllText(Path.Combine(Application.persistentDataPath,
+                        $"{userReportFromDB.videoId}.txt"));
+                    List<VideoSaveBody> videoSaveBodies =
+                        JsonConvert.DeserializeObject < List<VideoSaveBody>>(savedData);
+                    var reportFile = videoSaveBodies.FirstOrDefault(x => x.FileName.Equals("Sample.pdf"));
+                    userReportFromDB.WatchBtn.onClick.RemoveAllListeners();
+                    userReportFromDB.WatchBtn.onClick.AddListener(
+                        () => { CreateFileAndView((int)userReportFromDB.videoId,videoSaveBodies, userReportFromDB.VideoURL, userReportFromDB.UserNameOfSubject); ReferenceManager.instance.SelectedVideoID = userReportFromDB.videoId; ReferenceManager.instance.azureStorageManager.selectedVideo = userReportFromDB; }
+                    );
+                    userReportFromDB.WatchBtn.interactable = true;
+                    userReportFromDB.ProgressImage.gameObject.SetActive(false);
+                    userReportFromDB.ButtonText.text = $"Watch";
+                    userReportFromDB.Download.SetActive(false);
+                    userReportFromDB.Error.SetActive(false);
+                    userReportFromDB.Watch.SetActive(true);
+                    if (reportFile != null)
+                    {
+                        userReportFromDB.PreviewButton.onClick.RemoveAllListeners();
+                        userReportFromDB.PreviewButton.interactable = true;
+                        userReportFromDB.PreviewButton.gameObject.SetActive(true);
+                        userReportFromDB.PreviewButton.transform.GetChild(0).GetComponent<TMP_Text>().text =
+                            "View Report";
+                        userReportFromDB.PreviewButton.onClick.AddListener(
+                            () => CreateReportAndView(reportFile)
+                        );
+                    }
+                    // if (userReportFromDB.request.downloadProgress == 0)
+                    // {
+                    //     userReportFromDB.ButtonText.text = "Retry? No Data Found";
+                    //     userReportFromDB.Download.SetActive(false);
+                    //     userReportFromDB.Error.SetActive(true);
+                    //     userReportFromDB.Watch.SetActive(false);
+                    // }
+                           
+                }
+
+                userReportFromDBs.Add(userReportFromDB);
+            }
+            userReportFromDBs.ForEach(x=>x.CheckIfItContainsTimeBasedReadings());
+            reportGroupHandlerPrefab.ForceRebuildLayout();
+            reportGroupHandlerPrefab.ContentSizeFitter.enabled = false;
+            reportGroupHandlerPrefab.ContentSizeFitter.SetLayoutVertical();
+            reportGroupHandlerPrefab.ContentSizeFitter.enabled = true;
+            if (!hasSpokenAboutReports)
+            {
+                hasSpokenAboutReports = true;
+                ReferenceManager.instance?.TTSTutorialHandler?.NextLine("You can now see in the top of the screen which section you are currently in. Right now we are in the reports section. In the middle of the screen there is scroll view of groups. Which contain reports and recordings related to the group's category. You can click on any of them to go in the next section");
+            }
+        }
+    }
+
     List<GameObject> addedJointReadings = new();
     public void ShowJointReadingsFromDB(List<JointReading> jointReading)
     {
@@ -1663,6 +1725,7 @@ string EscapeMarkdown(string input)
             List<VideoSaveBody> videoSaveBodies = JsonConvert.DeserializeObject<
                 List<VideoSaveBody>
             >(request.downloadHandler.text);
+            File.WriteAllText(Path.Combine(Application.persistentDataPath,$"{userReportFromDB.videoId}.txt"),request.downloadHandler.text);
             var reportFile = videoSaveBodies.FirstOrDefault(x => x.FileName.Equals("Sample.pdf"));
             btn.onClick.RemoveAllListeners();
             btn.onClick.AddListener(
@@ -1731,13 +1794,13 @@ string EscapeMarkdown(string input)
     {
         if (string.IsNullOrEmpty(name))
         {
-            userReportFromDBs.Where(x=>x.mySubGroup == CurrentSelectedSubGroup).ToList().ForEach(x => x.gameObject.SetActive(true));
+            userReportFromDBs.Where(x=> x.MyReportGroupHandler.isDropped && x.mySubGroup.Equals(CurrentSelectedSubGroup,StringComparison.OrdinalIgnoreCase)).ToList().ForEach(x => x.gameObject.SetActive(true));
         }
         else
         {
-           userReportFromDBs.Where((x=>x.MyReportGroupHandler.isDropped && x.mySubGroup == CurrentSelectedSubGroup)).ToList().ForEach(x=>x.gameObject.SetActive(false));
+           userReportFromDBs.Where(x=>x.MyReportGroupHandler.isDropped && x.mySubGroup.Equals(CurrentSelectedSubGroup,StringComparison.OrdinalIgnoreCase)).ToList().ForEach(x=>x.gameObject.SetActive(false));
             var matchingNames = userReportFromDBs
-                .Where(x =>x.mySubGroup == CurrentSelectedSubGroup && x.UserNamefromDB.text.Contains(name, StringComparison.OrdinalIgnoreCase)|| x.ReportDescription.text.Contains(name, StringComparison.OrdinalIgnoreCase))
+                .Where(x => x.MyReportGroupHandler.isDropped && x.mySubGroup.Equals(CurrentSelectedSubGroup,StringComparison.OrdinalIgnoreCase) && (x.UserNamefromDB.text.Contains(name, StringComparison.OrdinalIgnoreCase)|| x.ReportDescription.text.Contains(name, StringComparison.OrdinalIgnoreCase)))
                 .ToList();
             foreach (var item in matchingNames)
             {
@@ -1816,7 +1879,7 @@ string EscapeMarkdown(string input)
         string username = ""
     )
     {
-        ReferenceManager.instance.LoadingManager.Show("Writing Video Files From Server");
+        ReferenceManager.instance.LoadingManager.Show("Reading Video Files");
         if (!GeneralStaticManager.GlobalVar.ContainsKey("Subject"))
             GeneralStaticManager.GlobalVar.Add("Subject", username);
         else

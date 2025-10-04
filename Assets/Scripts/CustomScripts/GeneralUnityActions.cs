@@ -61,40 +61,87 @@ public class GeneralUnityActions : MonoBehaviour
             WhenNoGraphAction?.Invoke();
         }
     }
-    public void DetectScrollOnTop(ScrollRect scrollRect)
+   // Put these near your other fields
+[SerializeField, Range(0.05f, 0.25f)] private float pullThresholdPercent = 0.12f; // 12% of viewport height
+[SerializeField] private float minThresholdPx = 60f;
+[SerializeField] private float maxThresholdPx = 140f;
+[SerializeField, Range(0f, 0.1f)] private float topTolerance = 0.02f; // for verticalNormalizedPosition
+private bool readyToRefresh = false;
+
+// Helper: "how much have we pulled past the top?" in pixels
+private float GetTopOverscrollPx(ScrollRect sr)
+{
+    // At top, pulling DOWN makes content.anchoredPosition.y go NEGATIVE.
+    // Overscroll is positive distance downwards from the top stop.
+    return Mathf.Max(0f, -sr.content.anchoredPosition.y);
+}
+
+public void DetectScrollOnTop(ScrollRect scrollRect)
+{
+    // Compute a size-aware threshold once per call (cheap)
+    float viewportH = (scrollRect.viewport ? scrollRect.viewport.rect.height : scrollRect.GetComponent<RectTransform>().rect.height);
+    float thresholdPx = Mathf.Clamp(viewportH * pullThresholdPercent, minThresholdPx, maxThresholdPx);
+
+    // Are we basically at the top?
+    bool atTop = scrollRect.verticalNormalizedPosition >= (1f - topTolerance);
+
+    // Pointer/drag state (mouse OR touch works)
+    bool isPointerDown = Input.GetMouseButton(0) || Input.touchCount > 0;
+    bool pointerJustReleased = Input.GetMouseButtonUp(0) || (Input.touchCount == 0 && !Input.GetMouseButton(0)); // good enough for this style
+
+    // How far the user has over-pulled past the top
+    float overscroll = GetTopOverscrollPx(scrollRect);
+
+    // ----- UI: show/hide loader while pulling -----
+    if (atTop && isPointerDown && overscroll > 4f)  // small noise guard
     {
-        
-        if (initialPositionoOfContent == Vector2.zero)
-        {
-            Debug.Log("Yahan Zero Tha");
-            initialPositionoOfContent = scrollRect.content.anchoredPosition;
-        }
-        float difference = initialPositionoOfContent.y - scrollRect.content.anchoredPosition.y;
-        // Debug.Log("Scroll Sensitivity: " + scrollSensitivity + "\nAnd Difference: "+ difference + "\nAnd Normal Position: "+ scrollRect.verticalNormalizedPosition);
-        // Debug.Log(difference);
-        if (difference >= scrollSensitivity && loadedLoader == null && Input.GetMouseButton(0))
+        if (loadedLoader == null)
         {
             loadedLoader = Instantiate(LoaderPrefab, scrollRect.content.transform.parent);
-            loadedLoader.GetComponent<RectTransform>().anchoredPosition = new Vector2(0, -40);
+            var rt = loadedLoader.GetComponent<RectTransform>();
+            rt.anchorMin = new Vector2(0.5f, 1f);
+            rt.anchorMax = new Vector2(0.5f, 1f);
+            rt.pivot = new Vector2(0.5f, 1f);
+            rt.anchoredPosition = new Vector2(0f, -40f);
             loadedLoader.transform.SetAsFirstSibling();
         }
-        if (difference >= scrollSensitivity && Input.GetMouseButtonUp(0))
+    }
+    else if ((!isPointerDown || overscroll <= 2f) && loadedLoader != null && !readyToRefresh)
+    {
+        Destroy(loadedLoader);
+        loadedLoader = null;
+    }
+
+    // ----- Logic: threshold & trigger -----
+    if (atTop && isPointerDown)
+    {
+        // Update "ready" state while dragging
+        readyToRefresh = overscroll >= thresholdPx;
+
+        // (Optional) you can animate the loader based on overscroll/threshold here
+        // e.g., loadedLoader.fillAmount = Mathf.Clamp01(overscroll / thresholdPx);
+    }
+
+    // On release: if we crossed the threshold while at top, fire the action
+    if (pointerJustReleased)
+    {
+        if (readyToRefresh && atTop)
         {
             WhenScrolledToTop?.Invoke();
-            initialPositionoOfContent = Vector2.zero;
         }
-        if (difference <= scrollSensitivity && loadedLoader != null)
+
+        // Reset state
+        readyToRefresh = false;
+
+        // Let ScrollRect bounce back; remove loader after release (unless you keep it during refresh)
+        if (loadedLoader != null)
         {
             Destroy(loadedLoader);
             loadedLoader = null;
-            // initialPositionoOfContent = Vector2.zero;
-        }
-
-        if (!Input.GetMouseButtonUp(0) && !Input.GetMouseButton(0) && scrollRect.verticalNormalizedPosition.Equals(1) && difference != 0)
-        {
-            initialPositionoOfContent = Vector2.zero;
         }
     }
+}
+
     
     public void ScrollToTopPosition()
     {

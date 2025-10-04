@@ -47,6 +47,7 @@ public class ReportGroupHandler : MonoBehaviour
     public void ToggleDropDown(bool value)
     {
         ReferenceManager.instance.userReportController.reportSectionManager.SearchReportInputField.placeholder.GetComponent<TMP_Text>().text = "Search " +GroupName.text+"...";
+        ReferenceManager.instance.userReportController.reportSectionManager.ChangeHeadingText($"{GroupName.text}");
         RectTransform myRect = GetComponent<RectTransform>();
         isDropped = true;
         ContentSizeFitter.enabled = false;
@@ -112,6 +113,7 @@ public class ReportGroupHandler : MonoBehaviour
     public void AfterSubgroupIsClicked(string selectedSubgroup)
     {
         ReferenceManager.instance.userReportController.CurrentSelectedSubGroup = selectedSubgroup;
+        ReferenceManager.instance.userReportController.reportSectionManager.SearchReportInputField.placeholder.GetComponent<TMP_Text>().text = "Search " +selectedSubgroup+"...";
         DestroyImmediate(ShowcaseScrollRect.content.GetComponent<GridLayoutGroup>());
         var VLG = ShowcaseScrollRect.content.AddComponent<VerticalLayoutGroup>();
         VLG.spacing = 16;

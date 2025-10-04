@@ -13,6 +13,9 @@ public class CustomDropDown : MonoBehaviour
    public List<CustomDropDownItem> selectedItems = new List<CustomDropDownItem>();
    private void OnEnable()
    {
+      var temp = selectedItems.ToList();
+      temp.ForEach(x=>x.myToggle.isOn=false);
+      temp.Clear();
       foreach (var userReportFromDB in ReferenceManager.instance.userReportController.userReportFromDBs)
       {
          var alreadyPresent = items.FirstOrDefault(x=>x.text.text.Equals($"{userReportFromDB.UserNamefromDB.text}\n{userReportFromDB.ReportDescription.text}")&&x.myUserReport.Equals(userReportFromDB));

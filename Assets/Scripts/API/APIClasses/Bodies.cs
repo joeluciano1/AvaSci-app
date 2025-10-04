@@ -257,3 +257,9 @@ public class AIPromptBody
 {
     public string prompt { get; set; }
 }
+public class CopyToGroupRequest
+{
+    public long ReportId { get; set; }
+    public string GroupName { get; set; }
+    public string SubgroupName { get; set; }
+}
