@@ -59464,18 +59464,6 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
-      - m_Target: {fileID: 1100903948}
-        m_TargetAssemblyTypeName: UserReportController, Assembly-CSharp
-        m_MethodName: Start
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
   LoaderPrefab: {fileID: 3390444412214350645, guid: 84c56c2f6bbed4543a625a0ad5642b0f, type: 3}
   loadedLoader: {fileID: 0}
   hideSkeleton: 0
@@ -130408,7 +130396,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Loading
+  m_text: 
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -168250,6 +168238,18 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
+      - m_Target: {fileID: 1100903948}
+        m_TargetAssemblyTypeName: UserReportController, Assembly-CSharp
+        m_MethodName: StartLightBuzz
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &5920243958485736625
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -192189,18 +192189,6 @@ MonoBehaviour:
       - m_Target: {fileID: 1100903948}
         m_TargetAssemblyTypeName: UserReportController, Assembly-CSharp
         m_MethodName: ReallyCreateNew
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 1
-        m_CallState: 2
-      - m_Target: {fileID: 109808598}
-        m_TargetAssemblyTypeName: ReferenceManager, Assembly-CSharp
-        m_MethodName: SwitchToLidar
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}

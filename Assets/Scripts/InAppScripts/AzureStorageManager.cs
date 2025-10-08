@@ -161,6 +161,7 @@ public class AzureStorageManager : MonoBehaviour
                     if (AzureConnector.Instance.NumberOfVideosUploading <= 0)
                     {
                         ReferenceManager.instance.UploadingImage.gameObject.SetActive(false);
+                        ReferenceManager.instance.userReportController.DeleteUserReportJsonLocally();
                     }
                     ReferenceManager.instance.UploadingImage.transform.GetChild(1).GetComponent<TMP_Text>().text = AzureConnector.Instance.NumberOfVideosUploading.ToString();
                     PlayerPrefs.SetString("LastVidURL", uri);

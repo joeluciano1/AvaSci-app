@@ -6,7 +6,9 @@ using UnityEngine.Networking;
 using UnityEngine.UI;
 using FastForward.CAS;
 using System;
+using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using Newtonsoft.Json;
 using DG.Tweening;
 
@@ -133,13 +135,14 @@ public class UserReportFromDB : MonoBehaviour
             VideoURL = VideoURL
         };
         string json = JsonConvert.SerializeObject(reportDeleteBody);
-        APIHandler.instance.Post("UserReport/DeleteReport", json, onSuccess: (response) =>
+        APIHandler.instance.Post("UserReport/DeleteReport", json, onSuccess: async (response) =>
         {
             ResponseWithNoObject responseWithNoObject = JsonConvert.DeserializeObject<ResponseWithNoObject>(response);
             if (responseWithNoObject.isSuccess)
             {
                 ReferenceManager.instance.PopupManager.Show("Report Delete Success!", $"Report Deleted Successfully");
                 MyReportGroupHandler.DropDownItems.Remove(this);
+                await SyncLocalToo();
                 Destroy(gameObject);
             }
             if (responseWithNoObject.isError)
@@ -158,6 +161,19 @@ public class UserReportFromDB : MonoBehaviour
             ReferenceManager.instance.PopupManager.Show("Report Delete Failed!", $"Reasons are: {error}");
         });
     }
+
+    private async Task SyncLocalToo()
+    {
+        var itemToRemove = ReferenceManager.instance.userReportController.userReportResponse.result.FirstOrDefault(x =>
+            x.VideoURL == this.VideoURL && x.Id == this.videoId);
+        ReferenceManager.instance.userReportController.userReportResponse.result.Remove(itemToRemove);
+        string json =
+            JsonConvert.SerializeObject(ReferenceManager.instance.userReportController.userReportResponse);
+        await File.WriteAllTextAsync(
+            Path.Combine(Application.persistentDataPath, $"{GeneralStaticManager.GlobalVar["UserID"]}_UserReport.json"),
+            json);
+    }
+
     List<HtmlReportFromDb> addedHtmlReports = new List<HtmlReportFromDb>();
     public void ListAvailableHTMLs()
     {

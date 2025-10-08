@@ -71,9 +71,12 @@ public class UserReportController : MonoBehaviour
     public string CurrentSelectedSubGroup;
     public bool webGLBuild;
     // Start is called before the first frame update
-    public void DeleteUserReportJsonLocally()
+    public async void DeleteUserReportJsonLocally()
     {
+        ReferenceManager.instance.LoadingManager.Show("Synchronizing with live DB please wait");
         File.Delete(Path.Combine(Application.persistentDataPath,$"{GeneralStaticManager.GlobalVar["UserID"]}_UserReport.json"));
+        await Task.Delay(1000);
+        Start();
     }
     public void Start()
     {
@@ -87,14 +90,9 @@ public class UserReportController : MonoBehaviour
 
         GetReportsBody getReportsBody = new GetReportsBody();
         
-        if (webGLBuild)
-        {
-            getReportsBody.UserID = "ebbf7721-1444-486a-ac16-1310f3813cb9";
-        }
-        else
-        {
-            getReportsBody.UserID = GeneralStaticManager.GlobalVar["UserID"];
-        }
+        
+        getReportsBody.UserID = GeneralStaticManager.GlobalVar["UserID"];
+        
         string json = JsonConvert.SerializeObject(getReportsBody);
         itemToSnapTo = null;
         if (File.Exists(Path.Combine(Application.persistentDataPath, $"{getReportsBody.UserID}_UserReport.json")))
@@ -109,13 +107,13 @@ public class UserReportController : MonoBehaviour
             APIHandler.instance.Post(
                 "UserReport/GetReports",
                 json,
-                onSuccess: (response) =>
+                onSuccess: async (response) =>
                 {
                     isSilentReportFetch = false;
                     userReportResponse =
                         JsonConvert.DeserializeObject<UserReportResponse>(response);
                     reportJson = response;
-                    File.WriteAllText(
+                    await File.WriteAllTextAsync(
                         Path.Combine(Application.persistentDataPath, $"{getReportsBody.UserID}_UserReport.json"),
                         response);
                     ShowReports();
@@ -1662,9 +1660,13 @@ string EscapeMarkdown(string input)
         StopRecButton.onClick.Invoke();
         ResetButton.onClick.Invoke();
         ReferenceManager.instance.userReportController.isSilentReportFetch = true;
-        Start();
+        // Start();
     }
 
+    public void StartLightBuzz()
+    {
+        videoRecorderView.Show();
+    }
     private bool spokenCreateNew;
     public void ReallyCreateNew()
     {
@@ -1684,7 +1686,7 @@ string EscapeMarkdown(string input)
             ReferenceManager.instance.videoRecordingView.Sensor.OptimizationMode = 0;
         ReferenceManager.instance.sensorTypeDropDown.SetValueWithoutNotify(0);
         ReferenceManager.instance.lightBuzzViewer.Visualization = FrameVisualization.Color;
-        videoRecorderView.Show();
+        // videoRecorderView.Show();
         ResearchMeasurementManager.instance.isDoneWithLeft =false;
         ResearchMeasurementManager.instance.isDoneWithRight = false;
     }
@@ -1943,8 +1945,9 @@ string EscapeMarkdown(string input)
         }
         ReportPanel.SetActive(false);
         GraphPanel.SetActive(true);
-        videoRecorderView.Show();
-
+        // videoRecorderView.Show();
+        ReferenceManager.instance.lightBuzzViewer.gameObject.SetActive(true);
+        videoPlayerView.Show();
         while (!LightBuzzViewer.activeSelf)
         {
             await Task.Delay(500);

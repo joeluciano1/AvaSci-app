@@ -61,7 +61,7 @@ namespace LightBuzz.AvaSci
 
             await _settingsView.Load();
 
-            _videoRecorderView.Show();
+            // _videoRecorderView.Show();
         }
 
         private void Update()
