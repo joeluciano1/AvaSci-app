@@ -92,6 +92,7 @@ public class ReportRecordBody
     public string SubGroupName { get; set; }
     public List<JointReading> jointReadings { get; set; }=new List<JointReading>();
     public List<TimeBasedReadingRequest> TimeBasedReadings { get; set; } = new List<TimeBasedReadingRequest>();
+    public long ReportId { get; set; }
 }
 public class JointReading
 	{
@@ -162,6 +163,7 @@ public class SubscriptionBody
 public class ReportDeleteBody
 {
     public string UserId { get; set; }
+    public long ReportId { get; set; }
     public string VideoURL { get; set; }
 }
 

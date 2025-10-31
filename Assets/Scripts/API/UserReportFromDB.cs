@@ -132,7 +132,8 @@ public class UserReportFromDB : MonoBehaviour
         ReportDeleteBody reportDeleteBody = new ReportDeleteBody()
         {
             UserId = UserId,
-            VideoURL = VideoURL
+            VideoURL = VideoURL,
+            ReportId = videoId
         };
         string json = JsonConvert.SerializeObject(reportDeleteBody);
         APIHandler.instance.Post("UserReport/DeleteReport", json, onSuccess: async (response) =>

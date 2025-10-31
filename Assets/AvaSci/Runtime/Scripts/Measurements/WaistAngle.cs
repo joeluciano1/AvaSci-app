@@ -31,7 +31,7 @@ namespace LightBuzz.AvaSci.Measurements
 
             float angle = Calculations.Rotation(waist3D, pelvis3D, ReferenceManager.instance.WaistRotationPlane);
 
-            if (pelvis3D.Y > waist3D.Y) angle = -angle;
+            if (pelvis3D.X > waist3D.X) angle = -angle;
 
             _value = angle;
             _angleStart = waist.Position2D;

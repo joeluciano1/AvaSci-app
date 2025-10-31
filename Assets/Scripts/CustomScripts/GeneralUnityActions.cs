@@ -61,7 +61,7 @@ public class GeneralUnityActions : MonoBehaviour
             WhenNoGraphAction?.Invoke();
         }
     }
-   // Put these near your other fields
+   
 [SerializeField, Range(0.05f, 0.25f)] private float pullThresholdPercent = 0.12f; // 12% of viewport height
 [SerializeField] private float minThresholdPx = 60f;
 [SerializeField] private float maxThresholdPx = 140f;

@@ -387,7 +387,7 @@ public class ReportSectionManager : MonoBehaviour
                         }
 
                         userReportFromDBs.Add(userReportFromDB);
-                    }
+                }
             }
             else
             {
