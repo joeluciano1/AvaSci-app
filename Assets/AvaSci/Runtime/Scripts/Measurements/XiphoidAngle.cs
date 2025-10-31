@@ -9,7 +9,7 @@ namespace LightBuzz.AvaSci.Measurements
             Type = MeasurementType.XiphoidAngle;
             
             KeyJoint1 = JointType.Xiphoid;
-            KeyJoint2 = JointType.Waist;
+            KeyJoint2 = JointType.Pelvis;
             KeyJoint3 = JointType.Pelvis;
         }
 
@@ -24,19 +24,19 @@ namespace LightBuzz.AvaSci.Measurements
                 return; // Prevent further execution
             }
             Joint Xiphoid = body.Joints[KeyJoint1];
-            Joint Waist = body.Joints[KeyJoint2];
+            Joint pelvis = body.Joints[KeyJoint2];
 
             Vector3D Xiphoid3D = Xiphoid.Position3D;
-            Vector3D waist3D = Waist.Position3D;
+            Vector3D pelvisPosition3D = pelvis.Position3D;
 
-            float angle = Calculations.Rotation(Xiphoid3D, waist3D, ReferenceManager.instance.XiphoidRotationPlane);
+            float angle = Calculations.Rotation(Xiphoid3D, pelvisPosition3D, ReferenceManager.instance.XiphoidRotationPlane);
 
-            if (waist3D.Y > Xiphoid3D.Y) angle = -angle;
-
+            if (pelvisPosition3D.X > Xiphoid3D.X) angle = -angle;
             _value = angle;
+            
             _angleStart = Xiphoid.Position2D;
             _angleCenter = Xiphoid.Position2D;
-            _angleEnd = new Vector2D(Xiphoid.Position2D.X, Waist.Position2D.Y);
+            _angleEnd = new Vector2D(Xiphoid.Position2D.X, pelvis.Position2D.Y);
         }
     }
 }
