@@ -110,7 +110,7 @@ public class AzureStorageManager : MonoBehaviour
                 SubGroupName = subgroups,
                 GroupName = ReferenceManager.instance.commentQuestionnaire.GroupNameDropDown.captionText.text,
                 SubjectId = selectedPatient != null ? selectedPatient.SubjectId: selectedVideo.UserNamefromDB.text,
-                ReportId = ReferenceManager.instance.azureStorageManager.selectedVideo.videoId
+                ReportId = ReferenceManager.instance.azureStorageManager.selectedVideo == null ?  0 : ReferenceManager.instance.azureStorageManager.selectedVideo.videoId
             };
             foreach(var item in ReferenceManager.instance.ButtonHandler.graphDatas)
             {
