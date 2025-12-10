@@ -10,10 +10,17 @@ public class CreatePatientQuestionnaire : MonoBehaviour
 {
     public TMP_InputField EmailInputField;
     public TMP_InputField SubjectNumberInputField;
+    public TMP_InputField RaceInputField;
+    public TMP_InputField BMIInputField;
+    public TMP_InputField HeightInputField;
+    public TMP_InputField WeightInputField;
+    public TMP_InputField DiabetesInputField;
+    public TMP_InputField HypertensionInputField;
+    public TMP_InputField SmokingStatusInputField;
     public TMP_Dropdown ClinicsDropDown;
     public TMP_Dropdown DoctorsDropDown;
     public Button DoneButton;
-
+    
     public void CreatePatient()
     {
         var selectedClinic = ReferenceManager.instance.LoginManager.signinResponse.result.clinics.FirstOrDefault(x => x.ClinicName == ClinicsDropDown.captionText.text);
@@ -24,7 +31,14 @@ public class CreatePatientQuestionnaire : MonoBehaviour
             Email = EmailInputField.text,
             SubjectId = SubjectNumberInputField.text,
             ClinicId = selectedClinic.ClinicId,
-            DoctorId = selectedDoctor.DoctorId
+            DoctorId = selectedDoctor.DoctorId,
+            Race = RaceInputField.text,
+            BMI = float.Parse(BMIInputField.text),
+            Height = float.Parse(HeightInputField.text),
+            Weight = float.Parse(WeightInputField.text),
+            Diabetes = DiabetesInputField.text,
+            Hypertension = HypertensionInputField.text,
+            SmokingStatus = SmokingStatusInputField.text,
         };
         Debug.Log("clinicID is: " + selectedClinic.ClinicId);
         string json = JsonConvert.SerializeObject(addClinicPatientBody);

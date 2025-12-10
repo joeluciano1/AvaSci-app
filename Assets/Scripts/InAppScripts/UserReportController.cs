@@ -75,7 +75,13 @@ public class UserReportController : MonoBehaviour
     {
         ReferenceManager.instance.LoadingManager.Show("Synchronizing with live DB please wait");
         File.Delete(Path.Combine(Application.persistentDataPath,$"{GeneralStaticManager.GlobalVar["UserID"]}_UserReport.json"));
-        await Task.Delay(1000);
+        await Task.Delay(500);
+        while (File.Exists(Path.Combine(Application.persistentDataPath,
+                   $"{GeneralStaticManager.GlobalVar["UserID"]}_UserReport.json")))
+        {
+            await Task.Delay(100);
+        }
+        ReferenceManager.instance.LoadingManager.Hide();
         Start();
     }
     public void Start()
@@ -97,6 +103,7 @@ public class UserReportController : MonoBehaviour
         itemToSnapTo = null;
         if (File.Exists(Path.Combine(Application.persistentDataPath, $"{getReportsBody.UserID}_UserReport.json")))
         {
+            Debug.Log("File Exists");
             string responseJson = File.ReadAllText(Path.Combine(Application.persistentDataPath,
                 $"{getReportsBody.UserID}_UserReport.json"));
             userReportResponse = JsonConvert.DeserializeObject<UserReportResponse>(responseJson);
@@ -147,6 +154,8 @@ public class UserReportController : MonoBehaviour
 
     private void ShowReports()
     {
+        GC.Collect();
+        Resources.UnloadUnusedAssets();
         if (userReportResponse.isSuccess)
         {
             foreach (var item in userReportResponse.result)
@@ -1688,6 +1697,7 @@ string EscapeMarkdown(string input)
         ReferenceManager.instance.lightBuzzViewer.Visualization = FrameVisualization.Color;
         // videoRecorderView.Show();
         ResearchMeasurementManager.instance.isDoneWithLeft =false;
+        ReferenceManager.instance.videoPlayerView.Stop();
         ResearchMeasurementManager.instance.isDoneWithRight = false;
     }
 
@@ -2045,5 +2055,16 @@ string EscapeMarkdown(string input)
             }
             addedReportGroupHandlers.ForEach(x=>x.MyVerticalLayoutGroup.reverseArrangement = true);
         }
+    }
+
+    public void DownloadAll()
+    {
+        userReportFromDBs.ForEach(x=>
+        {
+            if (x.ButtonText.text.Equals("Download"))
+            {
+                x.WatchBtn.onClick.Invoke();
+            }
+        });
     }
 }

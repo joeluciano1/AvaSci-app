@@ -135,6 +135,8 @@ namespace LightBuzz.AvaSci
 
             _videoPlayerView.Options.Path = _videoRecorderView.VideoPath;
             _videoPlayerView.Play();
+            
+            _videoPlayerView.OnPausePlayback();
         }
 
         /// <summary>

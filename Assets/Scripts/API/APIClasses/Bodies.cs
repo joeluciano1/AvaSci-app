@@ -17,6 +17,13 @@ public class SignupBody
     public string reasonForDownload { get; set; }
     public string interests { get; set; }
     public string AdvancedSurvey { get; set; }
+    public string? Race { get; set; }
+    public float? BMI { get; set; }
+    public float? Height { get; set; }
+    public float? Weight { get; set; }
+    public string? Diabetes { get; set; }
+    public string? Hypertension { get; set; }
+    public string? SmokingStatus { get; set; }
 }
 public class CreateHtmlReportBody
 {
@@ -245,6 +252,13 @@ public class AddClinicPatientBody
         public string AdminId { get; set; }
         public string DoctorId { get; set; }
         public string PatientId { get; set; }
+        public string? Race { get; set; }
+        public float? BMI { get; set; }
+        public float? Height { get; set; }
+        public float? Weight { get; set; }
+        public string? Diabetes { get; set; }
+        public string? Hypertension { get; set; }
+        public string? SmokingStatus { get; set; }
     }
     
 public class ShareRecordingRequest

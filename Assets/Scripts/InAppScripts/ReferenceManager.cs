@@ -630,7 +630,8 @@ public class ReferenceManager : MonoBehaviour
     [ContextMenu("PauseVid")]
     public async void PauseTheVideo()
     {
-        await Task.Delay(50);
+        await Task.Delay(500);
+        
         if (!videoPlayerView.VideoPlayer.IsPaused)
             LightBuzzVideoPlayerButton.onClick.Invoke();
     }
