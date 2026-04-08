@@ -140,6 +140,12 @@ public class AzureStorageManager : MonoBehaviour
             string theCSVJson =
                 await GeneralStaticManager.ConvertCsvStringToJson(ReferenceManager.instance.LightBuzzMain
                     .GenerateCSVString());
+            ReferenceManager.instance.UserUploadLegConsentPanel.gameObject.SetActive(true);
+            while (!ReferenceManager.instance.UserUploadLegConsentPanel.LeftToggle.isOn && !ReferenceManager.instance.UserUploadLegConsentPanel.RightToggle.isOn)
+            {
+                await Task.Delay(100);
+            }
+            ReferenceManager.instance.UserUploadLegConsentPanel.gameObject.SetActive(false);
             reportRecordBody.TimeBasedReadings = JsonConvert.DeserializeObject<List<TimeBasedReadingRequest>>(theCSVJson);
             reportRecordBody.TimeBasedReadings.ForEach(x =>
             {
@@ -147,8 +153,10 @@ public class AzureStorageManager : MonoBehaviour
                     ? selectedPatient.PatientName
                     : selectedVideo.UserNameOfSubject;
                 x.ReportsRecordId = ReferenceManager.instance.SelectedVideoID;
+                x.SelectedLeg = ReferenceManager.instance.UserUploadLegConsentPanel.LeftToggle.isOn? "Left Leg" : "Right Leg";
             });
-           
+            ReferenceManager.instance.UserUploadLegConsentPanel.LeftToggle.isOn = false;
+            ReferenceManager.instance.UserUploadLegConsentPanel.RightToggle.isOn = false;
         //////////////// TimeBasedReadingThing ////////////////////////////
             string json = JsonConvert.SerializeObject(reportRecordBody);
             Debug.Log("Upload json:" +json);
@@ -162,7 +170,12 @@ public class AzureStorageManager : MonoBehaviour
                     if (AzureConnector.Instance.NumberOfVideosUploading <= 0)
                     {
                         ReferenceManager.instance.UploadingImage.gameObject.SetActive(false);
-                        ReferenceManager.instance.userReportController.DeleteUserReportJsonLocally();
+                        ReferenceManager.instance.PopupManager.Show("Database Changed","Contents changed in the live Database would you like to fetch the latest data?","No",okPressed:
+                            () =>
+                            {
+                                ReferenceManager.instance.userReportController.DeleteUserReportJsonLocally();
+                            },yesButtonName:"Fetch Data");
+                        
                     }
                     ReferenceManager.instance.UploadingImage.transform.GetChild(1).GetComponent<TMP_Text>().text = AzureConnector.Instance.NumberOfVideosUploading.ToString();
                     PlayerPrefs.SetString("LastVidURL", uri);

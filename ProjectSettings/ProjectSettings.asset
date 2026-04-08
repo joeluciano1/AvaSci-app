@@ -886,7 +886,7 @@ PlayerSettings:
     WebGL: DOTWEEN
     Windows Store Apps: DOTWEEN
     XboxOne: DOTWEEN
-    iPhone: ENABLE_UNITY_SERVICES_CORE_VERBOSE_LOGGING;DOTWEEN
+    iPhone: ENABLE_UNITY_SERVICES_CORE_VERBOSE_LOGGING;DOTWEEN;APP_UI_EDITOR_ONLY
     tvOS: DOTWEEN
   additionalCompilerArguments: {}
   platformArchitecture:

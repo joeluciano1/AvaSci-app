@@ -155,6 +155,7 @@ public class JointReading
         public float? HeelRight3DZ { get; set; }
         public float? AnkleRightConfidence { get; set; }
         public float? AnkleLeftConfidence { get; set; }
+        public string SelectedLeg { get; set; }
     }
     public class RReportGenerateRequest
     {

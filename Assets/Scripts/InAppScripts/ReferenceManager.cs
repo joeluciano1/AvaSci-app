@@ -160,6 +160,7 @@ public class ReferenceManager : MonoBehaviour
     public Plane PelvisRotationPlane = Plane.Coronal;
     public string linkToPortal;
     public CopyToSubGroupPanel CopyToSubGroupPanel;
+    public UserConsentPanel UserUploadLegConsentPanel;
     public void SetDepthMode(bool value)
     {
         if (value)
